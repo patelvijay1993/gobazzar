@@ -1,0 +1,44 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\User;
+
+class Event extends Model
+{
+    protected $fillable = [
+        'user_id', 'category_id', 'title', 'slug', 'description', 'image',
+        'start_date', 'end_date', 'venue', 'city', 'province',
+        'price', 'organizer', 'organizer_phone', 'organizer_email',
+        'website', 'tags', 'is_featured', 'status', 'views',
+    ];
+
+    protected $casts = [
+        'tags'        => 'array',
+        'is_featured' => 'boolean',
+        'start_date'  => 'datetime',
+        'end_date'    => 'datetime',
+    ];
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function getLocationAttribute(): string
+    {
+        return collect([$this->venue, $this->city, $this->province])->filter()->implode(', ');
+    }
+
+    public function getIsPastAttribute(): bool
+    {
+        return $this->start_date->isPast();
+    }
+}
