@@ -3,9 +3,21 @@
 
 @push('styles')
 <style>
+/* Legacy var bridge */
+body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border2:#e2e0db;--surface:#fff;--bg:#f9fafb;--hint:#9ca3af;--rl:14px;--r:8px;--amber:#92400e;--amber-bg:#fef9c3;--amber-light:#fef9c3;--dark:#1a3a8f;--dark2:#122970;--gold:#e8a020;--blue:#1d4ed8;--blue-bg:#eff6ff;--green:#16a34a;--green-bg:#dcfce7;}
 .show-wrap{max-width:1200px;margin:24px auto;padding:0 20px;display:grid;grid-template-columns:1fr 300px;gap:24px;align-items:start}
-@media(max-width:768px){.show-wrap{grid-template-columns:1fr;padding:0 14px}.listing-title{font-size:18px}.listing-price{font-size:22px}}
-@media(max-width:480px){.related-grid{grid-template-columns:1fr}}
+@media(max-width:768px){
+  .show-wrap{grid-template-columns:1fr;padding:0 12px;margin:14px auto;gap:14px}
+  .listing-title{font-size:18px}
+  .listing-price{font-size:22px}
+  .listing-body{padding:16px}
+}
+@media(max-width:480px){
+  .related-grid{grid-template-columns:1fr 1fr}
+  .show-wrap{padding:0 10px}
+  .listing-title{font-size:16px}
+  .listing-price{font-size:20px}
+}
 .listing-main{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--rl);overflow:hidden}
 .listing-img-placeholder{width:100%;height:200px;background:#f3f3f3;font-size:60px;display:flex;align-items:center;justify-content:center}
 .listing-body{padding:20px}
@@ -24,9 +36,13 @@
 .sidebar-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--rl);overflow:hidden;margin-bottom:16px}
 .sidebar-head{background:var(--dark);color:#fff;padding:10px 14px;font-family:var(--fh);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px}
 .sidebar-body{padding:16px}
-.contact-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:13px}
-.contact-row .icon{font-size:16px}
-.btn-block{display:block;width:100%;text-align:center;padding:12px;border-radius:var(--r);font-size:13px;font-weight:600;margin-bottom:8px}
+.contact-row{display:flex;align-items:center;gap:10px;margin-bottom:11px;font-size:13.5px;color:var(--text)}
+.contact-row .icon{width:32px;height:32px;border-radius:8px;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.contact-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;text-align:center;padding:12px;border-radius:9px;font-size:13.5px;font-weight:700;margin-top:10px;text-decoration:none;transition:all .18s}
+.contact-btn-primary{background:var(--primary);color:#fff}
+.contact-btn-primary:hover{background:var(--primary-dark)}
+.contact-btn-outline{background:#fff;border:1.5px solid var(--primary);color:var(--primary)}
+.contact-btn-outline:hover{background:var(--primary-light)}
 
 .related-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px}
 .rel-card{border:1px solid var(--border);border-radius:var(--r);overflow:hidden;display:block;color:var(--text);transition:all .15s}
@@ -67,7 +83,12 @@
           <span class="badge badge-{{ $badge }}">{{ strtoupper($badge) }}</span>
         @endforeach
       </div>
-      <h1 class="listing-title">{{ $listing->title }}</h1>
+      <h1 class="listing-title">
+        {{ $listing->title }}
+        @if($listing->is_verified)
+          <span class="badge badge-ver" style="vertical-align:middle;font-size:11px"><i class="fa-solid fa-circle-check"></i> Verified Seller</span>
+        @endif
+      </h1>
       <div class="listing-meta">
         <span>📍 {{ $listing->location }}</span>
         <span>👁 {{ $listing->views }} views</span>
@@ -93,20 +114,50 @@
     <div class="sidebar-card">
       <div class="sidebar-head">Contact Seller</div>
       <div class="sidebar-body">
+        @if($listing->is_verified)
+          <div style="background:#dcfce7;border:1px solid #86efac;border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:12px;color:#15803d;display:flex;align-items:center;gap:6px">
+            <i class="fa-solid fa-circle-check"></i>
+            <strong>Verified Seller</strong> — trusted, paid member
+          </div>
+        @endif
         @if($listing->contact_name)
-          <div class="contact-row"><span class="icon">👤</span> {{ $listing->contact_name }}</div>
+          <div class="contact-row"><span class="icon"><i class="fa-solid fa-user"></i></span> {{ $listing->contact_name }}</div>
         @endif
         @if($listing->contact_phone)
-          <div class="contact-row"><span class="icon">📞</span> {{ $listing->contact_phone }}</div>
+          <div class="contact-row"><span class="icon"><i class="fa-solid fa-phone"></i></span> {{ $listing->contact_phone }}</div>
         @endif
         @if($listing->contact_email)
-          <a href="mailto:{{ $listing->contact_email }}" class="btn btn-red btn-block">✉ Send Email</a>
+          <div class="contact-row"><span class="icon"><i class="fa-solid fa-envelope"></i></span> {{ Str::limit($listing->contact_email, 24) }}</div>
+        @endif
+        {{-- Chat with Seller button --}}
+        @auth
+          @if(Auth::id() !== $listing->user_id)
+            <a href="{{ route('chat.show', $listing) }}" class="contact-btn contact-btn-primary" style="background:var(--green);margin-bottom:8px">
+              <i class="fa-solid fa-comments"></i> Chat with Seller
+            </a>
+          @endif
+        @else
+          <a href="{{ route('login') }}" class="contact-btn contact-btn-primary" style="background:var(--green);margin-bottom:8px">
+            <i class="fa-solid fa-comments"></i> Chat with Seller
+          </a>
+        @endauth
+
+        @if($listing->contact_email)
+          <a href="mailto:{{ $listing->contact_email }}" class="contact-btn contact-btn-primary"><i class="fa-solid fa-envelope"></i> Send Email</a>
         @endif
         @if($listing->contact_phone)
-          <a href="tel:{{ $listing->contact_phone }}" class="btn btn-ghost btn-block">📞 Call Now</a>
+          <a href="tel:{{ $listing->contact_phone }}" class="contact-btn contact-btn-outline"><i class="fa-solid fa-phone"></i> Call Now</a>
         @endif
       </div>
     </div>
+
+    @auth
+    <div style="text-align:center;margin-bottom:12px">
+      <button onclick="openReportModal('listing', {{ $listing->id }})" style="background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border-radius:6px;transition:color .15s" onmouseover="this.style.color='#e74c3c'" onmouseout="this.style.color='var(--muted)'">
+        <i class="fa-solid fa-flag"></i> Report this listing
+      </button>
+    </div>
+    @endauth
 
     @if($related->count())
       <div class="sidebar-card">
@@ -115,8 +166,8 @@
           @foreach($related as $rel)
             <a href="{{ route('classifieds.show', $rel) }}" class="rel-card">
               <div class="rel-thumb">
-                @if($rel->image)
-                  <img src="{{ asset('storage/'.$rel->image) }}" alt="{{ $rel->title }}">
+                @if($rel->image_url)
+                  <img src="{{ $rel->image_url }}" alt="{{ $rel->title }}">
                 @else
                   {{ $rel->category->icon ?? '📦' }}
                 @endif

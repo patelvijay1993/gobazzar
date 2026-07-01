@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "jetro": {
+      "type": "stdio",
+      "command": "C:\\Users\\patel\\.jetro\\runtime\\node-win32-x64.exe",
+      "args": [
+        "C:\\Users\\patel\\.jetro\\mcp-server\\index.js"
+      ],
+      "env": {
+        "JET_WORKSPACE": "c:\\xampp\\htdocs\\gobazzar-app",
+        "JET_API_URL": "https://api.jetro.ai",
+        "PATH": "C:\\Users\\patel\\.jetro\\runtime;C:\\Program Files\\Common Files\\Oracle\\Java\\javapath;C:\\Program Files (x86)\\Common Files\\Oracle\\Java\\java8path;C:\\Program Files (x86)\\Common Files\\Oracle\\Java\\javapath;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\;C:\\WINDOWS\\System32\\OpenSSH\\;C:\\Program Files\\Git\\cmd;D:\\flutter_3.38.1\\flutter\\bin;C:\\Program Files\\Java\\jdk-19\\bin;C:\\Program Files (x86)\\HP\\HP OCR\\DB_Lib\\;C:\\Program Files\\HP\\Common\\HPDestPlgIn\\;C:\\Program Files (x86)\\HP\\Common\\HPDestPlgIn\\;C:\\Program Files\\Java\\jdk-19;C:\\Program Files\\nodejs;C:\\Users\\patel\\AppData\\Local\\Android\\Sdk\\platform-tools;C:\\xampp\\php;C:\\ProgramData\\ComposerSetup\\bin;C:\\Users\\patel\\AppData\\Local\\Programs\\Python\\Python311\\Scripts\\;C:\\Users\\patel\\AppData\\Local\\Programs\\Python\\Python311\\;C:\\Users\\patel\\AppData\\Local\\Microsoft\\WindowsApps;D:\\flutter_3.38.1\\flutter\\bin;C:\\Program Files\\Java\\jdk-19\\bin;C:\\Users\\patel\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Program Files\\HP\\Common\\HPDestPlgIn\\;C:\\Program Files (x86)\\HP\\Common\\HPDestPlgIn\\;C:\\Program Files\\Java\\jdk-19;C:\\Users\\patel\\AppData\\Roaming\\npm;C:\\Program Files\\nodejs;C:\\Users\\patel\\AppData\\Local\\Android\\Sdk\\platform-tools;C:\\Users\\patel\\AppData\\Roaming\\Composer\\vendor\\bin;D:\\Kiro\\bin"
+      }
+    }
+  }
+}

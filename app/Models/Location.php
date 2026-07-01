@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Location extends Model
 {
-    protected $fillable = ['province', 'city', 'is_active', 'sort_order'];
+    protected $fillable = ['province', 'city', 'is_active', 'sort_order', 'city_image'];
 
     protected $casts = ['is_active' => 'boolean'];
 

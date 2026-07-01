@@ -16,4 +16,24 @@ class EditListing extends EditRecord
             Actions\DeleteAction::make(),
         ];
     }
+
+    // Handle new_photos upload on save
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        $newPhotos = array_values(array_filter((array) ($data['new_photos'] ?? [])));
+
+        if (!empty($newPhotos)) {
+            $data['image']  = $newPhotos[0];
+            $data['images'] = count($newPhotos) > 1 ? array_slice($newPhotos, 1) : null;
+        }
+
+        unset($data['new_photos']);
+        return $data;
+    }
+
+    // Handle new_photos on create too
+    protected function mutateFormDataBeforeCreate(array $data): array
+    {
+        return $this->mutateFormDataBeforeSave($data);
+    }
 }

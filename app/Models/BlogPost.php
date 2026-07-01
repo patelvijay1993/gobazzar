@@ -29,4 +29,10 @@ class BlogPost extends Model
         $minutes = max(1, ceil($words / 200));
         return $minutes.' min read';
     }
+
+    public function getImageUrlAttribute(): ?string
+    {
+        if (!$this->image) return null;
+        return str_starts_with($this->image, 'http') ? $this->image : asset('storage/'.$this->image);
+    }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Advertisement;
 use App\Models\Business;
 use App\Models\Category;
 use App\Models\Event;
@@ -42,7 +43,7 @@ class HomeController extends Controller
             ->get();
 
         $latestListings = Listing::with('category')
-            ->where('status', 'active')
+            ->live()
             ->when($province, fn ($q) => $q->where('province', $province))
             ->when($city,     fn ($q) => $q->where('city', $city))
             ->latest()
@@ -105,7 +106,7 @@ class HomeController extends Controller
         // ── Jobs ──────────────────────────────────────────────────────
         $jobCategories = Category::where('type', 'classifieds')->get();
 
-        $latestJobs = Job::where('status', 'active')
+        $latestJobs = Job::live()
             ->when($province, fn ($q) => $q->where('province', $province))
             ->when($city,     fn ($q) => $q->where('city', $city))
             ->latest()
@@ -124,7 +125,7 @@ class HomeController extends Controller
 
         // ── Sidebar ───────────────────────────────────────────────────
         $sidebarFeatured = Listing::with('category')
-            ->where('status', 'active')
+            ->live()
             ->where('is_featured', true)
             ->when($province, fn ($q) => $q->where('province', $province))
             ->when($city,     fn ($q) => $q->where('city', $city))
@@ -133,7 +134,7 @@ class HomeController extends Controller
             ->get();
 
         $trendingListings = Listing::with('category')
-            ->where('status', 'active')
+            ->live()
             ->when($province, fn ($q) => $q->where('province', $province))
             ->when($city,     fn ($q) => $q->where('city', $city))
             ->orderByDesc('views')
@@ -154,7 +155,7 @@ class HomeController extends Controller
                 ->when($province, fn ($q) => $q->where('province', $province))
                 ->when($city,     fn ($q) => $q->where('city', $city))
                 ->count(),
-            'listings'   => Listing::where('status', 'active')
+            'listings'   => Listing::live()
                 ->when($province, fn ($q) => $q->where('province', $province))
                 ->when($city,     fn ($q) => $q->where('city', $city))
                 ->count(),
@@ -164,11 +165,45 @@ class HomeController extends Controller
                 ->when($province, fn ($q) => $q->where('province', $province))
                 ->when($city,     fn ($q) => $q->where('city', $city))
                 ->count(),
+            'jobs'       => Job::live()
+                ->when($province, fn ($q) => $q->where('province', $province))
+                ->when($city,     fn ($q) => $q->where('city', $city))
+                ->count(),
         ];
+
+        // ── Advertisements ────────────────────────────────────────────
+        $ads = collect([
+            'home-banner' => Advertisement::forPosition('home-banner', $city, $province),
+            'sidebar'     => Advertisement::forPosition('sidebar', $city, $province),
+            'inline'      => Advertisement::forPosition('inline', $city, $province),
+        ])->collapse()->unique('id');
+
+        // ── Active Poll ───────────────────────────────────────────────
+        $poll = \App\Models\Poll::current($city, $province);
 
         // ── Location dropdowns ────────────────────────────────────────
         $provinces = Location::activeProvinces();
         $cities    = Location::activeCities($province);
+
+        // ── Category shortcuts for home nav tabs & quick links ───────
+        $realEstateCatId   = Category::where('slug', 'real-estate')->value('id');
+        $roommatesCatId    = Category::where('slug', 'roommates')->value('id');
+        $housingCategories = implode(',', array_filter([$realEstateCatId, $roommatesCatId]));
+        $autosCategoryId   = Category::where('slug', 'autos')->value('id');
+        $diningCategoryId  = Category::where('slug', 'restaurant')->value('id');
+        $travelAgentCatId  = Category::where('slug', 'travel-agency')->value('id');
+
+        // ── Hero background from uploaded city image ───────────────────
+        $heroBg = null;
+        if ($city) {
+            $loc = Location::where('city', $city)
+                ->when($province, fn ($q) => $q->where('province', $province))
+                ->whereNotNull('city_image')
+                ->first();
+            if ($loc && $loc->city_image) {
+                $heroBg = \Storage::disk('public')->url($loc->city_image);
+            }
+        }
 
         return view('home', compact(
             'blogPosts',
@@ -193,8 +228,16 @@ class HomeController extends Controller
             'trendingListings',
             'latestSidebarBiz',
             'stats',
+            'poll',
             'provinces',
-            'cities'
+            'cities',
+            'heroBg',
+            'ads',
+            'housingCategories',
+            'roommatesCatId',
+            'autosCategoryId',
+            'diningCategoryId',
+            'travelAgentCatId'
         ));
     }
 }

@@ -13,13 +13,16 @@
     'id'     => 'sl' . Str::random(6),
 ])
 
-@php $total = count($images); @endphp
+@php
+  $total = count($images);
+  $resolveImg = fn($p) => str_starts_with($p, 'http') ? $p : \Illuminate\Support\Facades\Storage::disk('s3')->url($p);
+@endphp
 
 @if($total === 0)
   {{-- No images — caller renders placeholder --}}
 @elseif($total === 1)
   {{-- Single image — no slider chrome needed --}}
-  <img src="{{ asset('storage/'.$images[0]) }}"
+  <img src="{{ $resolveImg($images[0]) }}"
        alt="{{ $alt }}"
        style="width:100%;height:{{ $height }};object-fit:cover;display:block">
 @else
@@ -30,7 +33,7 @@
     <div class="sl-track" id="{{ $id }}_track">
       @foreach($images as $i => $img)
         <div class="sl-slide">
-          <img src="{{ asset('storage/'.$img) }}" alt="{{ $alt }} {{ $i+1 }}">
+          <img src="{{ $resolveImg($img) }}" alt="{{ $alt }} {{ $i+1 }}">
         </div>
       @endforeach
     </div>
@@ -57,7 +60,7 @@
     @foreach($images as $i => $img)
       <div class="sl-thumb {{ $i===0 ? 'active':'' }}"
            onclick="slGoTo('{{ $id }}',{{ $i }})">
-        <img src="{{ asset('storage/'.$img) }}" alt="Thumb {{ $i+1 }}">
+        <img src="{{ $resolveImg($img) }}" alt="Thumb {{ $i+1 }}">
       </div>
     @endforeach
   </div>

@@ -4,6 +4,8 @@
 
 @push('styles')
 <style>
+/* Legacy var bridge */
+body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border2:#e2e0db;--surface:#fff;--bg:#f9fafb;--hint:#9ca3af;--rl:14px;--r:8px;--amber:#92400e;--amber-bg:#fef9c3;--amber-light:#fef9c3;--dark:#1a3a8f;--dark2:#122970;--gold:#e8a020;--blue:#1d4ed8;--blue-bg:#eff6ff;--green:#16a34a;--green-bg:#dcfce7;}
 .mat-hero{background:linear-gradient(135deg,#7c3aed 0%,#a855f7 100%);color:#fff;padding:48px 20px;text-align:center}
 .mat-hero h1{font-family:var(--fh);font-size:28px;font-weight:800;margin-bottom:8px}
 .mat-hero p{color:rgba(255,255,255,.75);font-size:14px}
@@ -169,7 +171,7 @@
           <a href="{{ route('matrimonial.show', $p->slug) }}">
             <div class="profile-card-photo">
               @if($p->photo)
-                <img src="{{ asset('storage/'.$p->photo) }}" alt="{{ $p->name }}">
+                <img src="{{ str_starts_with($p->photo,'http') ? $p->photo : \Illuminate\Support\Facades\Storage::disk('s3')->url($p->photo) }}" alt="{{ $p->name }}">
               @else
                 {{ $p->gender === 'male' ? '👨' : '👩' }}
               @endif

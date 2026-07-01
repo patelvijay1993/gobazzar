@@ -1,227 +1,420 @@
 @extends('layouts.app')
-
-@section('title', 'Subscription Plans — GoBazzar')
+@section('title', 'Pricing — GoBazaar')
 
 @push('styles')
 <style>
-.pricing-hero{background:linear-gradient(135deg,var(--dark) 0%,var(--dark2) 100%);color:#fff;padding:56px 20px;text-align:center}
-.pricing-hero h1{font-family:var(--fh);font-size:32px;font-weight:800;margin-bottom:10px}
-.pricing-hero p{color:rgba(255,255,255,.65);font-size:15px;max-width:500px;margin:0 auto}
+/* ── HERO ── */
+.pricing-hero{background:var(--primary);padding:48px 20px;text-align:center;position:relative;overflow:hidden}
+.pricing-hero::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E");pointer-events:none}
+.pricing-hero h1{font-family:var(--fh);font-size:32px;font-weight:800;color:#fff;margin-bottom:10px;position:relative}
+.pricing-hero p{color:rgba(255,255,255,.7);font-size:15px;max-width:500px;margin:0 auto;position:relative}
+.pricing-hero-badges{display:flex;justify-content:center;gap:20px;margin-top:20px;flex-wrap:wrap;position:relative}
+.hero-badge{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.12);color:rgba(255,255,255,.85);font-size:12px;font-weight:500;padding:6px 14px;border-radius:20px;border:1px solid rgba(255,255,255,.15)}
+.hero-badge i{color:var(--accent);font-size:13px}
 
-.pricing-wrap{max-width:1100px;margin:48px auto;padding:0 20px}
+/* ── WRAP ── */
+.pricing-wrap{max-width:1200px;margin:40px auto;padding:0 20px}
 
-.plans-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:20px;margin-bottom:48px}
+/* ── CURRENT PLAN ── */
+.current-plan-bar{background:#eff6ff;border:1px solid #bfdbfe;border-radius:var(--radius);padding:14px 18px;margin-bottom:28px;font-size:13px;display:flex;align-items:center;gap:10px;color:#1d4ed8}
+.current-plan-bar i{font-size:18px;color:#1d4ed8;flex-shrink:0}
 
-.plan-card{background:var(--surface);border:2px solid var(--border);border-radius:var(--rl);padding:28px 24px;position:relative;transition:box-shadow .2s,border-color .2s}
-.plan-card:hover{box-shadow:0 6px 28px rgba(26,10,9,.1)}
-.plan-card.popular{border-color:var(--red);box-shadow:0 4px 20px rgba(192,57,43,.15)}
+/* ── PLANS GRID ── */
+.plans-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:50px;max-width:900px;margin-left:auto;margin-right:auto}
 
-.popular-badge{position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:4px 14px;border-radius:20px;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+.plan-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:28px 22px;position:relative;transition:box-shadow .2s,transform .2s;display:flex;flex-direction:column}
+.plan-card:hover{box-shadow:0 8px 32px rgba(26,58,143,.12);transform:translateY(-3px)}
+.plan-card.popular{border-color:var(--primary);box-shadow:0 4px 24px rgba(26,58,143,.18)}
 
-.plan-name{font-family:var(--fh);font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px}
-.plan-price{font-family:var(--fh);font-size:36px;font-weight:800;color:var(--text);line-height:1;margin-bottom:4px}
-.plan-price sup{font-size:18px;vertical-align:top;margin-top:6px;display:inline-block}
-.plan-price span{font-size:14px;font-weight:400;color:var(--muted)}
-.plan-tagline{font-size:12px;color:var(--muted);margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--border)}
+.popular-badge{position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:var(--primary);color:#fff;font-size:10px;font-weight:700;padding:4px 16px;border-radius:20px;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;display:flex;align-items:center;gap:5px}
 
-.plan-features{list-style:none;margin-bottom:24px}
-.plan-features li{font-size:13px;color:var(--text);padding:5px 0;display:flex;align-items:flex-start;gap:8px}
-.plan-features li .check{color:var(--green);font-size:14px;flex-shrink:0;margin-top:1px}
-.plan-features li .cross{color:var(--hint);font-size:14px;flex-shrink:0;margin-top:1px}
-.plan-features li.faded{color:var(--hint)}
+.plan-icon{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:14px}
+.plan-name{font-family:var(--fh);font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.9px;margin-bottom:8px}
+.plan-price{font-family:var(--fh);font-size:38px;font-weight:800;color:var(--text);line-height:1;margin-bottom:4px;display:flex;align-items:flex-start;gap:2px}
+.plan-price sup{font-size:18px;margin-top:8px;font-weight:700}
+.plan-price .period{font-size:14px;font-weight:400;color:var(--muted);align-self:flex-end;margin-bottom:4px;margin-left:2px}
+.plan-tagline{font-size:12.5px;color:var(--muted);margin-bottom:20px;padding-bottom:18px;border-bottom:1px solid var(--border)}
 
-.plan-cta{display:block;text-align:center;padding:11px;border-radius:var(--r);font-size:13px;font-weight:600;transition:all .15s}
-.plan-cta-red{background:var(--red);color:#fff}
-.plan-cta-red:hover{background:var(--red-dark);color:#fff}
-.plan-cta-outline{border:2px solid var(--border2);color:var(--muted)}
-.plan-cta-outline:hover{border-color:var(--red);color:var(--red)}
-.plan-cta-current{background:var(--green-bg);color:var(--green);border:2px solid var(--green);cursor:default}
+.plan-features{list-style:none;margin-bottom:24px;flex:1;display:flex;flex-direction:column;gap:9px}
+.plan-features li{font-size:13px;color:var(--text);display:flex;align-items:flex-start;gap:9px;line-height:1.4}
+.plan-features li .check{color:#16a34a;font-size:13px;flex-shrink:0;margin-top:1px}
+.plan-features li .cross{color:#d1d5db;font-size:13px;flex-shrink:0;margin-top:1px}
+.plan-features li.faded{color:#9ca3af}
+.plan-features li strong{color:var(--primary)}
 
-.faq-section{max-width:720px;margin:0 auto 48px}
-.faq-section h2{font-family:var(--fh);font-size:20px;font-weight:700;margin-bottom:24px;text-align:center}
-.faq-item{border:1px solid var(--border);border-radius:var(--r);margin-bottom:10px;overflow:hidden}
-.faq-q{padding:14px 16px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none}
-.faq-q:hover{background:var(--bg)}
-.faq-a{padding:0 16px;font-size:13px;color:var(--muted);line-height:1.7;max-height:0;overflow:hidden;transition:max-height .3s,padding .3s}
-.faq-item.open .faq-a{max-height:200px;padding:0 16px 14px}
-.faq-item.open .faq-icon{transform:rotate(45deg)}
-.faq-icon{transition:transform .25s;font-size:16px;color:var(--muted)}
+.plan-cta{display:block;text-align:center;padding:12px;border-radius:var(--radius-sm);font-size:13.5px;font-weight:700;transition:all .2s;text-decoration:none;margin-top:auto}
+.cta-primary{background:var(--primary);color:#fff}
+.cta-primary:hover{background:var(--primary-dark);color:#fff}
+.cta-accent{background:var(--accent);color:#fff}
+.cta-accent:hover{opacity:.88;color:#fff}
+.cta-outline{border:2px solid var(--border);color:var(--muted)}
+.cta-outline:hover{border-color:var(--primary);color:var(--primary)}
+.cta-current{background:#dcfce7;color:#15803d;border:2px solid #bbf7d0;cursor:default}
 
-.contact-cta{background:var(--dark);color:#fff;border-radius:var(--rl);padding:36px;text-align:center;margin-bottom:48px}
-.contact-cta h3{font-family:var(--fh);font-size:20px;font-weight:700;margin-bottom:8px}
-.contact-cta p{color:rgba(255,255,255,.6);font-size:13px;margin-bottom:20px}
-.contact-cta a{background:var(--red);color:#fff;padding:11px 28px;border-radius:var(--r);font-size:13px;font-weight:600;display:inline-block;transition:background .15s}
-.contact-cta a:hover{background:var(--red-dark)}
+/* ── COMPARE TABLE ── */
+.compare-section{margin-bottom:50px}
+.compare-section h2{font-family:var(--fh);font-size:20px;font-weight:700;text-align:center;margin-bottom:20px;color:var(--text)}
+.compare-table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.compare-table th{background:var(--primary);color:#fff;padding:12px 16px;font-size:12.5px;font-weight:700;text-align:center}
+.compare-table th:first-child{text-align:left}
+.compare-table td{padding:11px 16px;font-size:13px;border-bottom:1px solid var(--border);text-align:center;color:var(--text)}
+.compare-table td:first-child{text-align:left;font-weight:500;color:var(--muted)}
+.compare-table tr:last-child td{border-bottom:none}
+.compare-table tr:hover td{background:#f8faff}
+.compare-table .yes{color:#16a34a;font-size:15px}
+.compare-table .no{color:#d1d5db;font-size:15px}
 
-.current-plan-info{background:var(--blue-bg);border:1px solid #bfdbfe;border-radius:var(--r);padding:14px 18px;margin-bottom:28px;font-size:13px;display:flex;align-items:center;gap:10px}
-.current-plan-info strong{color:var(--blue)}
+/* ── FAQ ── */
+.faq-section{max-width:760px;margin:0 auto 50px}
+.faq-section h2{font-family:var(--fh);font-size:22px;font-weight:700;text-align:center;margin-bottom:24px;color:var(--text)}
+.faq-item{background:#fff;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:10px;overflow:hidden}
+.faq-q{padding:15px 18px;font-size:13.5px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px;user-select:none;color:var(--text)}
+.faq-q:hover{background:var(--primary-light);color:var(--primary)}
+.faq-icon{width:24px;height:24px;border-radius:50%;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;transition:transform .25s,background .2s}
+.faq-item.open .faq-icon{transform:rotate(45deg);background:var(--primary);color:#fff}
+.faq-a{padding:0 18px;font-size:13px;color:var(--muted);line-height:1.7;max-height:0;overflow:hidden;transition:max-height .3s,padding .3s}
+.faq-item.open .faq-a{max-height:200px;padding:0 18px 16px}
+
+/* ── CONTACT CTA ── */
+.contact-cta{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);border-radius:var(--radius-lg);padding:44px;text-align:center;margin-bottom:48px;position:relative;overflow:hidden}
+.contact-cta::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4z'/%3E%3C/g%3E%3C/svg%3E');pointer-events:none}
+.contact-cta h3{font-family:var(--fh);font-size:24px;font-weight:800;color:#fff !important;margin-bottom:10px;position:relative}
+.contact-cta p{color:rgba(255,255,255,.75) !important;font-size:14px;margin-bottom:22px;position:relative}
+.contact-cta a{background:var(--accent);color:#fff !important;padding:13px 30px;border-radius:var(--radius-sm);font-size:14px;font-weight:700;display:inline-flex;align-items:center;gap:8px;transition:opacity .2s;position:relative}
+.contact-cta a:hover{opacity:.88;color:#fff !important}
+
+/* ── RESPONSIVE ── */
+@media(max-width:820px){
+  .plans-grid{grid-template-columns:repeat(2,1fr)}
+  .compare-section{display:none}
+}
+@media(max-width:540px){
+  .plans-grid{grid-template-columns:1fr}
+}
+@media(max-width:520px){
+  .plans-grid{grid-template-columns:1fr}
+  .pricing-hero h1{font-size:24px}
+  .pricing-hero-badges{gap:10px}
+  .contact-cta{padding:28px 20px}
+}
 </style>
 @endpush
 
 @section('content')
 
+{{-- HERO --}}
 <div class="pricing-hero">
   <h1>Simple, Transparent Pricing</h1>
-  <p>Post ads, list businesses, and reach the Indian community in Canada. Upgrade anytime.</p>
+  <p>Post ads, list businesses, and reach the Indian-Canadian community. Upgrade anytime.</p>
+  <div class="pricing-hero-badges">
+    <div class="hero-badge"><i class="fa-solid fa-circle-check"></i> No hidden fees</div>
+    <div class="hero-badge"><i class="fa-solid fa-bolt"></i> Instant activation</div>
+    <div class="hero-badge"><i class="fa-solid fa-rotate-left"></i> Cancel anytime</div>
+    <div class="hero-badge"><i class="fa-solid fa-users"></i> 1.6M+ community</div>
+  </div>
 </div>
 
 <div class="pricing-wrap">
 
   @auth
-  <div class="current-plan-info">
-    <span style="font-size:20px">📋</span>
+  <div class="current-plan-bar">
+    <i class="fa-solid fa-id-card"></i>
     <div>
-      You are currently on the <strong>{{ ucfirst(auth()->user()->activePlan()) }}</strong> plan.
-      @if(auth()->user()->isSubscribed() && auth()->user()->plan_expires_at)
-        Your subscription expires on <strong>{{ auth()->user()->plan_expires_at->format('M d, Y') }}</strong>.
-      @elseif(!auth()->user()->isSubscribed())
-        Your posts stay live for <strong>7 days</strong> then are automatically removed.
-        <a href="{{ route('pricing') }}" style="color:var(--red);font-weight:600;margin-left:6px">Upgrade →</a>
+      You are on the <strong>{{ ucfirst(auth()->user()->activePlan()) }}</strong> plan.
+      @if(auth()->user()->activePlan() === 'power_seller')
+        Your listings <strong>auto-renew</strong> and never expire.
+      @elseif(auth()->user()->isSubscribed() && auth()->user()->plan_expires_at)
+        Plan expires on <strong>{{ auth()->user()->plan_expires_at->format('M d, Y') }}</strong>.
+        Your posts stay live for <strong>{{ auth()->user()->postDays() }} days</strong>.
+      @else
+        Your posts stay live for <strong>3 days</strong>.
+        ({{ auth()->user()->activeListingCount() }}/{{ auth()->user()->maxListings() }} active listings used)
       @endif
     </div>
   </div>
   @endauth
 
+  {{-- PLANS GRID (dynamic from DB) --}}
   <div class="plans-grid">
+    @foreach($plans as $plan)
+    @php
+      $userPlan = auth()->check() ? auth()->user()->activePlan() : null;
+      $isCurrent = $userPlan === $plan->slug;
+      $isFree = $plan->slug === 'free';
+      $ctaClass = $plan->slug === 'business' ? 'cta-accent' : ($plan->is_popular ? 'cta-primary' : 'cta-outline');
+    @endphp
+    <div class="plan-card {{ $plan->is_popular ? 'popular' : '' }}">
+      @if($plan->is_popular)
+        <span class="popular-badge"><i class="fa-solid fa-star" style="font-size:9px"></i> Most Popular</span>
+      @endif
 
-    {{-- FREE --}}
-    <div class="plan-card">
-      <div class="plan-name">Free</div>
-      <div class="plan-price"><sup>$</sup>0 <span>/ forever</span></div>
-      <div class="plan-tagline">Get started at no cost</div>
+      <div class="plan-icon" style="background:{{ $plan->icon_bg }}">{{ $plan->icon }}</div>
+      <div class="plan-name">{{ $plan->name }}</div>
+      <div class="plan-price">
+        <sup>$</sup>{{ number_format($plan->price, 2) }}
+        <span class="period">/ {{ $plan->period }}</span>
+      </div>
+      <div class="plan-tagline">{{ $plan->tagline }}</div>
+
       <ul class="plan-features">
-        <li><span class="check">✓</span> Post classifieds &amp; jobs</li>
-        <li><span class="check">✓</span> List matrimonial profile</li>
-        <li><span class="check">✓</span> Post community events</li>
-        <li><span class="check">✓</span> <strong>7-day</strong> post visibility</li>
-        <li class="faded"><span class="cross">✗</span> Featured placement</li>
-        <li class="faded"><span class="cross">✗</span> Business directory listing</li>
-        <li class="faded"><span class="cross">✗</span> Analytics &amp; insights</li>
+        @foreach($plan->features ?? [] as $feature)
+        <li class="{{ $feature['included'] ? '' : 'faded' }}">
+          @if($feature['included'])
+            <i class="fa-solid fa-check check"></i>
+          @else
+            <i class="fa-solid fa-xmark cross"></i>
+          @endif
+          @if($feature['highlight'] ?? false)
+            <strong>{{ $feature['text'] }}</strong>
+          @else
+            {{ $feature['text'] }}
+          @endif
+        </li>
+        @endforeach
       </ul>
+
       @auth
-        @if(auth()->user()->activePlan() === 'free')
-          <span class="plan-cta plan-cta-current">✓ Current Plan</span>
+        @if($isCurrent)
+          <span class="plan-cta cta-current"><i class="fa-solid fa-circle-check"></i> Current Plan</span>
+        @elseif($isFree)
+          <span class="plan-cta cta-outline" style="cursor:default">Your Free Plan</span>
+        @elseif($plan->stripe_price_id)
+          <a href="{{ route('stripe.checkout', $plan->slug) }}" class="plan-cta {{ $ctaClass }}">
+            <i class="fa-brands fa-stripe" style="margin-right:5px"></i>Upgrade — ${{ number_format($plan->price, 2) }}/mo
+          </a>
         @else
-          <span class="plan-cta plan-cta-outline" style="cursor:default">Downgrade</span>
+          <a href="{{ route('pricing.upgrade', $plan->slug) }}" class="plan-cta {{ $ctaClass }}">Upgrade to {{ $plan->name }}</a>
+        @endif
+
+        {{-- Cancel subscription --}}
+        @if($isCurrent && auth()->user()->stripe_subscription_id && auth()->user()->subscription_status === 'active')
+          <form action="{{ route('stripe.cancel') }}" method="POST" style="margin-top:8px"
+            onsubmit="return confirm('Cancel your subscription? You will keep access until the end of the billing period.')">
+            @csrf
+            <button type="submit" style="width:100%;background:none;border:none;color:#ef4444;font-size:12px;cursor:pointer;padding:6px;text-decoration:underline">
+              Cancel Subscription
+            </button>
+          </form>
         @endif
       @else
-        <a href="{{ route('register') }}" class="plan-cta plan-cta-outline">Get Started Free</a>
-      @endauth
-    </div>
-
-    {{-- BASIC --}}
-    <div class="plan-card">
-      <div class="plan-name">Basic</div>
-      <div class="plan-price"><sup>$</sup>9 <span>/ month</span></div>
-      <div class="plan-tagline">For regular community members</div>
-      <ul class="plan-features">
-        <li><span class="check">✓</span> Post classifieds, jobs &amp; events</li>
-        <li><span class="check">✓</span> List matrimonial profile</li>
-        <li><span class="check">✓</span> <strong>30-day</strong> post visibility</li>
-        <li><span class="check">✓</span> 1 business directory listing</li>
-        <li class="faded"><span class="cross">✗</span> Featured placement</li>
-        <li class="faded"><span class="cross">✗</span> Priority support</li>
-        <li class="faded"><span class="cross">✗</span> Analytics &amp; insights</li>
-      </ul>
-      @auth
-        @if(auth()->user()->activePlan() === 'basic')
-          <span class="plan-cta plan-cta-current">✓ Current Plan</span>
+        @if($isFree)
+          <a href="{{ route('register') }}" class="plan-cta cta-outline">Get Started Free</a>
         @else
-          <a href="{{ route('pricing.upgrade', 'basic') }}" class="plan-cta plan-cta-outline">Upgrade to Basic</a>
+          <a href="{{ route('register') }}" class="plan-cta {{ $ctaClass }}">
+            <i class="fa-brands fa-stripe" style="margin-right:5px"></i>Get Started
+          </a>
         @endif
-      @else
-        <a href="{{ route('register') }}" class="plan-cta plan-cta-outline">Get Started</a>
       @endauth
     </div>
+    @endforeach
+  </div>
 
-    {{-- PREMIUM --}}
-    <div class="plan-card popular">
-      <span class="popular-badge">Most Popular</span>
-      <div class="plan-name">Premium</div>
-      <div class="plan-price"><sup>$</sup>19 <span>/ month</span></div>
-      <div class="plan-tagline">For active community contributors</div>
-      <ul class="plan-features">
-        <li><span class="check">✓</span> Unlimited posts across all sections</li>
-        <li><span class="check">✓</span> <strong>90-day</strong> post visibility</li>
-        <li><span class="check">✓</span> <strong>Featured</strong> placement in listings</li>
-        <li><span class="check">✓</span> 3 business directory listings</li>
-        <li><span class="check">✓</span> Priority support</li>
-        <li class="faded"><span class="cross">✗</span> Analytics &amp; insights</li>
-        <li class="faded"><span class="cross">✗</span> Dedicated account manager</li>
-      </ul>
-      @auth
-        @if(auth()->user()->activePlan() === 'premium')
-          <span class="plan-cta plan-cta-current">✓ Current Plan</span>
-        @else
-          <a href="{{ route('pricing.upgrade', 'premium') }}" class="plan-cta plan-cta-red">Upgrade to Premium</a>
-        @endif
-      @else
-        <a href="{{ route('register') }}" class="plan-cta plan-cta-red">Get Started</a>
-      @endauth
-    </div>
+  {{-- COMPARE TABLE — fully dynamic from DB plans --}}
+  <div class="compare-section">
+    <h2>Compare Plans</h2>
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th>Feature</th>
+          @foreach($plans as $p)
+            <th @if($p->is_popular) style="background:#122970" @endif>
+              {{ $p->name }} — ${{ number_format($p->price, 0) }}
+            </th>
+          @endforeach
+        </tr>
+      </thead>
+      <tbody>
 
-    {{-- BUSINESS --}}
-    <div class="plan-card">
-      <div class="plan-name">Business</div>
-      <div class="plan-price"><sup>$</sup>49 <span>/ month</span></div>
-      <div class="plan-tagline">For businesses &amp; power users</div>
-      <ul class="plan-features">
-        <li><span class="check">✓</span> Everything in Premium</li>
-        <li><span class="check">✓</span> <strong>Permanent</strong> post visibility</li>
-        <li><span class="check">✓</span> Unlimited business listings</li>
-        <li><span class="check">✓</span> Top featured placement</li>
-        <li><span class="check">✓</span> Analytics &amp; insights dashboard</li>
-        <li><span class="check">✓</span> Dedicated account manager</li>
-        <li><span class="check">✓</span> Custom banner advertising</li>
-      </ul>
-      @auth
-        @if(auth()->user()->activePlan() === 'business')
-          <span class="plan-cta plan-cta-current">✓ Current Plan</span>
-        @else
-          <a href="{{ route('pricing.upgrade', 'business') }}" class="plan-cta plan-cta-outline">Upgrade to Business</a>
-        @endif
-      @else
-        <a href="{{ route('register') }}" class="plan-cta plan-cta-outline">Get Started</a>
-      @endauth
-    </div>
+        {{-- Active Listings --}}
+        <tr>
+          <td>Active Listings</td>
+          @foreach($plans as $p)
+            <td>
+              @if($p->unlimited_posts || $p->max_listings >= 9999)
+                Unlimited
+              @else
+                Up to {{ $p->max_listings }}
+              @endif
+            </td>
+          @endforeach
+        </tr>
 
+        {{-- Listing Visibility --}}
+        <tr>
+          <td>Listing Visibility</td>
+          @foreach($plans as $p)
+            <td>
+              @if($p->auto_renew || $p->post_days == 0)
+                Auto-Renew (Never expires)
+              @else
+                {{ $p->post_days }} days
+              @endif
+            </td>
+          @endforeach
+        </tr>
+
+        {{-- Photos per Listing --}}
+        <tr>
+          <td>Photos per Listing</td>
+          @foreach($plans as $p)
+            <td>{{ $p->max_images }}</td>
+          @endforeach
+        </tr>
+
+        {{-- Business Directory Listings --}}
+        <tr>
+          <td>Business Directory Listings</td>
+          @foreach($plans as $p)
+            <td>
+              @if($p->biz_listings == 0)
+                <i class="fa-solid fa-xmark no"></i>
+              @elseif($p->biz_listings >= 999)
+                Unlimited
+              @else
+                Up to {{ $p->biz_listings }}
+              @endif
+            </td>
+          @endforeach
+        </tr>
+
+        {{-- Chat Conversation (always available) --}}
+        <tr>
+          <td>Chat Conversation</td>
+          @foreach($plans as $p)
+            <td><i class="fa-solid fa-check yes"></i></td>
+          @endforeach
+        </tr>
+
+        {{-- Verified Badge --}}
+        <tr>
+          <td>Verified Badge</td>
+          @foreach($plans as $p)
+            <td>
+              @if($p->verified_badge)
+                <i class="fa-solid fa-check yes"></i>
+              @else
+                <i class="fa-solid fa-xmark no"></i>
+              @endif
+            </td>
+          @endforeach
+        </tr>
+
+        {{-- Priority Search Placement --}}
+        <tr>
+          <td>Priority Search Placement</td>
+          @foreach($plans as $p)
+            <td>
+              @if($p->featured_placement)
+                <i class="fa-solid fa-check yes"></i>
+              @else
+                <i class="fa-solid fa-xmark no"></i>
+              @endif
+            </td>
+          @endforeach
+        </tr>
+
+        {{-- Listing Analytics --}}
+        <tr>
+          <td>Listing Analytics</td>
+          @foreach($plans as $p)
+            <td>
+              @if(!$p->analytics)
+                <i class="fa-solid fa-xmark no"></i>
+              @elseif($p->priority_support)
+                Advanced
+              @else
+                Basic Insights
+              @endif
+            </td>
+          @endforeach
+        </tr>
+
+        {{-- Unlimited Favorites --}}
+        <tr>
+          <td>Unlimited Favorites</td>
+          @foreach($plans as $p)
+            <td>
+              @if($p->favorites)
+                <i class="fa-solid fa-check yes"></i>
+              @else
+                <i class="fa-solid fa-xmark no"></i>
+              @endif
+            </td>
+          @endforeach
+        </tr>
+
+        {{-- Featured Listing Credits --}}
+        <tr>
+          <td>Featured Listing Credits</td>
+          @foreach($plans as $p)
+            <td>
+              @if($p->featured_credits > 0)
+                {{ $p->featured_credits }} / month
+              @else
+                <i class="fa-solid fa-xmark no"></i>
+              @endif
+            </td>
+          @endforeach
+        </tr>
+
+        {{-- Bulk Listing Upload --}}
+        <tr>
+          <td>Bulk Listing Upload</td>
+          @foreach($plans as $p)
+            <td>
+              @if($p->bulk_upload)
+                <i class="fa-solid fa-check yes"></i>
+              @else
+                <i class="fa-solid fa-xmark no"></i>
+              @endif
+            </td>
+          @endforeach
+        </tr>
+
+        {{-- Priority Support --}}
+        <tr>
+          <td>Priority Support</td>
+          @foreach($plans as $p)
+            <td>
+              @if($p->priority_support)
+                <i class="fa-solid fa-check yes"></i>
+              @else
+                <i class="fa-solid fa-xmark no"></i>
+              @endif
+            </td>
+          @endforeach
+        </tr>
+
+      </tbody>
+    </table>
   </div>
 
   {{-- FAQ --}}
   <div class="faq-section">
     <h2>Frequently Asked Questions</h2>
-
+    @foreach([
+      ['q'=>'What happens to my Free plan listings after 3 days?','a'=>'Free plan listings are automatically removed after 3 days to keep the marketplace fresh. You can repost anytime at no cost. Upgrade to Verified (30 days) or Power Seller (auto-renew, never expires) for longer visibility.'],
+      ['q'=>'What does "Auto Renew" mean on the Power Seller plan?','a'=>'Power Seller listings never expire — they stay live indefinitely and are automatically kept active as long as your subscription is active. No need to repost.'],
+      ['q'=>'What is the Verified Badge?','a'=>'The Verified Badge appears on your profile and listings, signaling to buyers that you are a trusted, verified seller. It helps build confidence and typically leads to more inquiries.'],
+      ['q'=>'What are Featured Listing Credits?','a'=>'Power Seller members receive 5 Featured Listing Credits per month. Use them to pin your listings to the top of search results for maximum visibility.'],
+      ['q'=>'Can I upgrade or downgrade anytime?','a'=>'Yes — you can upgrade anytime and your new plan activates immediately. Downgrading takes effect at the end of your current billing cycle.'],
+      ['q'=>'Do you accept online payments?','a'=>'Currently we process upgrades manually. Contact us via email or WhatsApp to upgrade your account. Online payment (Stripe/PayPal) is coming soon.'],
+    ] as $faq)
     <div class="faq-item">
-      <div class="faq-q">What happens to my free posts after 7 days? <span class="faq-icon">+</span></div>
-      <div class="faq-a">Free plan posts are automatically removed after 7 days to keep listings fresh. You can repost anytime at no cost. Upgrading to a paid plan gives you 30, 90, or permanent visibility.</div>
+      <div class="faq-q">
+        {{ $faq['q'] }}
+        <span class="faq-icon"><i class="fa-solid fa-plus" style="font-size:12px"></i></span>
+      </div>
+      <div class="faq-a">{{ $faq['a'] }}</div>
     </div>
-
-    <div class="faq-item">
-      <div class="faq-q">Can I upgrade or downgrade anytime? <span class="faq-icon">+</span></div>
-      <div class="faq-a">Yes — you can upgrade anytime and your new plan activates immediately. Downgrading takes effect at the end of your current billing cycle.</div>
-    </div>
-
-    <div class="faq-item">
-      <div class="faq-q">How does "Featured" placement work? <span class="faq-icon">+</span></div>
-      <div class="faq-a">Featured posts appear at the top of listing pages with a highlighted badge. Premium and Business subscribers can mark their posts as featured for maximum visibility.</div>
-    </div>
-
-    <div class="faq-item">
-      <div class="faq-q">Is there a free trial for paid plans? <span class="faq-icon">+</span></div>
-      <div class="faq-a">We offer a 7-day free trial for the Basic and Premium plans. No credit card required to start — contact us to activate your trial.</div>
-    </div>
-
-    <div class="faq-item">
-      <div class="faq-q">Do you accept payments online? <span class="faq-icon">+</span></div>
-      <div class="faq-a">Currently we process upgrades manually. Contact us via email or WhatsApp to upgrade your account. Online payment (Stripe/PayPal) is coming soon.</div>
-    </div>
+    @endforeach
   </div>
 
-  {{-- Contact CTA --}}
-  <div class="contact-cta">
-    <h3>Ready to upgrade? Contact us</h3>
-    <p>Send us a message and we'll upgrade your account within 24 hours.</p>
-    <a href="mailto:admin@gobazzar.ca">📧 Email Us to Upgrade</a>
+  {{-- CONTACT CTA --}}
+  <div class="contact-cta" style="color:#fff">
+    <h3 style="color:#fff !important">Ready to upgrade?</h3>
+    <p style="color:rgba(255,255,255,.8) !important">Contact us and we'll upgrade your account within 24 hours. No automated billing — personal service guaranteed.</p>
+    <a href="mailto:admin@gobazaar.ca" style="color:#fff !important"><i class="fa-solid fa-envelope"></i> Email Us to Upgrade</a>
   </div>
 
 </div>
@@ -229,7 +422,10 @@
 <script>
 document.querySelectorAll('.faq-q').forEach(q => {
   q.addEventListener('click', () => {
-    q.closest('.faq-item').classList.toggle('open');
+    const item = q.closest('.faq-item');
+    const isOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
+    if (!isOpen) item.classList.add('open');
   });
 });
 </script>

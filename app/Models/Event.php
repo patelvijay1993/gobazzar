@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Storage;
 use App\Models\User;
 
 class Event extends Model
@@ -40,5 +41,11 @@ class Event extends Model
     public function getIsPastAttribute(): bool
     {
         return $this->start_date->isPast();
+    }
+
+    public function getImageUrlAttribute(): ?string
+    {
+        if (!$this->image) return null;
+        return str_starts_with($this->image, 'http') ? $this->image : Storage::disk('s3')->url($this->image);
     }
 }

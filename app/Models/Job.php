@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Storage;
 
 class Job extends Model
 {
@@ -53,5 +54,23 @@ class Job extends Model
             'hybrid' => 'Hybrid',
             default  => $this->work_mode,
         };
+    }
+
+    /** Active and not past expiry. */
+    public function scopeLive($query)
+    {
+        return $query->where('status', 'active')
+            ->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()));
+    }
+
+    public function isExpired(): bool
+    {
+        return $this->expires_at && $this->expires_at->isPast();
+    }
+
+    public function getLogoUrlAttribute(): ?string
+    {
+        if (!$this->company_logo) return null;
+        return str_starts_with($this->company_logo, 'http') ? $this->company_logo : Storage::disk('s3')->url($this->company_logo);
     }
 }

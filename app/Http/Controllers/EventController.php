@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Advertisement;
 use App\Models\Category;
 use App\Models\Event;
 use App\Models\Location;
@@ -27,8 +28,11 @@ class EventController extends Controller
 
         $provinces = Location::activeProvinces();
         $cities    = Location::activeCities($request->province);
+        $ads       = Advertisement::forPosition('sidebar', $request->city, $request->province, 'events')
+            ->merge(Advertisement::forPosition('inline', $request->city, $request->province, 'events'))
+            ->unique('id');
 
-        return view('events.index', compact('categories', 'events', 'cities', 'provinces'));
+        return view('events.index', compact('categories', 'events', 'cities', 'provinces', 'ads'));
     }
 
     public function show(Event $event)

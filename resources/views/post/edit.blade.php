@@ -3,6 +3,12 @@
 
 @push('styles')
 <style>
+/* Map legacy theme vars to current blue theme */
+.edit-wrap{
+  --red:var(--primary);--red-dark:var(--primary-dark);--red-pale:var(--primary-light);
+  --border2:var(--border);--surface:#fff;--bg:#f9fafb;--hint:#9ca3af;
+  --rl:14px;--r:8px;--amber:#92400e;--amber-bg:#fef9c3;--dark:#1a3a8f;
+}
 .edit-wrap{max-width:860px;margin:32px auto;padding:0 20px}
 .edit-hero{margin-bottom:24px}
 .edit-hero h1{font-family:var(--fh);font-size:22px;font-weight:800}
@@ -47,7 +53,7 @@ textarea.form-input{resize:vertical;min-height:100px}
   </div>
 
   <div class="edit-hero">
-    <h1>Edit {{ ucfirst($type === 'classified' ? 'Classified Ad' : ($type === 'business' ? 'Business Listing' : $type)) }}</h1>
+    <h1>Edit {{ ['classified'=>'Classified Ad','business'=>'Business Listing','business-post'=>'Business Post','job'=>'Job','event'=>'Event','matrimonial'=>'Matrimonial'][$type] ?? ucfirst($type) }}</h1>
     <p>Changes will be reviewed if the post is currently active.</p>
   </div>
 
@@ -154,13 +160,13 @@ textarea.form-input{resize:vertical;min-height:100px}
               <div class="form-label" style="margin-bottom:6px">Current Photos</div>
               <div style="display:flex;flex-wrap:wrap;gap:8px">
                 @foreach($existingImages as $img)
-                  <img src="{{ asset('storage/'.$img) }}" style="width:80px;height:64px;object-fit:cover;border-radius:6px;border:1.5px solid var(--border)">
+                  <img src="{{ str_starts_with($img,'http') ? $img : \Illuminate\Support\Facades\Storage::disk('s3')->url($img) }}" style="width:80px;height:64px;object-fit:cover;border-radius:6px;border:1.5px solid var(--border)">
                 @endforeach
               </div>
               <div class="form-hint">Upload new photos below to replace all existing photos.</div>
             </div>
           @endif
-          <x-image-uploader name="images" :multiple="true" :max="5" label="Photos (up to 5)" hint="JPG, PNG, WEBP · Max 1 MB each · Leave empty to keep current photos" />
+          <x-image-uploader name="images" :multiple="true" :max="$maxImages" :label="'Photos (up to '.$maxImages.')'" hint="JPG, PNG, WEBP · Max 1 MB each · Leave empty to keep current photos" />
         </div>
         <button type="submit" class="btn-save">Save Changes</button>
         <a href="{{ route('account') }}" class="btn-cancel">Cancel</a>
@@ -274,7 +280,7 @@ textarea.form-input{resize:vertical;min-height:100px}
           @if($record->company_logo)
             <div style="margin-bottom:10px">
               <div class="form-label" style="margin-bottom:6px">Current Logo</div>
-              <img src="{{ asset('storage/'.$record->company_logo) }}" style="width:80px;height:64px;object-fit:cover;border-radius:6px;border:1.5px solid var(--border)">
+              <img src="{{ \Illuminate\Support\Facades\Storage::disk('s3')->url($record->company_logo) }}" style="width:80px;height:64px;object-fit:cover;border-radius:6px;border:1.5px solid var(--border)">
               <div class="form-hint">Upload a new logo below to replace it.</div>
             </div>
           @endif
@@ -383,7 +389,7 @@ textarea.form-input{resize:vertical;min-height:100px}
           @if($record->image)
             <div style="margin-bottom:10px">
               <div class="form-label" style="margin-bottom:6px">Current Photo</div>
-              <img src="{{ asset('storage/'.$record->image) }}" style="width:120px;height:80px;object-fit:cover;border-radius:6px;border:1.5px solid var(--border)">
+              <img src="{{ \Illuminate\Support\Facades\Storage::disk('s3')->url($record->image) }}" style="width:120px;height:80px;object-fit:cover;border-radius:6px;border:1.5px solid var(--border)">
               <div class="form-hint">Upload a new photo below to replace it.</div>
             </div>
           @endif
@@ -475,18 +481,18 @@ textarea.form-input{resize:vertical;min-height:100px}
               <div class="form-label" style="margin-bottom:6px">Current Photos</div>
               <div style="display:flex;flex-wrap:wrap;gap:8px">
                 @foreach($existingBizImages as $img)
-                  <img src="{{ asset('storage/'.$img) }}" style="width:80px;height:64px;object-fit:cover;border-radius:6px;border:1.5px solid var(--border)">
+                  <img src="{{ str_starts_with($img,'http') ? $img : \Illuminate\Support\Facades\Storage::disk('s3')->url($img) }}" style="width:80px;height:64px;object-fit:cover;border-radius:6px;border:1.5px solid var(--border)">
                 @endforeach
               </div>
               <div class="form-hint">Upload new photos below to replace all existing photos.</div>
             </div>
           @endif
-          <x-image-uploader name="images" :multiple="true" :max="5" label="Business Photos (up to 5)" hint="JPG, PNG, WEBP · Max 1 MB each · Leave empty to keep current photos" />
+          <x-image-uploader name="images" :multiple="true" :max="$maxImages" :label="'Business Photos (up to '.$maxImages.')'" hint="JPG, PNG, WEBP · Max 1 MB each · Leave empty to keep current photos" />
           <div style="margin-top:18px">
             @if($record->logo)
               <div style="margin-bottom:10px">
                 <div class="form-label" style="margin-bottom:6px">Current Logo</div>
-                <img src="{{ asset('storage/'.$record->logo) }}" style="width:72px;height:72px;object-fit:cover;border-radius:10px;border:1.5px solid var(--border)">
+                <img src="{{ \Illuminate\Support\Facades\Storage::disk('s3')->url($record->logo) }}" style="width:72px;height:72px;object-fit:cover;border-radius:10px;border:1.5px solid var(--border)">
                 <div class="form-hint">Upload a new logo below to replace it.</div>
               </div>
             @endif
@@ -650,11 +656,99 @@ textarea.form-input{resize:vertical;min-height:100px}
           @if($record->photo)
             <div style="margin-bottom:10px">
               <div class="form-label" style="margin-bottom:6px">Current Photo</div>
-              <img src="{{ asset('storage/'.$record->photo) }}" style="width:80px;height:80px;object-fit:cover;border-radius:50%;border:1.5px solid var(--border)">
+              <img src="{{ \Illuminate\Support\Facades\Storage::disk('s3')->url($record->photo) }}" style="width:80px;height:80px;object-fit:cover;border-radius:50%;border:1.5px solid var(--border)">
               <div class="form-hint">Upload a new photo below to replace it.</div>
             </div>
           @endif
           <x-image-uploader name="photo" :multiple="false" :max="1" label="Profile Photo" hint="JPG, PNG, WEBP · Max 1 MB · Leave empty to keep current" />
+        </div>
+        <button type="submit" class="btn-save">Save Changes</button>
+        <a href="{{ route('account') }}" class="btn-cancel">Cancel</a>
+      </div>
+    </div>
+  </form>
+  @endif
+
+  {{-- ── BUSINESS POST ───────────────────────────────────────────── --}}
+  @if($type === 'business-post')
+  <form method="POST" action="{{ route('post.update', ['type'=>'business-post','id'=>$record->id]) }}" enctype="multipart/form-data">
+    @csrf
+    <div class="form-card">
+      <div class="form-card-head">📦 Edit Business Post</div>
+      <div class="form-card-body">
+        <div class="form-section">
+          <div class="form-section-title">Business</div>
+          <div style="font-size:13px;color:var(--muted)">🏢 {{ $record->business->name ?? '—' }}</div>
+        </div>
+        <div class="form-section">
+          <div class="form-section-title">Post Details</div>
+          <div class="form-group" style="margin-bottom:14px">
+            <label class="form-label">Title <span>*</span></label>
+            <input type="text" name="title" class="form-input" value="{{ old('title',$record->title) }}" required>
+          </div>
+          <div class="form-row" style="margin-bottom:14px">
+            <div class="form-group">
+              <label class="form-label">Price</label>
+              <input type="text" name="price" class="form-input" value="{{ old('price',$record->price) }}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Price Unit</label>
+              <input type="text" name="price_unit" class="form-input" value="{{ old('price_unit',$record->price_unit) }}">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Description</label>
+            <textarea name="description" id="ebp-description" style="display:none">{{ old('description',$record->description) }}</textarea>
+            <div id="ebp-description-editor" class="ql-editor-wrap"></div>
+          </div>
+        </div>
+
+        @if($customFields->isNotEmpty())
+        <div class="form-section">
+          <div class="form-section-title">Additional Details</div>
+          @php $cfVals = $record->custom_fields ?? []; @endphp
+          @foreach($customFields as $f)
+            @php $val = old('cf.'.$f->key, $cfVals[$f->key] ?? ''); @endphp
+            <div class="form-group" style="margin-bottom:14px">
+              <label class="form-label">{{ $f->label }} @if($f->is_required)<span>*</span>@endif</label>
+              @if($f->type === 'textarea')
+                <textarea name="cf[{{ $f->key }}]" class="form-input" placeholder="{{ $f->placeholder }}" {{ $f->is_required?'required':'' }}>{{ $val }}</textarea>
+              @elseif($f->type === 'number')
+                <input type="number" name="cf[{{ $f->key }}]" class="form-input" value="{{ $val }}" placeholder="{{ $f->placeholder }}" {{ $f->is_required?'required':'' }}>
+              @elseif($f->type === 'select')
+                <select name="cf[{{ $f->key }}]" class="form-input" {{ $f->is_required?'required':'' }}>
+                  <option value="">Select…</option>
+                  @foreach($f->options ?? [] as $opt)
+                    <option value="{{ $opt }}" {{ $val===$opt ? 'selected':'' }}>{{ $opt }}</option>
+                  @endforeach
+                </select>
+              @elseif($f->type === 'checkbox')
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer">
+                  <input type="checkbox" name="cf[{{ $f->key }}]" value="1" style="width:18px;height:18px" {{ $val==='Yes' ? 'checked':'' }}> Yes
+                </label>
+              @else
+                <input type="text" name="cf[{{ $f->key }}]" class="form-input" value="{{ $val }}" placeholder="{{ $f->placeholder }}" {{ $f->is_required?'required':'' }}>
+              @endif
+            </div>
+          @endforeach
+        </div>
+        @endif
+
+        <div class="form-section">
+          <div class="form-section-title">Photos</div>
+          @php $existingBpImages = $record->images ?? ($record->image ? [$record->image] : []); @endphp
+          @if(count($existingBpImages))
+            <div style="margin-bottom:12px">
+              <div class="form-label" style="margin-bottom:6px">Current Photos</div>
+              <div style="display:flex;flex-wrap:wrap;gap:8px">
+                @foreach($existingBpImages as $img)
+                  <img src="{{ str_starts_with($img,'http') ? $img : \Illuminate\Support\Facades\Storage::disk('s3')->url($img) }}" style="width:80px;height:64px;object-fit:cover;border-radius:6px;border:1.5px solid var(--border)">
+                @endforeach
+              </div>
+              <div class="form-hint">Upload new photos below to replace all existing photos.</div>
+            </div>
+          @endif
+          <x-image-uploader name="images" :multiple="true" :max="$maxImages" :label="'Post Photos (up to '.$maxImages.')'" hint="JPG, PNG, WEBP · Max 1 MB each · Leave empty to keep current photos" />
         </div>
         <button type="submit" class="btn-save">Save Changes</button>
         <a href="{{ route('account') }}" class="btn-cancel">Cancel</a>
@@ -670,12 +764,55 @@ var _qlToolbar = [
   [{'list':'ordered'},{'list':'bullet'}],
   ['clean']
 ];
+var _qlToolbarImg = [
+  ['bold','italic','underline'],
+  [{'list':'ordered'},{'list':'bullet'}],
+  ['link','image'],
+  ['clean']
+];
 
-function _qlInit(editorId, textareaId) {
+function _qlImageHandler(quill) {
+  return function() {
+    var input = document.createElement('input');
+    input.setAttribute('type', 'file');
+    input.setAttribute('accept', 'image/*');
+    input.click();
+    input.onchange = function() {
+      var file = input.files[0];
+      if (!file) return;
+      var fd = new FormData();
+      fd.append('image', file);
+      var range = quill.getSelection(true);
+      quill.insertText(range.index, 'Uploading image…', { italic: true });
+      fetch('{{ route("post.editor-image") }}', {
+        method: 'POST',
+        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'X-Requested-With': 'XMLHttpRequest' },
+        body: fd,
+      })
+      .then(r => r.json())
+      .then(data => {
+        quill.deleteText(range.index, 'Uploading image…'.length);
+        if (data.url) {
+          quill.insertEmbed(range.index, 'image', data.url);
+          quill.setSelection(range.index + 1);
+        }
+      })
+      .catch(() => {
+        quill.deleteText(range.index, 'Uploading image…'.length);
+        alert('Image upload failed. Please try again.');
+      });
+    };
+  };
+}
+
+function _qlInit(editorId, textareaId, withImage) {
   var ta = document.getElementById(textareaId);
   var el = document.getElementById(editorId);
   if (!ta || !el) return;
-  var q = new Quill(el, { theme:'snow', modules:{ toolbar: _qlToolbar } });
+  var q = new Quill(el, { theme:'snow', modules:{ toolbar: withImage ? _qlToolbarImg : _qlToolbar } });
+  if (withImage) {
+    q.getModule('toolbar').addHandler('image', _qlImageHandler(q));
+  }
   if (ta.value) q.clipboard.dangerouslyPasteHTML(ta.value);
   el.closest('form').addEventListener('submit', function() {
     ta.value = q.root.innerHTML;
@@ -686,7 +823,8 @@ _qlInit('ecl-description-editor',   'ecl-description');
 _qlInit('ejob-description-editor',  'ejob-description');
 _qlInit('ejob-requirements-editor', 'ejob-requirements');
 _qlInit('eev-description-editor',   'eev-description');
-_qlInit('ebiz-description-editor',  'ebiz-description');
+_qlInit('ebiz-description-editor',  'ebiz-description', true);
+_qlInit('ebp-description-editor',    'ebp-description', true);
 </script>
 @endpush
 @endsection

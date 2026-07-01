@@ -4,6 +4,8 @@
 
 @push('styles')
 <style>
+/* Legacy var bridge */
+body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border2:#e2e0db;--surface:#fff;--bg:#f9fafb;--hint:#9ca3af;--rl:14px;--r:8px;--amber:#92400e;--amber-bg:#fef9c3;--amber-light:#fef9c3;--dark:#1a3a8f;--dark2:#122970;--gold:#e8a020;--blue:#1d4ed8;--blue-bg:#eff6ff;--green:#16a34a;--green-bg:#dcfce7;}
 .mat-show-wrap{max-width:1100px;margin:32px auto;padding:0 20px;display:grid;grid-template-columns:1fr 320px;gap:28px}
 @media(max-width:768px){.mat-show-wrap{grid-template-columns:1fr;padding:0 14px}.profile-name-row h1{font-size:18px}}
 @media(max-width:480px){.related-grid{grid-template-columns:1fr}}
@@ -60,7 +62,7 @@
     <div class="profile-main">
       <div class="profile-banner">
         @if($profile->photo)
-          <img src="{{ asset('storage/'.$profile->photo) }}" alt="{{ $profile->name }}" class="profile-avatar">
+          <img src="{{ str_starts_with($profile->photo,'http') ? $profile->photo : \Illuminate\Support\Facades\Storage::disk('s3')->url($profile->photo) }}" alt="{{ $profile->name }}" class="profile-avatar">
         @else
           <div class="profile-avatar-placeholder">{{ $profile->gender === 'male' ? '👨' : '👩' }}</div>
         @endif
@@ -115,7 +117,7 @@
         <a href="{{ route('matrimonial.show', $r->slug) }}" class="related-card" style="text-decoration:none;color:inherit">
           <div class="related-avatar">
             @if($r->photo)
-              <img src="{{ asset('storage/'.$r->photo) }}" alt="{{ $r->name }}">
+              <img src="{{ str_starts_with($r->photo,'http') ? $r->photo : \Illuminate\Support\Facades\Storage::disk('s3')->url($r->photo) }}" alt="{{ $r->name }}">
             @else
               {{ $r->gender === 'male' ? '👨' : '👩' }}
             @endif

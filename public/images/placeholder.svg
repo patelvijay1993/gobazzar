@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+  <rect width="400" height="300" fill="#f0ede8"/>
+  <!-- subtle grid pattern -->
+  <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+    <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#e2e0db" stroke-width="0.5"/>
+  </pattern>
+  <rect width="400" height="300" fill="url(#grid)"/>
+  <!-- center icon circle -->
+  <circle cx="200" cy="130" r="52" fill="#e8edf7"/>
+  <!-- image icon -->
+  <rect x="175" y="108" width="50" height="38" rx="4" fill="none" stroke="#1a3a8f" stroke-width="2.5"/>
+  <circle cx="188" cy="121" r="4" fill="#1a3a8f"/>
+  <polyline points="175,140 191,124 204,137 214,127 225,140" fill="none" stroke="#1a3a8f" stroke-width="2.5" stroke-linejoin="round"/>
+  <!-- GoBazaar text -->
+  <text x="200" y="205" font-family="Arial,sans-serif" font-size="18" font-weight="700" fill="#1a3a8f" text-anchor="middle">GoBazaar</text>
+  <text x="200" y="225" font-family="Arial,sans-serif" font-size="11" fill="#6b6b6b" text-anchor="middle">Image not available</text>
+</svg>

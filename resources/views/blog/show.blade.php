@@ -5,6 +5,8 @@
 
 @push('styles')
 <style>
+/* Legacy var bridge */
+body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border2:#e2e0db;--surface:#fff;--bg:#f9fafb;--hint:#9ca3af;--rl:14px;--r:8px;--amber:#92400e;--amber-bg:#fef9c3;--amber-light:#fef9c3;--dark:#1a3a8f;--dark2:#122970;--gold:#e8a020;--blue:#1d4ed8;--blue-bg:#eff6ff;--green:#16a34a;--green-bg:#dcfce7;}
 .blog-show-wrap{max-width:1200px;margin:32px auto;padding:0 20px;display:grid;grid-template-columns:1fr 300px;gap:32px}
 @media(max-width:768px){.blog-show-wrap{grid-template-columns:1fr}}
 
@@ -82,9 +84,9 @@
       </div>
     </div>
 
-    @if($post->image)
+    @if($post->image_url)
     <div class="post-cover">
-      <img src="{{ asset('storage/'.$post->image) }}" alt="{{ $post->title }}">
+      <img src="{{ $post->image_url }}" alt="{{ $post->title }}">
     </div>
     @endif
 
@@ -135,7 +137,7 @@
         @foreach($related as $rp)
         <div class="related-card">
           @if($rp->image)
-            <img src="{{ asset('storage/'.$rp->image) }}" alt="{{ $rp->title }}">
+            <img src="{{ str_starts_with($rp->image,'http') ? $rp->image : asset('storage/'.$rp->image) }}" alt="{{ $rp->title }}">
           @else
             <div style="height:120px;background:var(--red-pale);display:grid;place-items:center;font-size:30px">📰</div>
           @endif

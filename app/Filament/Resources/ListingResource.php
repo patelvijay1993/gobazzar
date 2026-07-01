@@ -38,7 +38,15 @@ class ListingResource extends Resource
                     ->options(['pending'=>'Pending','active'=>'Active','rejected'=>'Rejected','expired'=>'Expired'])
                     ->default('pending')
                     ->required(),
-                Forms\Components\Textarea::make('description')->columnSpanFull()->rows(4),
+                Forms\Components\RichEditor::make('description')
+                    ->columnSpanFull()
+                    ->toolbarButtons([
+                        'bold', 'italic', 'underline', 'strike',
+                        'bulletList', 'orderedList',
+                        'h2', 'h3',
+                        'link', 'blockquote',
+                        'undo', 'redo',
+                    ]),
             ])->columns(2),
 
             Forms\Components\Section::make('Pricing & Location')->schema([
@@ -48,10 +56,66 @@ class ListingResource extends Resource
             ])->columns(2),
 
             Forms\Components\Section::make('Media & Tags')->schema([
-                Forms\Components\FileUpload::make('image')
-                    ->image()
-                    ->directory('listings')
+                // Current photos preview — remove via fetch (no nested form)
+                Forms\Components\Placeholder::make('current_photos')
+                    ->label('Current Photos')
+                    ->content(function ($record) {
+                        if (!$record) return new \Illuminate\Support\HtmlString('—');
+                        $all = array_values(array_filter(array_merge(
+                            $record->image ? [$record->image] : [],
+                            (array) ($record->images ?? [])
+                        )));
+                        if (empty($all)) return new \Illuminate\Support\HtmlString(
+                            '<span style="color:#9ca3af;font-size:13px">No photos yet.</span>'
+                        );
+                        $removeUrl = route('admin.listing.remove-image', $record->id);
+                        $token = csrf_token();
+                        $html = '<div id="current-photos-wrap" style="display:flex;flex-wrap:wrap;gap:10px;margin-top:4px">';
+                        foreach ($all as $img) {
+                            $url = str_starts_with($img, 'http') ? $img : asset('storage/'.$img);
+                            $enc = base64_encode($img);
+                            $html .= '
+                            <div style="position:relative;display:inline-block" id="wrap-'.$enc.'">
+                                <img src="'.$url.'" style="width:100px;height:76px;object-fit:cover;border-radius:8px;border:1.5px solid #e5e7eb;display:block">
+                                <button type="button"
+                                    onclick="removeListingPhoto(\''.addslashes($removeUrl).'\',\''.$enc.'\',\''.$token.'\')"
+                                    style="position:absolute;top:-7px;right:-7px;width:22px;height:22px;border-radius:50%;background:#ef4444;border:2px solid #fff;color:#fff;font-size:13px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;font-weight:700">&times;</button>
+                            </div>';
+                        }
+                        $html .= '</div>
+                        <p style="font-size:11px;color:#9ca3af;margin-top:6px">Click × to remove. Upload new photos below to add/replace.</p>
+                        <script>
+                        function removeListingPhoto(url, enc, token) {
+                            if (!confirm("Remove this photo?")) return;
+                            fetch(url, {
+                                method: "DELETE",
+                                headers: {"Content-Type":"application/json","X-CSRF-TOKEN":token},
+                                body: JSON.stringify({img: enc})
+                            }).then(r => {
+                                if (r.ok || r.redirected) {
+                                    var el = document.getElementById("wrap-" + enc);
+                                    if (el) el.remove();
+                                } else { alert("Failed to remove photo."); }
+                            }).catch(() => alert("Error removing photo."));
+                        }
+                        </script>';
+                        return new \Illuminate\Support\HtmlString($html);
+                    })
                     ->columnSpanFull(),
+
+                // Upload new photos — stored properly via mutateFormDataBeforeSave
+                Forms\Components\FileUpload::make('new_photos')
+                    ->label('Upload New Photos (up to 5)')
+                    ->image()
+                    ->multiple()
+                    ->maxFiles(5)
+                    ->reorderable()
+                    ->directory('listings')
+                    ->imagePreviewHeight('100')
+                    ->panelLayout('grid')
+                    ->helperText('Leave empty to keep current photos.')
+                    ->columnSpanFull()
+                    ->dehydrated(true),
                 Forms\Components\TagsInput::make('tags')->columnSpanFull(),
                 Forms\Components\CheckboxList::make('badges')
                     ->options(['feat'=>'Featured','ver'=>'Verified','new'=>'New','hot'=>'Hot'])
@@ -77,7 +141,7 @@ class ListingResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\ImageColumn::make('image')->circular(),
+                Tables\Columns\ImageColumn::make('image')->circular()->getStateUsing(fn ($record) => $record->image_url),
                 Tables\Columns\TextColumn::make('title')->searchable()->limit(40)->sortable(),
                 Tables\Columns\TextColumn::make('category.name')->badge()->color('info'),
                 Tables\Columns\TextColumn::make('price'),

@@ -1,899 +1,1126 @@
 @extends('layouts.app')
-@section('title', 'GoBazzar — Indian Community Portal in Canada')
-@section('description', "Canada's #1 Indian community portal — Classifieds, Yellow Pages, Events, Jobs, Blog, Matrimonial and more for Indians in Canada.")
+@section('title', "GoBazaar — Canada's #1 Indian Community Portal")
+@section('description', "Canada's #1 Indian community portal — Classifieds, Yellow Pages, Events, Jobs, Blog and more for Indians in Canada.")
 
 @push('styles')
 <style>
-/* ── HERO ──────────────────────────────────────────────────────── */
-.hero{background:var(--dark);padding:36px 20px;position:relative;overflow:hidden;background-image:url("https://images.unsplash.com/photo-1567360425852-ed03ee47df0d?w=1400&q=70&fit=crop");background-size:cover;background-position:center}
-.hero::before{content:'';position:absolute;inset:0;background:rgba(15,5,4,.75);z-index:0;pointer-events:none}
-.hero::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 80% at 70% 50%,rgba(192,57,43,.35) 0%,transparent 70%);pointer-events:none;z-index:0}
-.hero-inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 420px;gap:40px;align-items:center;position:relative;z-index:1}
-.hero-tag{display:inline-block;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.7);font-size:10.5px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;padding:4px 12px;border-radius:20px;margin-bottom:14px}
-.hero h1{font-family:var(--fh);font-size:32px;font-weight:800;color:#fff;line-height:1.18;margin-bottom:10px}
-.hero h1 span{color:var(--red2)}
-.hero-desc{font-size:13.5px;color:rgba(255,255,255,.55);margin-bottom:22px;max-width:480px}
-.hero-btns{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:22px}
-.hero-stats{display:flex;gap:20px;border-top:1px solid rgba(255,255,255,.1);padding-top:18px;flex-wrap:wrap}
-.hero-stat{font-size:11.5px;color:rgba(255,255,255,.5)}
-.hero-stat b{color:rgba(255,255,255,.9);font-family:var(--fh);font-size:14px;display:block}
-.hero-search-box{background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.1);border-radius:var(--rl);padding:22px;backdrop-filter:blur(8px)}
-.hero-search-box h3{font-family:var(--fh);font-size:13px;font-weight:700;color:rgba(255,255,255,.8);margin-bottom:14px;text-transform:uppercase;letter-spacing:.8px}
-.search-field{display:flex;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:var(--r);height:40px;align-items:center;padding:0 12px;gap:8px;margin-bottom:10px}
-.search-field input,.search-field select{background:none;border:none;font-size:12.5px;color:#fff;flex:1;outline:none}
-.search-field input::placeholder{color:rgba(255,255,255,.35)}
-.search-field select option{background:var(--dark);color:#fff}
-.quick-cats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
-.qcat{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:var(--r);padding:8px 6px;text-align:center;transition:all .15s;font-size:11px;color:rgba(255,255,255,.7);display:block;text-decoration:none}
-.qcat:hover{background:var(--red);border-color:var(--red);color:#fff}
-.qcat .icon{font-size:18px;display:block;margin-bottom:3px}
-/* ── LAYOUT ────────────────────────────────────────────────────── */
-.main-wrap{max-width:1200px;margin:0 auto;padding:20px;display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start}
-.content{min-width:0}
-.sidebar-right{display:flex;flex-direction:column;gap:0}
-.sec-head{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--dark);color:#fff;border-radius:var(--r) var(--r) 0 0}
-.sec-head h2{font-family:var(--fh);font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px}
-.sec-head a{font-size:11px;color:rgba(255,255,255,.6);transition:color .15s}
-.sec-head a:hover{color:#fff}
-.sec-box{background:var(--surface);border:1.5px solid var(--border);border-top:none;border-radius:0 0 var(--r) var(--r);margin-bottom:18px;overflow:hidden}
-.empty-note{padding:24px;text-align:center;color:var(--muted);font-size:13px}
-.empty-note a{color:var(--red)}
-/* ── ROW-ITEM ──────────────────────────────────────────────────── */
-.row-item{display:flex;align-items:flex-start;padding:9px 12px;border-bottom:1px solid var(--border);transition:background .12s;gap:10px;text-decoration:none;color:var(--text)}
-.row-item:last-child{border-bottom:none}
-.row-item:hover{background:var(--red-pale)}
-.ri-body{flex:1;min-width:0}
-.ri-title{font-size:12.5px;font-weight:500;line-height:1.4;color:var(--text)}
-.ri-sub{font-size:11px;color:var(--muted);margin-top:2px}
-.ri-loc{font-size:10.5px;color:var(--hint);margin-top:1px}
-.ri-arr{color:var(--hint);font-size:11px;flex-shrink:0;align-self:center}
-.ri-badge{font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:20px;white-space:nowrap;flex-shrink:0;align-self:flex-start;margin-top:2px}
-.badge-new{background:#DCFCE7;color:#15803D}
-.badge-hot{background:#FEE2E2;color:var(--red)}
-.badge-feat{background:#FEF9C3;color:#92400E}
-/* ── AD CARDS ──────────────────────────────────────────────────── */
-.ads-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:12px}
-.ad-card{border:1.5px solid var(--border);border-radius:var(--rl);overflow:hidden;transition:all .18s;display:block;color:var(--text);text-decoration:none}
-.ad-card:hover{border-color:var(--red2);box-shadow:var(--sh);transform:translateY(-2px)}
-.ad-thumb{height:120px;display:flex;align-items:center;justify-content:center;font-size:36px;position:relative;overflow:hidden;background:var(--bg)}
-.ad-thumb img{width:100%;height:100%;object-fit:cover}
-.ad-body{padding:10px}
-.ad-title{font-size:12px;font-weight:500;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:4px}
-.ad-loc{font-size:10.5px;color:var(--muted);margin-bottom:4px}
-.ad-price{font-family:var(--fh);font-size:15px;font-weight:700;color:var(--red)}
-.ad-price small{font-size:10px;font-weight:400;color:var(--muted);font-family:var(--fb)}
-.abs-badges{position:absolute;top:6px;left:6px;display:flex;gap:4px}
-.vbadge{font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:20px}
-.vb-feat{background:var(--gold);color:#fff}
-.vb-new{background:var(--blue);color:#fff}
-/* ── BLOG CARDS ────────────────────────────────────────────────── */
-.blog-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:12px}
-.blog-card{border:1.5px solid var(--border);border-radius:var(--rl);overflow:hidden;transition:all .15s;display:block;color:var(--text);text-decoration:none}
-.blog-card:hover{border-color:var(--red2);box-shadow:var(--sh);transform:translateY(-2px)}
-.blog-thumb{height:100px;display:flex;align-items:center;justify-content:center;font-size:32px;overflow:hidden;background:var(--bg)}
-.blog-thumb img{width:100%;height:100%;object-fit:cover}
-.blog-body{padding:10px}
-.blog-cat-tag{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--red);margin-bottom:4px}
-.blog-title{font-size:12px;font-weight:500;line-height:1.4;margin-bottom:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.blog-date{font-size:10px;color:var(--muted)}
-.blog-read{font-size:10.5px;color:var(--red);font-weight:500;margin-top:5px}
-/* ── EVENT ITEMS ───────────────────────────────────────────────── */
-.ev-item{display:flex;gap:10px;padding:9px 12px;border-bottom:1px solid var(--border);transition:background .12s;text-decoration:none;color:var(--text)}
-.ev-item:hover{background:var(--red-pale)}
-.ev-item:last-child{border-bottom:none}
-.ev-date-box{min-width:38px;text-align:center;background:var(--red-pale);border:1px solid var(--border2);border-radius:var(--r);padding:5px 4px;flex-shrink:0}
-.ev-date-box .day{font-family:var(--fh);font-size:18px;font-weight:800;color:var(--red);line-height:1}
-.ev-date-box .mon{font-size:9px;text-transform:uppercase;font-weight:700;color:var(--muted)}
-.ev-body{flex:1;min-width:0}
-.ev-title{font-size:12.5px;font-weight:500;line-height:1.35}
-.ev-meta{font-size:11px;color:var(--muted);margin-top:2px}
-.ev-badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;background:var(--red-pale);color:var(--red);white-space:nowrap;flex-shrink:0;align-self:flex-start;margin-top:2px}
-/* ── CATEGORY ICON BAR ─────────────────────────────────────────── */
-.cat-icon-bar{display:grid;border-bottom:1px solid var(--border)}
-.cat-icon-item{padding:12px 6px;text-align:center;border-right:1px solid var(--border);transition:background .12s;display:block;text-decoration:none;color:var(--text)}
-.cat-icon-item:last-child{border-right:none}
-.cat-icon-item:hover{background:var(--red-pale)}
-.ci-icon{font-size:22px;margin-bottom:5px}
-.ci-lbl{font-size:11px;font-weight:600}
-/* ── JOB QUICK CATS ────────────────────────────────────────────── */
-.job-cats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:10px 12px;border-bottom:1px solid var(--border)}
-.job-cat{padding:10px;border:1.5px solid var(--border);border-radius:var(--r);text-align:center;font-size:11.5px;font-weight:500;transition:border-color .15s;display:block;text-decoration:none;color:var(--text)}
-.job-cat:hover{border-color:var(--red);color:var(--red)}
-/* ── SIDEBAR WIDGETS ───────────────────────────────────────────── */
-.widget{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--rl);overflow:hidden;margin-bottom:16px}
-.widget-head{background:var(--red);color:#fff;padding:8px 14px;font-family:var(--fh);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;display:flex;justify-content:space-between;align-items:center}
-.widget-head a{font-size:10.5px;color:rgba(255,255,255,.7);font-family:var(--fb);font-weight:400;text-decoration:none}
-.widget-head a:hover{color:#fff}
-.widget-body{padding:12px}
-.poll-opt{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-.poll-label{font-size:11.5px;flex:1}
-.poll-bar-wrap{flex:2;background:var(--bg);border:1px solid var(--border2);border-radius:4px;height:16px;overflow:hidden;position:relative}
-.poll-bar{height:100%;background:var(--red-pale)}
-.poll-val{position:absolute;right:5px;top:50%;transform:translateY(-50%);font-size:9px;color:var(--muted);font-weight:600}
-.poll-btn{width:100%;padding:8px;background:var(--red);color:#fff;border:none;border-radius:var(--r);font-size:12px;font-weight:600;margin-top:6px;cursor:pointer;transition:background .15s}
-.poll-btn:hover{background:var(--red-dark)}
-.qlink{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--border);transition:all .12s;font-size:12.5px;text-decoration:none;color:var(--text)}
-.qlink:last-child{border-bottom:none}
-.qlink:hover{background:var(--red-pale);color:var(--red)}
-.ql-icon{font-size:16px;width:24px;text-align:center}
-.ql-arr{margin-left:auto;font-size:10px;color:var(--hint)}
-.w-ad{display:block;width:100%;margin-bottom:8px;cursor:pointer;transition:transform .15s;text-decoration:none}
-.w-ad:last-child{margin-bottom:0}
-.w-ad:hover{transform:scale(1.01)}
-.w-ad-inner{padding:14px;border:1.5px solid var(--border);border-radius:var(--r);background:var(--bg);text-align:center}
-.w-ad-inner .icon{font-size:28px;margin-bottom:6px}
-.w-ad-inner .title{font-size:12px;font-weight:600;margin-bottom:3px;color:var(--text)}
-.w-ad-inner .sub{font-size:10.5px;color:var(--muted)}
-.w-ad-inner .cta{display:inline-block;margin-top:8px;background:var(--red);color:#fff;font-size:10.5px;font-weight:600;padding:4px 12px;border-radius:20px}
-.trend-item{display:flex;align-items:flex-start;gap:8px;padding:9px 12px;border-bottom:1px solid var(--border);text-decoration:none;color:var(--text);transition:background .12s}
-.trend-item:hover{background:var(--red-pale)}
-.trend-item:last-child{border-bottom:none}
-.trend-num{font-family:var(--fh);font-size:20px;font-weight:800;color:var(--border2);line-height:1;width:24px;flex-shrink:0}
-.trend-title{font-size:12px;font-weight:500;line-height:1.4}
-.trend-cat{font-size:10px;color:var(--muted)}
-.sub-form{padding:12px;display:flex;flex-direction:column;gap:8px}
-.sub-form input{padding:8px 12px;border:1.5px solid var(--border2);border-radius:var(--r);font-size:12px;background:var(--bg);outline:none}
-.sub-form button{padding:9px;background:var(--red);color:#fff;border-radius:var(--r);font-size:12.5px;font-weight:600;border:none;cursor:pointer}
-.sub-form button:hover{background:var(--red-dark)}
-/* ── FOOTER ────────────────────────────────────────────────────── */
-.home-footer{background:var(--dark);padding:32px 20px 20px;margin-top:0}
-.foot-inner{max-width:1200px;margin:0 auto}
-.foot-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:24px;margin-bottom:24px}
-.foot-brand p{font-size:12px;color:rgba(255,255,255,.45);line-height:1.7;margin-top:8px;max-width:260px}
-.serving{font-size:11.5px;color:rgba(255,255,255,.55);font-style:italic;border-top:1px solid rgba(255,255,255,.07);padding-top:14px;margin-top:14px}
-.foot-col h4{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:rgba(255,255,255,.6);margin-bottom:12px}
-.foot-col a{display:block;font-size:12px;color:rgba(255,255,255,.4);margin-bottom:7px;transition:color .15s}
-.foot-col a:hover{color:rgba(255,255,255,.9)}
-.foot-bottom{border-top:1px solid rgba(255,255,255,.07);padding-top:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
-.foot-bottom p{font-size:11px;color:rgba(255,255,255,.35)}
-.foot-links{display:flex;gap:14px;flex-wrap:wrap}
-.foot-links a{font-size:11px;color:rgba(255,255,255,.35);transition:color .15s}
-.foot-links a:hover{color:rgba(255,255,255,.7)}
-/* ── MOBILE HERO SEARCH ────────────────────────────────────────── */
-.hero-mobile-search{display:none;margin-top:16px}
-.hero-mobile-search .search-field{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2)}
-.hero-mobile-search .search-field input,.hero-mobile-search .search-field select{color:#fff}
-.hero-mobile-search .search-field select option{background:var(--dark)}
-.hero-mobile-btn{width:100%;background:var(--red);color:#fff;border:none;border-radius:var(--r);padding:10px;font-size:13px;font-weight:600;cursor:pointer;margin-top:4px}
+/* ══ HERO ══════════════════════════════════════════════════════════ */
+.hero{background:var(--primary);position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E");pointer-events:none;z-index:1}
+/* City/province landmark background */
+.hero.hero-bg{background-size:cover;background-position:center}
+.hero.hero-bg::before{display:none}
+.hero-overlay{position:absolute;inset:0;background:linear-gradient(120deg,rgba(18,41,112,.92) 0%,rgba(26,58,143,.82) 55%,rgba(26,58,143,.55) 100%);z-index:0}
+.hero.hero-bg .hero-inner{position:relative;z-index:2}
+.hero-inner{max-width:1280px;margin:0 auto;padding:40px 24px;display:flex;gap:28px;align-items:center;position:relative;z-index:2}
+.hero-left{flex:1;min-width:0}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.12);color:rgba(255,255,255,.85);font-size:11px;font-weight:600;padding:5px 13px;border-radius:20px;margin-bottom:14px;letter-spacing:.6px;text-transform:uppercase;border:1px solid rgba(255,255,255,.15)}
+.hero-title{font-family:var(--fh);font-size:38px;font-weight:800;color:#fff;line-height:1.15;margin-bottom:10px}
+.hero-title span{color:var(--accent)}
+.hero-sub{font-size:14px;color:rgba(255,255,255,.7);margin-bottom:22px;line-height:1.6}
 
-/* ── RESPONSIVE ────────────────────────────────────────────────── */
-@media(max-width:900px){
-  .main-wrap{grid-template-columns:1fr;padding:14px}
-  .sidebar-right{display:none}
-  .hero-inner{grid-template-columns:1fr}
-  .hero-search-box{display:none}
-  .hero-mobile-search{display:block}
-  .hero{padding:24px 16px 28px}
-  .hero h1{font-size:24px}
-  .blog-grid,.ads-grid{grid-template-columns:repeat(2,1fr)}
-  .foot-grid{grid-template-columns:1fr 1fr}
-}
+/* Search */
+.hero-search{display:flex;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.25);height:54px}
+.hs-icon{display:flex;align-items:center;padding:0 8px 0 16px;flex-shrink:0}
+.hs-icon i{font-size:16px;color:#9ca3af}
+.hs-input{flex:1;border:none;font-size:14px;color:#111;font-family:var(--fb);min-width:0;background:transparent}
+.hs-input:focus{outline:none}
+.hs-div{width:1px;height:28px;background:#e5e7eb;align-self:center;flex-shrink:0}
+.hs-sel{display:flex;align-items:center;gap:5px;padding:0 14px;flex-shrink:0;white-space:nowrap}
+.hs-sel i{font-size:12px;color:var(--primary)}
+.hs-sel select{border:none;background:none;font-size:13px;color:#555;font-family:var(--fb);appearance:none;cursor:pointer}
+.hs-sel select:focus{outline:none}
+.hs-btn{background:var(--primary);color:#fff;border:none;padding:0 22px;font-size:14px;font-weight:700;display:flex;align-items:center;gap:7px;height:100%;cursor:pointer;transition:background .2s;white-space:nowrap;flex-shrink:0}
+.hs-btn:hover{background:var(--primary-dark)}
+
+.popular-tags{display:flex;align-items:center;gap:7px;margin-top:14px;flex-wrap:wrap}
+.popular-label{font-size:12px;color:rgba(255,255,255,.5);white-space:nowrap}
+.ptag{background:rgba(255,255,255,.12);color:rgba(255,255,255,.9);font-size:11.5px;padding:4px 12px;border-radius:20px;cursor:pointer;border:1px solid rgba(255,255,255,.15);transition:background .15s}
+.ptag:hover{background:rgba(255,255,255,.22)}
+
+.hero-stats{display:flex;gap:28px;margin-top:24px;padding-top:20px;border-top:1px solid rgba(255,255,255,.12);flex-wrap:wrap}
+.hero-stat-num{font-family:var(--fh);font-size:22px;font-weight:800;color:#fff}
+.hero-stat-lbl{font-size:11px;color:rgba(255,255,255,.5);margin-top:1px}
+
+/* Hero right cards */
+.hero-right{width:270px;flex-shrink:0;display:flex;flex-direction:column;gap:12px}
+.hcard{background:#fff;border-radius:var(--radius);padding:16px}
+.hcard-icon-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.hcard-icon{width:38px;height:38px;border-radius:10px;background:var(--primary-light);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.hcard-icon i{font-size:17px;color:var(--primary)}
+.hcard-title{font-size:14px;font-weight:700;color:#111;line-height:1.2}
+.hcard-sub{font-size:11.5px;color:#888;margin-top:1px}
+.hcard-btn{width:100%;background:var(--primary);color:#fff;border:none;padding:10px;border-radius:8px;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;transition:background .2s}
+.hcard-btn:hover{background:var(--primary-dark)}
+.hcard-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.hcard-mini{display:flex;flex-direction:column;align-items:center;gap:4px;text-decoration:none}
+.hcard-mini-icon{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;margin:0 auto}
+.hcard-mini-lbl{font-size:10px;font-weight:600;color:#333;text-align:center}
+.hero-trust{background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.1);border-radius:var(--radius);padding:13px 15px}
+.trust-title{font-size:12px;font-weight:700;color:#fff;margin-bottom:9px;display:flex;align-items:center;gap:7px}
+.trust-title i{color:var(--accent)}
+.trust-item{display:flex;align-items:center;gap:7px;font-size:12px;color:rgba(255,255,255,.75);margin-bottom:6px}
+.trust-item:last-child{margin-bottom:0}
+.trust-item i{color:#4cd964;font-size:11px}
+
+/* ══ PAGE BODY ══════════════════════════════════════════════════════ */
+.home-body{max-width:1280px;margin:0 auto;padding:22px 24px;display:grid;grid-template-columns:1fr 270px;gap:22px;align-items:start}
+.home-main{min-width:0}
+.home-sidebar{display:flex;flex-direction:column;gap:14px}
+
+/* ══ SECTION HEAD ══════════════════════════════════════════════════ */
+.sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.sh-title{font-family:var(--fh);font-size:16px;font-weight:800;color:var(--text);display:flex;align-items:center;gap:8px}
+.sh-title i{color:var(--primary);font-size:15px}
+.sh-link{font-size:12px;color:var(--primary);font-weight:600;text-decoration:none;background:var(--primary-light);padding:4px 12px;border-radius:20px;display:flex;align-items:center;gap:4px;transition:background .15s}
+.sh-link:hover{background:#d0d9f0}
+.sec-div{height:1px;background:var(--border);margin:4px 0 22px}
+
+/* ══ QUICK CAT TABS ════════════════════════════════════════════════ */
+.cat-tabs{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:22px}
+.cat-tab{background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:12px 6px;text-align:center;text-decoration:none;color:var(--text);transition:all .15s;display:block}
+.cat-tab:hover{border-color:var(--primary);transform:translateY(-2px);box-shadow:0 4px 12px rgba(26,58,143,.1)}
+.ct-icon{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 7px;font-size:20px}
+.ct-name{font-size:11px;font-weight:700;color:var(--text)}
+.ct-count{font-size:10px;color:var(--muted);margin-top:1px}
+
+/* ══ CLASSIFIEDS GRID ══════════════════════════════════════════════ */
+.cl-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
+.cl-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;display:block;text-decoration:none;color:var(--text);transition:all .18s}
+.cl-card:hover{border-color:var(--primary);transform:translateY(-2px);box-shadow:0 6px 18px rgba(26,58,143,.11)}
+.cl-img{height:130px;position:relative;overflow:hidden;background:#f5f0ec;display:flex;align-items:center;justify-content:center;font-size:40px}
+.cl-img img{width:100%;height:100%;object-fit:cover;display:block}
+.cl-feat{position:absolute;top:7px;left:7px;background:var(--primary);color:#fff;font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px;text-transform:uppercase}
+.cl-fav{position:absolute;top:7px;right:7px;background:rgba(255,255,255,.9);width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.cl-fav i{font-size:12px;color:#bbb}
+.cl-body{padding:10px 12px}
+.cl-price{font-family:var(--fh);font-size:16px;font-weight:800;color:var(--primary);margin-bottom:2px}
+.cl-price small{font-size:11px;font-weight:400;color:var(--muted)}
+.cl-title{font-size:12.5px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px}
+.cl-cat{font-size:10px;color:var(--muted);margin-bottom:8px}
+.cl-foot{display:flex;justify-content:space-between;font-size:10.5px;color:var(--muted);border-top:1px solid var(--border);padding-top:7px}
+.cl-foot i{margin-right:2px;font-size:10px}
+
+/* ══ EVENTS GRID ══════════════════════════════════════════════════ */
+.ev-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:22px}
+.ev-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;display:flex;text-decoration:none;color:var(--text);transition:all .15s}
+.ev-card:hover{border-color:var(--primary);transform:translateY(-1px)}
+.ev-date{min-width:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 6px;flex-shrink:0}
+.ev-day{font-family:var(--fh);font-size:24px;font-weight:800;color:#fff;line-height:1}
+.ev-mon{font-size:10px;color:rgba(255,255,255,.75);text-transform:uppercase;letter-spacing:.5px}
+.ev-body{padding:10px 13px;flex:1;min-width:0}
+.ev-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev-meta{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:4px;margin-bottom:5px}
+.ev-meta i{font-size:11px}
+.ev-badge{display:inline-block;font-size:10px;font-weight:600;padding:2px 9px;border-radius:20px}
+.badge-free{background:#dcfce7;color:#15803d}
+.badge-paid{background:#fef9c3;color:#92400e}
+
+/* ══ JOBS ══════════════════════════════════════════════════════════ */
+.jobs-list{display:flex;flex-direction:column;gap:9px;margin-bottom:22px}
+.job-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:13px 15px;display:flex;gap:13px;align-items:flex-start;text-decoration:none;color:var(--text);transition:all .15s}
+.job-card:hover{border-color:var(--primary);box-shadow:0 3px 12px rgba(26,58,143,.08)}
+.job-logo{width:44px;height:44px;border-radius:10px;background:#f0ede8;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;border:1px solid var(--border);overflow:hidden}
+.job-logo img{width:100%;height:100%;object-fit:cover;border-radius:9px}
+.job-info{flex:1;min-width:0}
+.job-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px}
+.job-co{font-size:11.5px;color:var(--muted);margin-bottom:6px}
+.job-tags{display:flex;gap:5px;flex-wrap:wrap}
+.job-tag{font-size:10px;background:#f0ede8;color:#555;padding:2px 9px;border-radius:20px;border:1px solid var(--border)}
+.job-sal{font-family:var(--fh);font-size:13.5px;font-weight:800;color:var(--green);white-space:nowrap;flex-shrink:0}
+
+/* ══ NEWS ══════════════════════════════════════════════════════════ */
+.news-wrap{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:4px 16px;margin-bottom:22px}
+.news-item{padding:11px 0;border-bottom:1px solid var(--border)}
+.news-item:last-child{border-bottom:none}
+.news-item:hover .news-title{color:var(--primary)}
+.news-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px;transition:color .15s;cursor:pointer}
+.news-meta{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:7px}
+.ntag{font-size:10px;font-weight:600;padding:1px 8px;border-radius:20px}
+.ntag-hot{background:#fee2e2;color:#b91c1c}
+.ntag-comm{background:var(--primary-light);color:var(--primary)}
+.ntag-new{background:#dcfce7;color:#15803d}
+
+/* ══ BIZ GRID ══════════════════════════════════════════════════════ */
+.biz-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:22px}
+.biz-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;display:block;text-decoration:none;color:var(--text);transition:all .15s}
+.biz-card:hover{border-color:var(--primary);transform:translateY(-2px)}
+.biz-img{width:100%;height:80px;background:#f5f0ec;display:flex;align-items:center;justify-content:center;font-size:32px;overflow:hidden}
+.biz-img img{width:100%;height:100%;object-fit:cover;display:block}
+.biz-body{padding:9px 10px 12px}
+.biz-name{font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px}
+.biz-cat{font-size:10px;color:var(--muted);margin-bottom:6px}
+.biz-stars{display:flex;align-items:center;justify-content:center;gap:2px;font-size:11px;color:var(--accent)}
+
+/* ══ ALL LISTINGS ══════════════════════════════════════════════════ */
+.al-list{display:flex;flex-direction:column;gap:9px;margin-bottom:22px}
+.al-item{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:11px;display:flex;gap:11px;text-decoration:none;color:var(--text);transition:border-color .15s}
+.al-item:hover{border-color:var(--primary)}
+.al-thumb{width:68px;height:62px;border-radius:8px;background:#f5f0ec;flex-shrink:0;overflow:hidden;border:1px solid var(--border)}
+.al-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.al-info{flex:1;min-width:0}
+.al-title{font-size:12.5px;font-weight:600;color:var(--text);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.al-price{font-family:var(--fh);font-size:14.5px;font-weight:800;color:var(--primary);margin-bottom:4px}
+.al-price small{font-size:11px;font-weight:400;color:var(--muted)}
+.al-meta{display:flex;gap:12px;font-size:11px;color:var(--muted)}
+.al-meta i{font-size:11px;margin-right:2px}
+
+/* ══ SIDEBAR ═══════════════════════════════════════════════════════ */
+.sb-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:15px}
+.sb-head{font-family:var(--fh);font-size:14px;font-weight:700;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:7px}
+.sb-head i{color:var(--primary)}
+
+.post-btn{width:100%;background:var(--primary);color:#fff;border:none;padding:11px;border-radius:8px;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:8px;text-decoration:none;transition:background .2s}
+.post-btn:hover{background:var(--primary-dark)}
+.free-note{background:#dcfce7;border:1px solid #bbf7d0;padding:8px;border-radius:7px;font-size:11px;color:#15803d;text-align:center;font-weight:500}
+
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.stat-box{background:#f5f7fb;border-radius:8px;padding:11px;text-align:center;border:1px solid #e8edf7}
+.stat-num{font-family:var(--fh);font-size:19px;font-weight:800;color:var(--primary)}
+.stat-lbl{font-size:10px;color:var(--muted);margin-top:1px}
+
+.poll-q{font-size:12.5px;color:var(--text);margin-bottom:12px;font-weight:500;line-height:1.4}
+.poll-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.poll-lbl{font-size:12px;color:var(--text);min-width:28px;font-weight:600}
+.poll-bar-bg{flex:1;background:#f0ede8;border-radius:4px;height:20px;overflow:hidden;border:1px solid var(--border)}
+.poll-bar{height:100%;border-radius:4px;display:flex;align-items:center;padding-left:8px;font-size:10px;color:#fff;font-weight:600}
+.poll-btn{width:100%;background:var(--primary);color:#fff;border:none;padding:9px;border-radius:8px;font-size:12.5px;font-weight:700;margin-top:8px;cursor:pointer;transition:background .2s}
+.poll-btn:hover{background:var(--primary-dark)}
+
+.ql{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--border);text-decoration:none;color:var(--text);font-size:12.5px;font-weight:500;transition:color .15s,padding-left .15s}
+.ql:last-child{border-bottom:none}
+.ql:hover{color:var(--primary);padding-left:4px}
+.ql-ico{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px}
+
+.featured-ad{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:9px;text-decoration:none;display:block;transition:border-color .15s}
+.featured-ad:last-child{margin-bottom:0}
+.featured-ad:hover{border-color:var(--primary)}
+.fa-img{height:88px;overflow:hidden;background:#f5f0ec}
+.fa-img img{width:100%;height:100%;object-fit:cover;display:block}
+.fa-body{padding:10px 12px}
+.fa-name{font-size:12px;font-weight:700;color:var(--text);margin-bottom:1px}
+.fa-sub{font-size:10px;color:var(--muted);margin-bottom:7px}
+.fa-btn{width:100%;padding:6px;border-radius:6px;font-size:11px;font-weight:700;border:none;cursor:pointer}
+
+.la-list{display:flex;flex-direction:column}
+.la-item{display:flex;gap:9px;padding:9px 0;border-bottom:1px solid var(--border);text-decoration:none;color:var(--text);align-items:flex-start;transition:padding-left .15s}
+.la-item:last-child{border-bottom:none}
+.la-item:hover{padding-left:4px}
+.la-thumb{width:50px;height:46px;border-radius:7px;overflow:hidden;background:#f5f0ec;flex-shrink:0;border:1px solid var(--border)}
+.la-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.la-info{flex:1;min-width:0}
+.la-name{font-size:11px;font-weight:600;color:var(--text);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.la-price{font-family:var(--fh);font-size:12.5px;font-weight:800;color:var(--primary)}
+.la-price small{font-size:10px;font-weight:400;color:var(--muted)}
+.la-loc{font-size:10px;color:var(--muted)}
+.la-side{flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.la-time{font-size:10px;color:var(--muted)}
+.la-fav i{font-size:14px;color:#ddd;cursor:pointer}
+.la-fav i:hover{color:var(--primary)}
+
+/* Mobile sidebar ads — hidden on desktop, shown in main on mobile */
+.mobile-sidebar-ads{display:none}
 @media(max-width:600px){
-  .hero h1{font-size:20px}
-  .hero-btns{gap:8px}
-  .hero-btns .btn{font-size:12px;padding:7px 12px}
-  .hero-stats{gap:12px}
-  .job-cats{grid-template-columns:1fr 1fr}
-  .foot-grid{grid-template-columns:1fr}
-  .ads-grid{grid-template-columns:1fr}
+  .mobile-sidebar-ads{display:block;margin:14px 0}
+  .mobile-sidebar-ads .ad-slot--sidebar img{height:180px;border-radius:10px}
+}
+
+/* ══ RESPONSIVE ═════════════════════════════════════════════════════ */
+@media(max-width:1024px){
+  .hero-right{width:240px}
+  .cl-grid{grid-template-columns:repeat(2,1fr)}
+  .biz-grid{grid-template-columns:repeat(2,1fr)}
+  .cat-tabs{grid-template-columns:repeat(4,1fr)}
+}
+@media(max-width:900px){
+  .hero-inner{flex-direction:column;padding:26px 18px 30px}
+  .hero-right{display:none}
+  .hero-title{font-size:27px}
+  .hero-sub{font-size:13px;margin-bottom:16px}
+  .hero-stats{gap:16px;margin-top:18px}
+  .hero-search{height:48px}
+  .hs-sel{display:none}
+  .hs-div{display:none}
+  .home-body{grid-template-columns:1fr;padding:14px 16px}
+  .home-sidebar{display:none}
+  .cat-tabs{grid-template-columns:repeat(4,1fr);gap:7px}
+  .cl-grid{grid-template-columns:repeat(2,1fr);gap:10px}
+  .ev-grid{grid-template-columns:1fr}
+  .biz-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:520px){
+  /* Hero — compact app style */
+  .hero{padding:0}
+  .hero-inner{padding:16px 14px 20px;gap:14px;flex-direction:column}
+  .hero-right{display:none}
+  .hero-eyebrow{font-size:10px;padding:4px 10px;margin-bottom:10px}
+  .hero-title{font-size:22px;margin-bottom:8px}
+  .hero-sub{font-size:12.5px;margin-bottom:14px}
+  .hero-stats{gap:14px;margin-top:16px;padding-top:14px}
+  .hero-stat-num{font-size:18px}
+  .hero-stat-lbl{font-size:10px}
+
+  /* Search bar - pill style */
+  .hero-search{height:48px;border-radius:12px}
+  .hs-input{font-size:13px;padding-left:4px}
+  .hs-sel{display:none}
+  .hs-div{display:none}
+  .hs-btn{padding:0 16px;font-size:13px;border-radius:0 12px 12px 0}
+  .popular-tags{gap:5px;margin-top:10px}
+  .ptag{font-size:11px;padding:3px 10px}
+
+  /* Category icons — 4-col horizontal scroll */
+  .cat-tabs{grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:16px}
+  .cat-tab{padding:10px 4px;border-radius:14px}
+  .ct-icon{width:40px;height:40px;font-size:19px;margin-bottom:5px}
+  .ct-name{font-size:10.5px;font-weight:700}
+  .ct-count{display:none}
+
+  /* Cards - 2 column */
+  .cl-grid{grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+  .cl-img{height:110px}
+  .cl-body{padding:8px 10px}
+  .cl-price{font-size:14px}
+  .cl-title{font-size:11.5px}
+
+  .biz-grid{grid-template-columns:1fr 1fr;gap:8px}
+  .biz-img{height:70px}
+  .biz-name{font-size:11px}
+
+  /* Jobs - full width card */
+  .job-sal{display:none}
+  .job-card{padding:10px 12px;gap:10px}
+  .job-logo{width:38px;height:38px}
+  .job-title{font-size:12px}
+  .job-co{font-size:10.5px}
+
+  /* Events - single column */
+  .ev-grid{grid-template-columns:1fr;gap:8px}
+
+  /* Section heads */
+  .sh-title{font-size:15px}
+  .sh-link{font-size:11px;padding:3px 10px}
+
+  /* Home body full width */
+  .home-body{grid-template-columns:1fr;padding:12px 12px;gap:0}
+  .home-sidebar{display:none}
+  .sec-div{margin:2px 0 16px}
+
+  /* News */
+  .news-title{font-size:12.5px}
 }
 </style>
 @endpush
 
 @section('content')
 
-{{-- ═══════════ HERO ═══════════ --}}
-<div class="hero">
-  <div class="hero-inner">
-    <div>
-      <span class="hero-tag">Indian Community in Canada — Since 2024</span>
-      <h1>Canada's #1 Indian<br>Community <span>Portal</span></h1>
-      @if(request('city') || request('province'))
-        <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(192,57,43,.25);border:1px solid rgba(192,57,43,.5);border-radius:20px;padding:5px 14px;margin-bottom:12px">
-          <span style="font-size:14px">📍</span>
-          <span style="font-size:13px;color:#fff;font-weight:600">{{ request('city') ? request('city').', ' : '' }}{{ request('province') }}</span>
-          <a href="{{ route('home') }}" style="color:rgba(255,255,255,.5);font-size:12px;margin-left:4px">✕</a>
-        </div>
-      @endif
-      <p class="hero-desc">Classifieds • Yellow Pages • Events • Jobs • Blog • Matrimonial — everything the Indian-Canadian community needs, in one place.</p>
-      <div class="hero-btns">
-        @auth
-          <a href="{{ route('post.create') }}" class="btn btn-red">+ Post Free Ad</a>
-        @else
-          <a href="{{ route('register') }}" class="btn btn-red">+ Post Free Ad</a>
-        @endauth
-        <a href="{{ route('directory.index') }}" class="btn btn-dark">🗂 Yellow Pages</a>
-        <a href="{{ route('events.index') }}" class="btn btn-ghost" style="border-color:rgba(255,255,255,.2);color:rgba(255,255,255,.7)">📅 Events</a>
-      </div>
-      <div class="hero-stats">
-        <div class="hero-stat"><b>{{ $stats['businesses'] > 0 ? number_format($stats['businesses']) : '400' }}+</b>Businesses Listed</div>
-        <div class="hero-stat"><b>{{ $stats['listings'] > 0 ? number_format($stats['listings']) : '1,200' }}+</b>Free Ads Posted</div>
-        <div class="hero-stat"><b>{{ $stats['events'] > 0 ? number_format($stats['events']) : '50' }}+</b>Events This Month</div>
-        <div class="hero-stat"><b>1.6M+</b>Indian-Canadians</div>
-      </div>
+@php
+$heroLocLabel = request('city') ?: request('province');
+@endphp
 
-      {{-- Mobile-only search bar --}}
-      <div class="hero-mobile-search">
-        <form onsubmit="heroSubmit(event)">
-          <div class="search-field">
-            <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><circle cx="6.5" cy="6.5" r="5" stroke="rgba(255,255,255,.4)" stroke-width="1.5"/><path d="M10.5 10.5L14 14" stroke="rgba(255,255,255,.4)" stroke-width="1.5" stroke-linecap="round"/></svg>
-            <input type="text" id="hero-search-m" placeholder="Search listings, businesses…" value="{{ request('search') }}">
-          </div>
-          <div class="search-field">
-            <select id="hero-province-m" onchange="heroLoadCitiesM(this.value)">
-              <option value="">All Provinces</option>
-              @foreach($provinces as $prov)
-                <option value="{{ $prov }}" {{ request('province') === $prov ? 'selected' : '' }}>{{ $prov }}</option>
-              @endforeach
-            </select>
-          </div>
-          <div class="search-field">
-            <select id="hero-city-m">
-              <option value="">All Cities</option>
-              @foreach($cities as $city)
-                <option value="{{ $city }}" {{ request('city') === $city ? 'selected' : '' }}>{{ $city }}</option>
-              @endforeach
-            </select>
-          </div>
-          <button type="submit" class="hero-mobile-btn">Search GoBazzar →</button>
-        </form>
-      </div>
-    </div>
-    <div class="hero-search-box">
-      <h3>🔍 Find in GoBazzar</h3>
-      <form id="hero-search-form" onsubmit="heroSubmit(event)">
-        <div class="search-field">
-          <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><circle cx="6.5" cy="6.5" r="5" stroke="rgba(255,255,255,.4)" stroke-width="1.5"/><path d="M10.5 10.5L14 14" stroke="rgba(255,255,255,.4)" stroke-width="1.5" stroke-linecap="round"/></svg>
-          <input type="text" id="hero-search" placeholder="Search listings, businesses…" value="{{ request('search') }}">
-        </div>
-        <div class="search-field">
-          <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="rgba(255,255,255,.4)" stroke-width="1.5" fill="none"/><path d="M5 8h6M5 5h6M5 11h3" stroke="rgba(255,255,255,.4)" stroke-width="1.2" stroke-linecap="round"/></svg>
-          <select id="hero-province" onchange="heroLoadCities(this.value)">
+{{-- ═══ HERO ═══ --}}
+<div class="hero @if($heroBg) hero-bg @endif" @if($heroBg) style="background-image:url('{{ $heroBg }}')" @endif>
+  @if($heroBg)<div class="hero-overlay"></div>@endif
+  <div class="hero-inner">
+    <div class="hero-left">
+      <div class="hero-eyebrow"><i class="fa-solid fa-star"></i> Canada's #1 Indian Community Portal</div>
+      @if($heroLocLabel)
+        <h1 class="hero-title">Indian Community in<br><span>{{ $heroLocLabel }}</span></h1>
+        <p class="hero-sub">Classifieds · Yellow Pages · Events · Jobs · Blog — everything the Indian-Canadian community in {{ $heroLocLabel }} needs, in one place.</p>
+      @else
+        <h1 class="hero-title">Canada's #1 Indian<br>Community <span>Portal</span></h1>
+        <p class="hero-sub">Classifieds · Yellow Pages · Events · Jobs · Blog — everything the Indian-Canadian community needs, in one place.</p>
+      @endif
+
+      <div class="hero-search">
+        <div class="hs-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
+        <input class="hs-input" type="text" id="hero-q" placeholder="What are you looking for?" value="{{ request('search') }}">
+        <div class="hs-div"></div>
+        <div class="hs-sel">
+          <i class="fa-solid fa-map"></i>
+          <select id="hero-prov" onchange="heroLoadCities(this.value)">
             <option value="">All Provinces</option>
             @foreach($provinces as $prov)
-              <option value="{{ $prov }}" {{ request('province') === $prov ? 'selected' : '' }}>{{ $prov }}</option>
+              <option value="{{ $prov }}">{{ $prov }}</option>
             @endforeach
           </select>
         </div>
-        <div class="search-field" style="margin-bottom:12px">
-          <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M8 1C5.24 1 3 3.24 3 6c0 3.75 5 9 5 9s5-5.25 5-9c0-2.76-2.24-5-5-5z" stroke="rgba(255,255,255,.4)" stroke-width="1.5" fill="none"/><circle cx="8" cy="6" r="1.5" fill="rgba(255,255,255,.4)"/></svg>
+        <div class="hs-div"></div>
+        <div class="hs-sel">
+          <i class="fa-solid fa-location-dot"></i>
           <select id="hero-city">
             <option value="">All Cities</option>
-            @foreach($cities as $city)
-              <option value="{{ $city }}" {{ request('city') === $city ? 'selected' : '' }}>{{ $city }}</option>
-            @endforeach
           </select>
         </div>
-        <button type="submit" style="width:100%;background:var(--red);color:#fff;border:none;border-radius:var(--r);padding:10px;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:12px;transition:background .15s" onmouseover="this.style.background='var(--red-dark)'" onmouseout="this.style.background='var(--red)'">Search GoBazzar →</button>
-      </form>
-      @if(request('city') || request('province'))
-        <div style="text-align:center;margin-bottom:10px;font-size:12px;color:rgba(255,255,255,.5)">
-          Showing results for
-          <strong style="color:rgba(255,255,255,.85)">{{ request('city') ?: request('province') }}</strong>
-          <a href="{{ route('home') }}" style="color:var(--red2);margin-left:8px">✕ Clear</a>
-        </div>
-      @endif
-      <div class="quick-cats">
-        <a href="{{ route('classifieds.index', array_filter(['category' => $classifiedCategories->where('name','Real Estate')->first()?->id, 'city' => request('city'), 'province' => request('province')])) }}" class="qcat"><span class="icon">🏠</span>Housing</a>
-        <a href="{{ route('jobs.index', array_filter(['city' => request('city'), 'province' => request('province')])) }}" class="qcat"><span class="icon">💼</span>Jobs</a>
-        <a href="{{ route('classifieds.index', array_filter(['category' => $classifiedCategories->where('name','Autos')->first()?->id, 'city' => request('city'), 'province' => request('province')])) }}" class="qcat"><span class="icon">🚗</span>Autos</a>
-        <a href="{{ route('directory.index', array_filter(['city' => request('city'), 'province' => request('province')])) }}" class="qcat"><span class="icon">🍛</span>Dining</a>
-        <a href="{{ route('events.index', array_filter(['city' => request('city'), 'province' => request('province')])) }}" class="qcat"><span class="icon">🎉</span>Events</a>
-        <a href="{{ route('matrimonial.index', array_filter(['city' => request('city'), 'province' => request('province')])) }}" class="qcat"><span class="icon">💍</span>Matrimony</a>
+        <button class="hs-btn" onclick="heroSubmit()"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
+      </div>
+
+      <div class="popular-tags">
+        <span class="popular-label">Popular:</span>
+        @foreach(['iPhone','Tiffin Service','House for Rent','IT Jobs','Driving Lessons'] as $tag)
+          <span class="ptag" onclick="document.getElementById('hero-q').value='{{ $tag }}';heroSubmit()">{{ $tag }}</span>
+        @endforeach
+      </div>
+
+      <div class="hero-stats">
+        <div><div class="hero-stat-num">{{ $stats['businesses']>0?number_format($stats['businesses']):'8' }}+</div><div class="hero-stat-lbl">Businesses</div></div>
+        <div><div class="hero-stat-num">{{ $stats['listings']>0?number_format($stats['listings']):'9' }}+</div><div class="hero-stat-lbl">Free Ads</div></div>
+        <div><div class="hero-stat-num">{{ $stats['events']>0?number_format($stats['events']):'50' }}+</div><div class="hero-stat-lbl">Events</div></div>
+        <div><div class="hero-stat-num">1.6M+</div><div class="hero-stat-lbl">Indian-Canadians</div></div>
       </div>
     </div>
-  </div>
-</div>
 
-{{-- ═══════════ MAIN LAYOUT ═══════════ --}}
-<div class="main-wrap">
-<div class="content">
-
-{{-- ── 1. COMMUNITY BLOG ────────────────────────────────────────── --}}
-<div class="sec-head"><h2>📰 Community Blog</h2><a href="{{ route('blog.index') }}">View All</a></div>
-<div class="sec-box">
-  @if($blogPosts->isEmpty())
-    <div class="blog-grid">
-      @php
-        $placeholders = [
-          ['bg'=>'#FEF9C3','icon'=>'📜','title'=>'India-Canada Trade Relations: What it Means for the Diaspora in 2026','date'=>'Coming soon'],
-          ['bg'=>'#EFF6FF','icon'=>'🛂','title'=>'Birthright Citizenship Debate and Impact on Indian Community in Canada','date'=>'Coming soon'],
-          ['bg'=>'#FEF2F1','icon'=>'🎆','title'=>'Diwali 2025 Celebrations Across Canada — Highlights & Photos','date'=>'Coming soon'],
-          ['bg'=>'#F0FDF4','icon'=>'🌸','title'=>'Navratri & Garba Events Across Toronto, Brampton & Calgary','date'=>'Coming soon'],
-        ];
-      @endphp
-      @foreach($placeholders as $ph)
-      <div class="blog-card" style="pointer-events:none">
-        <div class="blog-thumb" style="background:{{ $ph['bg'] }}">{{ $ph['icon'] }}</div>
-        <div class="blog-body">
-          <div class="blog-title">{{ $ph['title'] }}</div>
-          <div class="blog-date">{{ $ph['date'] }}</div>
-        </div>
-      </div>
-      @endforeach
-    </div>
-    <div style="padding:10px 12px;text-align:center;border-top:1px solid var(--border)">
-      <a href="/gobazzar-app/public/admin/blog-posts/create" style="font-size:12px;color:var(--red);font-weight:500">+ Add Blog Post from Admin →</a>
-    </div>
-  @else
-    <div class="blog-grid">
-      @foreach($blogPosts as $post)
-      <a href="{{ route('blog.show', $post->slug) }}" class="blog-card">
-        <div class="blog-thumb" @if(!$post->image) style="background:#FEF9C3" @endif>
-          @if($post->image)
-            <img src="{{ asset('storage/'.$post->image) }}" alt="{{ $post->title }}">
-          @else 📰 @endif
-        </div>
-        <div class="blog-body">
-          @if($post->category)<div class="blog-cat-tag">{{ $post->category }}</div>@endif
-          <div class="blog-title">{{ $post->title }}</div>
-          <div class="blog-date">Posted: {{ ($post->published_at ?? $post->created_at)->format('M j, Y') }}</div>
-          <div class="blog-read">Read More →</div>
-        </div>
-      </a>
-      @endforeach
-    </div>
-  @endif
-</div>
-
-{{-- ── 2. COMMUNITY CALENDAR ────────────────────────────────────── --}}
-<div class="sec-head"><h2>📅 Community Calendar</h2><a href="{{ route('events.index') }}">Events & More</a></div>
-<div class="sec-box">
-  @if($upcomingEvents->isEmpty())
-    <div class="empty-note">No upcoming events yet. <a href="{{ route('post.create') }}">Post an event →</a></div>
-  @else
-    @foreach($upcomingEvents as $event)
-    <a href="{{ route('events.show', $event->slug) }}" class="ev-item">
-      <div class="ev-date-box">
-        <div class="day">{{ $event->start_date->format('j') }}</div>
-        <div class="mon">{{ $event->start_date->format('M') }}</div>
-      </div>
-      <div class="ev-body">
-        <div class="ev-title">{{ $event->title }}</div>
-        <div class="ev-meta">
-          @if($event->city)📍 {{ $event->city }}@endif
-          @if($event->city && $event->venue) · @endif
-          @if($event->venue){{ $event->venue }}@endif
-        </div>
-      </div>
-      @if($event->price)
-        <span class="ev-badge">{{ strtolower($event->price) === 'free' || $event->price === '0' ? 'Free' : $event->price }}</span>
-      @endif
-    </a>
-    @endforeach
-  @endif
-</div>
-
-{{-- ── 3. COMMUNITY NEWS (static anchor links) ─────────────────── --}}
-<div class="sec-head"><h2>📢 Community News</h2><a href="{{ route('feed') }}">Community Feed</a></div>
-<div class="sec-box">
-  <a href="{{ route('blog.index') }}" class="row-item">
-    <div class="ri-body">
-      <div class="ri-title">New IRCC Processing Times for PR Applications — Faster in 2026?</div>
-      <div class="ri-sub">Community · Immigration Updates</div>
-    </div>
-    <span class="ri-badge badge-hot">Hot</span>
-    <span class="ri-arr">›</span>
-  </a>
-  <a href="{{ route('blog.index') }}" class="row-item">
-    <div class="ri-body">
-      <div class="ri-title">Best Indian grocery stores in Brampton area — community recommendations</div>
-      <div class="ri-sub">Community · Shopping Guide</div>
-    </div>
-    <span class="ri-arr">›</span>
-  </a>
-  <a href="{{ route('blog.index') }}" class="row-item">
-    <div class="ri-body">
-      <div class="ri-title">India-Canada trade deal update — what it means for us</div>
-      <div class="ri-sub">Blog · Business & Finance</div>
-    </div>
-    <span class="ri-arr">›</span>
-  </a>
-  <a href="{{ route('feed') }}" class="row-item">
-    <div class="ri-body">
-      <div class="ri-title">GoBazzar Community Feed — Share your thoughts with the community</div>
-      <div class="ri-sub">Community Feed · Join the conversation</div>
-    </div>
-    <span class="ri-badge badge-new">New</span>
-    <span class="ri-arr">›</span>
-  </a>
-</div>
-
-{{-- ── 4. FREE CLASSIFIEDS ──────────────────────────────────────── --}}
-<div class="sec-head"><h2>📋 Free Classifieds</h2><a href="{{ route('classifieds.index') }}">Post Free Ad</a></div>
-<div class="sec-box">
-  {{-- Dynamic category icon bar --}}
-  @if($classifiedCategories->isNotEmpty())
-  <div class="cat-icon-bar" style="grid-template-columns:repeat({{ min($classifiedCategories->count(), 4) }},1fr)">
-    @foreach($classifiedCategories->take(4) as $cat)
-    <a href="{{ route('classifieds.index', ['category' => $cat->id]) }}" class="cat-icon-item">
-      <div class="ci-icon">{{ $cat->icon }}</div>
-      <div class="ci-lbl">{{ $cat->name }}</div>
-    </a>
-    @endforeach
-  </div>
-  @endif
-
-  @if($latestListings->isEmpty())
-    <div class="empty-note">No classifieds yet. <a href="{{ route('post.create') }}">Post the first one →</a></div>
-  @else
-    <div class="ads-grid">
-      @foreach($latestListings as $listing)
-      <a href="{{ route('classifieds.show', $listing->slug) }}" class="ad-card">
-        <div class="ad-thumb">
-          @if($listing->is_featured)<div class="abs-badges"><span class="vbadge vb-feat">Featured</span></div>@endif
-          @if($listing->image)
-            <img src="{{ asset('storage/'.$listing->image) }}" alt="{{ $listing->title }}">
-          @else
-            {{ $listing->category->icon ?? '📦' }}
-          @endif
-        </div>
-        <div class="ad-body">
-          <div class="ad-title">{{ $listing->title }}</div>
-          <div class="ad-loc">📍 {{ $listing->location }}</div>
-          @if($listing->price)
-            <div class="ad-price">{{ $listing->price }}<small>{{ $listing->price_unit }}</small></div>
-          @endif
-        </div>
-      </a>
-      @endforeach
-    </div>
-  @endif
-  <div style="padding:10px 12px;text-align:center;border-top:1px solid var(--border)">
-    <a href="{{ route('classifieds.index') }}" style="font-size:12px;color:var(--red);font-weight:500">Free Classifieds — More ›</a>
-  </div>
-</div>
-
-{{-- ── 5. BUSINESS DIRECTORY ────────────────────────────────────── --}}
-<div class="sec-head"><h2>🗂 Business Directory</h2><a href="{{ route('directory.index') }}">{{ $stats['businesses'] > 0 ? number_format($stats['businesses']).'+ Listings' : 'View All' }}</a></div>
-<div class="sec-box">
-  <div style="padding:10px 12px;background:var(--green-bg);border-bottom:1px solid var(--border);font-size:11.5px;color:var(--green);font-weight:500">
-    ✅ All businesses verified by GoBazzar · Businesses, Organizations & more
-  </div>
-  @if($latestBusinesses->isEmpty())
-    <div class="empty-note">No businesses listed yet. <a href="{{ route('post.create') }}">List your business →</a></div>
-  @else
-    <div class="ads-grid">
-      @foreach($latestBusinesses as $biz)
-      <a href="{{ route('directory.show', $biz->slug) }}" class="ad-card">
-        <div class="ad-thumb" style="background:#ecfdf5">
-          @if($biz->logo)
-            <img src="{{ asset('storage/'.$biz->logo) }}" alt="{{ $biz->name }}">
-          @elseif($biz->image)
-            <img src="{{ asset('storage/'.$biz->image) }}" alt="{{ $biz->name }}">
-          @else
-            {{ $biz->category->icon ?? '🏢' }}
-          @endif
-        </div>
-        <div class="ad-body">
-          <div class="ad-title">{{ $biz->name }}</div>
-          <div class="ad-loc">
-            {{ $biz->category->icon ?? '' }} {{ $biz->category->name ?? '' }}
-            @if($biz->city) · {{ $biz->city }}@endif
+    <div class="hero-right">
+      <div class="hcard">
+        <div class="hcard-icon-row">
+          <div class="hcard-icon"><i class="fa-solid fa-bullhorn"></i></div>
+          <div>
+            <div class="hcard-title">Post an Ad for Free</div>
+            <div class="hcard-sub">Reach thousands of local buyers & sellers</div>
           </div>
-          @if($biz->rating > 0)
-            <div style="font-size:11px;color:var(--amber);margin-top:4px">⭐ {{ number_format($biz->rating, 1) }}</div>
+        </div>
+        @auth
+          <a href="{{ route('post.create') }}" class="hcard-btn"><i class="fa-solid fa-plus"></i> Post Your Ad</a>
+        @else
+          <a href="{{ route('register') }}" class="hcard-btn"><i class="fa-solid fa-plus"></i> Post Your Ad</a>
+        @endauth
+      </div>
+
+      <div class="hcard" style="padding:13px 15px">
+        <div class="hcard-grid">
+          @foreach([
+            [route('classifieds.index', ['categories' => $housingCategories]),'🏠','#fef6e4','Housing'],
+            [route('jobs.index'),'💼','#e8f5e9','Jobs'],
+            [route('classifieds.index', ['category' => $autosCategoryId]),'🚗','#fff3e0','Autos'],
+            [route('directory.index', ['category' => $diningCategoryId]),'🍛','#fce4ec','Dining'],
+            [route('events.index'),'🎉','#e8eaf6','Events'],
+            [route('blog.index'),'📰','#e0f7fa','Blog'],
+          ] as [$url,$icon,$bg,$lbl])
+          <a href="{{ $url }}" class="hcard-mini">
+            <div class="hcard-mini-icon" style="background:{{ $bg }}">{{ $icon }}</div>
+            <div class="hcard-mini-lbl">{{ $lbl }}</div>
+          </a>
+          @endforeach
+        </div>
+      </div>
+
+      <div class="hero-trust">
+        <div class="trust-title"><i class="fa-solid fa-shield-halved"></i> Buy & Sell with Confidence</div>
+        <div class="trust-item"><i class="fa-solid fa-circle-check"></i> Verified users</div>
+        <div class="trust-item"><i class="fa-solid fa-circle-check"></i> Safe & secure platform</div>
+        <div class="trust-item"><i class="fa-solid fa-circle-check"></i> Indian community driven</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{{-- ═══ HOME BANNER AD ═══ --}}
+@if($ads->where('position','home-banner')->isNotEmpty())
+<div style="max-width:1280px;margin:14px auto 0;padding:0 24px">
+  <x-ad-slot position="home-banner" :ads="$ads" />
+</div>
+@endif
+
+{{-- ═══ BODY ═══ --}}
+<div class="home-body">
+<div class="home-main">
+
+  {{-- QUICK CATEGORY TABS --}}
+  <div class="cat-tabs">
+    <a href="{{ route('classifieds.index') }}" class="cat-tab">
+      <div class="ct-icon" style="background:#fef6e4"><i class="fa-solid fa-tag" style="color:#7a5200"></i></div>
+      <div class="ct-name">Classifieds</div><div class="ct-count">{{ number_format($stats['listings']) }}+ Ads</div>
+    </a>
+    <a href="{{ route('jobs.index') }}" class="cat-tab">
+      <div class="ct-icon" style="background:#e8f5e9"><i class="fa-solid fa-briefcase" style="color:#2e7d32"></i></div>
+      <div class="ct-name">Jobs</div><div class="ct-count">{{ number_format($stats['jobs']??0) }}+ Jobs</div>
+    </a>
+    <a href="{{ route('classifieds.index', ['categories' => $housingCategories]) }}" class="cat-tab">
+      <div class="ct-icon" style="background:#e8edf7"><i class="fa-solid fa-building" style="color:var(--primary)"></i></div>
+      <div class="ct-name">Rentals</div><div class="ct-count">Rooms & Apts</div>
+    </a>
+    <a href="{{ route('events.index') }}" class="cat-tab">
+      <div class="ct-icon" style="background:#e8eaf6"><i class="fa-solid fa-calendar-days" style="color:#3949ab"></i></div>
+      <div class="ct-name">Events</div><div class="ct-count">{{ number_format($stats['events']) }}+ Events</div>
+    </a>
+    <a href="{{ route('directory.index') }}" class="cat-tab">
+      <div class="ct-icon" style="background:#e0f7fa"><i class="fa-solid fa-building-columns" style="color:#00838f"></i></div>
+      <div class="ct-name">Directory</div><div class="ct-count">{{ number_format($stats['businesses']) }}+ Biz</div>
+    </a>
+    <a href="{{ route('blog.index') }}" class="cat-tab">
+      <div class="ct-icon" style="background:#fff3e0"><i class="fa-solid fa-newspaper" style="color:#e65100"></i></div>
+      <div class="ct-name">Blog</div><div class="ct-count">Community</div>
+    </a>
+    <a href="{{ route('classifieds.index') }}" class="cat-tab">
+      <div class="ct-icon" style="background:#f1efe8"><i class="fa-solid fa-ellipsis" style="color:#666"></i></div>
+      <div class="ct-name">More</div><div class="ct-count">All Categories</div>
+    </a>
+  </div>
+
+  {{-- FEATURED CLASSIFIEDS --}}
+  @php
+  $clImgs = [
+    'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&h=260&fit=crop',
+    'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400&h=260&fit=crop',
+    'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=400&h=260&fit=crop',
+    'https://images.unsplash.com/photo-1556656793-08538906a9f8?w=400&h=260&fit=crop',
+    'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=400&h=260&fit=crop',
+    'https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=400&h=260&fit=crop',
+    'https://images.unsplash.com/photo-1605901309584-818e25960a8f?w=400&h=260&fit=crop',
+    'https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=400&h=260&fit=crop',
+  ];
+  @endphp
+  <div class="sh">
+    <div class="sh-title"><i class="fa-solid fa-star"></i> Featured Classifieds</div>
+    <a href="{{ route('classifieds.index') }}" class="sh-link">View All <i class="fa-solid fa-arrow-right" style="font-size:10px"></i></a>
+  </div>
+  @if($latestListings->isEmpty() && (request('province') || request('city')))
+    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:30px;text-align:center;color:var(--muted);font-size:13px;margin-bottom:22px">
+      <div style="font-size:32px;margin-bottom:8px">📭</div>
+      No classifieds in <strong>{{ request('city') ?: request('province') }}</strong> yet.
+      <a href="{{ route('post.create') }}" style="color:var(--primary);font-weight:600;text-decoration:none">Post the first one →</a>
+    </div>
+  @else
+  <div class="cl-grid">
+    @if($latestListings->isEmpty())
+      @foreach([
+        ['https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&h=260&fit=crop','$450','Grey Sofa — excellent condition','Furniture','Brampton, ON','2h ago'],
+        ['https://images.unsplash.com/photo-1556656793-08538906a9f8?w=400&h=260&fit=crop','$699','iPhone 14 Pro Max 256GB','Electronics','Mississauga, ON','3h ago'],
+        ['https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400&h=260&fit=crop','$1,250','2 Bed Room House — Indian family','Rentals','Brampton, ON','5h ago','/month'],
+        ['https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=400&h=260&fit=crop','$18,500','2020 Toyota Corolla — 45,000 km','Autos','Calgary, AB','1d ago'],
+      ] as $ph)
+      <div class="cl-card" style="pointer-events:none">
+        <div class="cl-img"><img src="{{ $ph[0] }}" alt="{{ $ph[2] }}"><div class="cl-feat">Featured</div><div class="cl-fav"><i class="fa-regular fa-heart"></i></div></div>
+        <div class="cl-body">
+          <div class="cl-price">{{ $ph[1] }}@isset($ph[6])<small>{{ $ph[6] }}</small>@endisset</div>
+          <div class="cl-title">{{ $ph[2] }}</div>
+          <div class="cl-cat">{{ $ph[3] }}</div>
+          <div class="cl-foot"><span><i class="fa-solid fa-location-dot"></i>{{ $ph[4] }}</span><span>{{ $ph[5] }}</span></div>
+        </div>
+      </div>
+      @endforeach
+    @else
+      @foreach($latestListings->take(4) as $i => $listing)
+      <a href="{{ route('classifieds.show', $listing->slug) }}" class="cl-card">
+        <div class="cl-img">
+          @if($listing->is_featured)<div class="cl-feat">Featured</div>@endif
+          <div class="cl-fav"><i class="fa-regular fa-heart"></i></div>
+          @if($listing->image_url)<img src="{{ $listing->image_url }}" alt="{{ $listing->title }}">
+          @else<img src="{{ $clImgs[$i % count($clImgs)] }}" alt="{{ $listing->title }}">@endif
+        </div>
+        <div class="cl-body">
+          @if($listing->price)<div class="cl-price">{{ $listing->price }}<small>{{ $listing->price_unit }}</small></div>@endif
+          <div class="cl-title">{{ $listing->title }}</div>
+          <div class="cl-cat">{{ $listing->category->name ?? 'Classifieds' }}</div>
+          <div class="cl-foot"><span><i class="fa-solid fa-location-dot"></i>{{ $listing->location }}</span><span>{{ $listing->created_at->diffForHumans() }}</span></div>
+        </div>
+      </a>
+      @endforeach
+    @endif
+  </div>
+  @endif
+
+  <div class="sec-div"></div>
+
+  {{-- INLINE AD --}}
+  <x-ad-slot position="inline" :ads="$ads" />
+
+  {{-- COMMUNITY EVENTS --}}
+  @php $evColors=['#1a3a8f','#e8a020','#c0392b','#2e7d32']; @endphp
+  <div class="sh">
+    <div class="sh-title"><i class="fa-solid fa-calendar-days"></i> Community Events</div>
+    <a href="{{ route('events.index') }}" class="sh-link">View All <i class="fa-solid fa-arrow-right" style="font-size:10px"></i></a>
+  </div>
+  @if($upcomingEvents->isEmpty() && (request('province') || request('city')))
+    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:30px;text-align:center;color:var(--muted);font-size:13px;margin-bottom:22px">
+      <div style="font-size:32px;margin-bottom:8px">📅</div>
+      No upcoming events in <strong>{{ request('city') ?: request('province') }}</strong>.
+      <a href="{{ route('post.create') }}" style="color:var(--primary);font-weight:600;text-decoration:none">Post an event →</a>
+    </div>
+  @else
+  <div class="ev-grid">
+    @if($upcomingEvents->isEmpty())
+      @foreach([
+        ['14','Jun','Bhangra Night Live — Toronto Spring Edition','Danforth Music Hall, Toronto',true,'#1a3a8f'],
+        ['28','Jun','Canada Cup Cricket Tournament 2026','Brampton · India-Canada Cricket Club',false,'#2e7d32'],
+        ['27','Aug','Ganesh Chaturthi Pooja & Community Celebration','Hindu Sabha Mandir, Brampton',false,'#e8a020'],
+        ['20','Oct','Diwali Mela 2026 — Grand Celebration in Brampton','Rose Theatre, Brampton',false,'#c0392b'],
+      ] as $ph)
+      <div class="ev-card" style="pointer-events:none">
+        <div class="ev-date" style="background:{{ $ph[5] }}"><div class="ev-day">{{ $ph[0] }}</div><div class="ev-mon">{{ $ph[1] }}</div></div>
+        <div class="ev-body">
+          <div class="ev-title">{{ $ph[2] }}</div>
+          <div class="ev-meta"><i class="fa-solid fa-location-dot"></i> {{ $ph[3] }}</div>
+          <span class="ev-badge {{ $ph[4]?'badge-paid':'badge-free' }}">{{ $ph[4]?'Paid':'Free' }}</span>
+        </div>
+      </div>
+      @endforeach
+    @else
+      @foreach($upcomingEvents->take(4) as $i => $event)
+      <a href="{{ route('events.show', $event->slug) }}" class="ev-card">
+        <div class="ev-date" style="background:{{ $evColors[$i%4] }}">
+          <div class="ev-day">{{ $event->start_date->format('j') }}</div>
+          <div class="ev-mon">{{ $event->start_date->format('M') }}</div>
+        </div>
+        <div class="ev-body">
+          <div class="ev-title">{{ $event->title }}</div>
+          <div class="ev-meta"><i class="fa-solid fa-location-dot"></i> {{ $event->city }}@if($event->venue) · {{ $event->venue }}@endif</div>
+          @if($event->price)
+            @php $isFree = strtolower($event->price)==='free'||$event->price==='0'; @endphp
+            <span class="ev-badge {{ $isFree?'badge-free':'badge-paid' }}">{{ $isFree?'Free':$event->price }}</span>
           @endif
         </div>
       </a>
       @endforeach
-    </div>
-  @endif
-  <div style="padding:8px 12px;text-align:center;border-top:1px solid var(--border);display:flex;justify-content:center;gap:14px">
-    <a href="{{ route('jobs.index') }}" style="font-size:12px;color:var(--red);font-weight:500">💼 Find a Job</a>
-    <a href="{{ route('classifieds.index', ['category' => $classifiedCategories->where('name','Roommates')->first()?->id]) }}" style="font-size:12px;color:var(--red);font-weight:500">🤝 Roommate</a>
-    <a href="{{ route('classifieds.index', ['category' => $classifiedCategories->where('name','Autos')->first()?->id]) }}" style="font-size:12px;color:var(--red);font-weight:500">🚗 Car</a>
-    <a href="{{ route('classifieds.index', ['category' => $classifiedCategories->where('name','Real Estate')->first()?->id]) }}" style="font-size:12px;color:var(--red);font-weight:500">🏠 Real Estate</a>
+    @endif
   </div>
-</div>
+  @endif
 
-{{-- ── 6. PROFESSIONAL SERVICES ─────────────────────────────────── --}}
-@if($professionalServices->isNotEmpty())
-<div class="sec-head"><h2>⚖️ Professional Services</h2><a href="{{ route('directory.index') }}">View All</a></div>
-<div class="sec-box">
-  @foreach($professionalServices as $biz)
-  <a href="{{ route('directory.show', $biz->slug) }}" class="row-item">
-    <div class="ri-body">
-      <div class="ri-title">{{ $biz->name }}</div>
-      <div class="ri-sub">{{ $biz->category->icon ?? '' }} {{ $biz->category->name ?? 'Services' }}@if($biz->city) · {{ $biz->city }}@endif</div>
-    </div>
-    @if($biz->is_featured)<span class="ri-badge badge-feat">Featured</span>@endif
-    <span class="ri-arr">›</span>
-  </a>
-  @endforeach
-</div>
-@endif
+  <div class="sec-div"></div>
 
-{{-- ── 7. EDUCATION / SPORTS ────────────────────────────────────── --}}
-@if($educationSports->isNotEmpty())
-<div class="sec-head"><h2>🎓 Education / Sports</h2><a href="{{ route('directory.index') }}">View All</a></div>
-<div class="sec-box">
-  @foreach($educationSports as $biz)
-  <a href="{{ route('directory.show', $biz->slug) }}" class="row-item">
-    <div class="ri-body">
-      <div class="ri-title">{{ $biz->name }}</div>
-      <div class="ri-sub">{{ $biz->category->icon ?? '' }} {{ $biz->category->name ?? '' }}@if($biz->city) · {{ $biz->city }}@endif</div>
-    </div>
-    @if($biz->is_featured)<span class="ri-badge badge-feat">Featured</span>@endif
-    <span class="ri-arr">›</span>
-  </a>
-  @endforeach
-</div>
-@endif
-
-{{-- ── 8. MEDICAL / DENTAL ──────────────────────────────────────── --}}
-@if($medicalDental->isNotEmpty())
-<div class="sec-head"><h2>🏥 Medical / Dental</h2><a href="{{ route('directory.index') }}">View All</a></div>
-<div class="sec-box">
-  @foreach($medicalDental as $biz)
-  <a href="{{ route('directory.show', $biz->slug) }}" class="row-item">
-    <div class="ri-body">
-      <div class="ri-title">{{ $biz->name }}</div>
-      <div class="ri-sub">{{ $biz->category->icon ?? '' }} {{ $biz->category->name ?? '' }}@if($biz->city) · {{ $biz->city }}@endif</div>
-    </div>
-    @if($biz->is_featured)<span class="ri-badge badge-feat">Featured</span>@endif
-    <span class="ri-arr">›</span>
-  </a>
-  @endforeach
-</div>
-@endif
-
-{{-- ── 9. DINING / RESTAURANTS ─────────────────────────────────── --}}
-@if($diningBusinesses->isNotEmpty())
-<div class="sec-head"><h2>🍛 Dining / Restaurants</h2><a href="{{ route('directory.index') }}">View All</a></div>
-<div class="sec-box">
-  @foreach($diningBusinesses as $biz)
-  <a href="{{ route('directory.show', $biz->slug) }}" class="row-item">
-    <div class="ri-body">
-      <div class="ri-title">{{ $biz->name }}</div>
-      <div class="ri-sub">{{ $biz->category->icon ?? '' }} {{ $biz->category->name ?? 'Restaurant' }}@if($biz->city) · {{ $biz->city }}@endif@if($biz->rating > 0) · ⭐ {{ number_format($biz->rating, 1) }}@endif</div>
-    </div>
-    @if($biz->is_featured)<span class="ri-badge badge-feat">Featured</span>@endif
-    <span class="ri-arr">›</span>
-  </a>
-  @endforeach
-</div>
-@endif
-
-{{-- ── 10. SALON & SPA ───────────────────────────────────────────── --}}
-@if($salonSpa->isNotEmpty())
-<div class="sec-head"><h2>💅 Salon & Spa</h2><a href="{{ route('directory.index') }}">View All</a></div>
-<div class="sec-box">
-  @foreach($salonSpa as $biz)
-  <a href="{{ route('directory.show', $biz->slug) }}" class="row-item">
-    <div class="ri-body">
-      <div class="ri-title">{{ $biz->name }}</div>
-      <div class="ri-sub">{{ $biz->category->icon ?? '' }} {{ $biz->category->name ?? '' }}@if($biz->city) · {{ $biz->city }}@endif</div>
-    </div>
-    @if($biz->is_featured)<span class="ri-badge badge-feat">Featured</span>@endif
-    <span class="ri-arr">›</span>
-  </a>
-  @endforeach
-</div>
-@endif
-
-{{-- ── 11. FASHIONS ─────────────────────────────────────────────── --}}
-@if($fashionBiz->isNotEmpty())
-<div class="sec-head"><h2>👗 Fashions</h2><a href="{{ route('directory.index') }}">View All</a></div>
-<div class="sec-box">
-  @foreach($fashionBiz as $biz)
-  <a href="{{ route('directory.show', $biz->slug) }}" class="row-item">
-    <div class="ri-body">
-      <div class="ri-title">{{ $biz->name }}</div>
-      <div class="ri-sub">{{ $biz->category->icon ?? '' }} {{ $biz->category->name ?? '' }}@if($biz->city) · {{ $biz->city }}@endif</div>
-    </div>
-    @if($biz->is_featured)<span class="ri-badge badge-feat">Featured</span>@endif
-    <span class="ri-arr">›</span>
-  </a>
-  @endforeach
-</div>
-@endif
-
-{{-- ── 12. GROCERY STORES ───────────────────────────────────────── --}}
-@if($groceryStores->isNotEmpty())
-<div class="sec-head"><h2>🛒 Grocery Stores</h2><a href="{{ route('directory.index') }}">View All</a></div>
-<div class="sec-box">
-  @foreach($groceryStores as $biz)
-  <a href="{{ route('directory.show', $biz->slug) }}" class="row-item">
-    <div class="ri-body">
-      <div class="ri-title">{{ $biz->name }}</div>
-      <div class="ri-sub">{{ $biz->category->icon ?? '' }} {{ $biz->category->name ?? '' }}@if($biz->city) · {{ $biz->city }}@endif</div>
-    </div>
-    @if($biz->is_featured)<span class="ri-badge badge-feat">Featured</span>@endif
-    <span class="ri-arr">›</span>
-  </a>
-  @endforeach
-</div>
-@endif
-
-{{-- ── 13. JEWELRY ──────────────────────────────────────────────── --}}
-@if($jewelryBiz->isNotEmpty())
-<div class="sec-head"><h2>💎 Jewelry</h2><a href="{{ route('directory.index') }}">View All</a></div>
-<div class="sec-box">
-  @foreach($jewelryBiz as $biz)
-  <a href="{{ route('directory.show', $biz->slug) }}" class="row-item">
-    <div class="ri-body">
-      <div class="ri-title">{{ $biz->name }}</div>
-      <div class="ri-sub">{{ $biz->category->icon ?? '' }} {{ $biz->category->name ?? '' }}@if($biz->city) · {{ $biz->city }}@endif</div>
-    </div>
-    @if($biz->is_featured)<span class="ri-badge badge-feat">Featured</span>@endif
-    <span class="ri-arr">›</span>
-  </a>
-  @endforeach
-</div>
-@endif
-
-{{-- ── 14. COMMUNITY EVENTS ─────────────────────────────────────── --}}
-<div class="sec-head"><h2>🎊 Community Events</h2><a href="{{ route('events.index') }}">View All</a></div>
-<div class="sec-box">
-  @if($communityEvents->isEmpty())
-    <div class="empty-note">No upcoming community events. <a href="{{ route('post.create') }}">Post one →</a></div>
-  @else
-    @foreach($communityEvents as $event)
-    <a href="{{ route('events.show', $event->slug) }}" class="ev-item">
-      <div class="ev-date-box">
-        <div class="day">{{ $event->start_date->format('j') }}</div>
-        <div class="mon">{{ $event->start_date->format('M') }}</div>
-      </div>
-      <div class="ev-body">
-        <div class="ev-title">{{ $event->title }}</div>
-        <div class="ev-meta">
-          @if($event->city)📍 {{ $event->city }}@endif
-          @if($event->organizer) · {{ $event->organizer }}@endif
+  {{-- COMMUNITY NEWS --}}
+  <div class="sh">
+    <div class="sh-title"><i class="fa-solid fa-newspaper"></i> Community News</div>
+    <a href="{{ route('blog.index') }}" class="sh-link">View All <i class="fa-solid fa-arrow-right" style="font-size:10px"></i></a>
+  </div>
+  <div class="news-wrap">
+    @forelse($blogPosts as $post)
+      @php
+        $isFirst = $loop->first;
+        $isLast  = $loop->last;
+        $tagClass = $post->is_featured ? 'ntag-hot' : ($isFirst ? 'ntag-new' : 'ntag-comm');
+        $tagLabel = $post->is_featured ? 'Featured' : ($isFirst ? 'New' : 'Community');
+        $meta     = trim($post->category ?? '');
+      @endphp
+      <a href="{{ route('blog.show', $post->slug) }}" class="news-item" style="display:block;text-decoration:none;{{ $isLast ? 'border-bottom:none' : '' }}">
+        <div class="news-title">{{ $post->title }}</div>
+        <div class="news-meta">
+          <span class="ntag {{ $tagClass }}">{{ $tagLabel }}</span>
+          @if($meta) {{ $meta }} · @endif
+          {{ $post->published_at ? $post->published_at->diffForHumans() : $post->created_at->diffForHumans() }}
         </div>
+      </a>
+    @empty
+      <div class="news-item" style="border-bottom:none;color:var(--muted);font-size:13px;text-align:center;padding:18px 0">
+        <i class="fa-solid fa-newspaper" style="font-size:22px;display:block;margin-bottom:6px;color:#ccc"></i>
+        No posts yet. <a href="{{ route('blog.index') }}" style="color:var(--primary);font-weight:600">Visit the blog →</a>
       </div>
-      @if($event->is_featured)<span class="ev-badge">Featured</span>@endif
-    </a>
-    @endforeach
-  @endif
-</div>
-
-{{-- ── 15. JOBS & IT TRAINING ───────────────────────────────────── --}}
-<div class="sec-head"><h2>💻 Jobs & IT Training / Placement</h2><a href="{{ route('jobs.index') }}">View All</a></div>
-<div class="sec-box">
-  <div class="job-cats">
-    <a href="{{ route('jobs.index', ['type'=>'full-time']) }}" class="job-cat">💻 IT Training & Placement</a>
-    <a href="{{ route('jobs.index', ['type'=>'contract']) }}" class="job-cat">🖥 IT & Technology Jobs</a>
-    <a href="{{ route('jobs.index', ['type'=>'part-time']) }}" class="job-cat">🏢 Sales, Service & Office</a>
+    @endforelse
   </div>
-  @if($latestJobs->isEmpty())
-    <div class="row-item" style="pointer-events:none"><div class="ri-body"><div class="ri-title">Global Information Technology — Get Trained. Get Placed. Free Training for qualified applicants.</div><div class="ri-sub">IT Training · Toronto, ON</div></div><span class="ri-arr">›</span></div>
-    <div class="row-item" style="pointer-events:none"><div class="ri-body"><div class="ri-title">Tata Consultancy Services — Multiple IT openings for experienced professionals</div><div class="ri-sub">IT Jobs · Toronto · Mississauga · Vancouver</div></div><span class="ri-badge badge-new">Apply Now</span><span class="ri-arr">›</span></div>
-  @else
-    @foreach($latestJobs as $job)
-    <a href="{{ route('jobs.show', $job->slug) }}" class="row-item">
-      <div class="ri-body">
-        <div class="ri-title">{{ $job->title }}@if($job->company) — {{ $job->company }}@endif</div>
-        <div class="ri-sub">{{ $job->job_type_label }}@if($job->city) · {{ $job->city }}@elseif($job->location) · {{ $job->location }}@endif</div>
-      </div>
-      @if($job->salary)<span style="font-size:11px;color:var(--green);font-weight:600;flex-shrink:0;white-space:nowrap">{{ $job->salary }}</span>@endif
-      @if($job->is_featured)<span class="ri-badge badge-feat">Featured</span>@endif
-      <span class="ri-arr">›</span>
-    </a>
-    @endforeach
-  @endif
-</div>
 
-{{-- ── 16. BUSINESS PROMOTIONS ──────────────────────────────────── --}}
-<div class="sec-head"><h2>📣 Business Promotions</h2><a href="{{ route('directory.index') }}">Advertise With Us</a></div>
-<div class="sec-box">
+  {{-- JOBS --}}
   @php
-    $promoItems = $featuredBusinesses->isNotEmpty() ? $featuredBusinesses : collect([]);
+  $jobImgs=['https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=80&h=80&fit=crop','https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=80&h=80&fit=crop','https://images.unsplash.com/photo-1538108149393-fbbd81895907?w=80&h=80&fit=crop','https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=80&h=80&fit=crop','https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=80&h=80&fit=crop','https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=80&h=80&fit=crop'];
   @endphp
-  @if($promoItems->isEmpty())
-    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:12px">
-      @foreach([['icon'=>'🛡️','title'=>'Anne Insurance Group','sub'=>'Auto · Home · Life · Business Insurance'],['icon'=>'🏠','title'=>'Koshy George — Realtor','sub'=>'Residential & Commercial · GTA'],['icon'=>'✈️','title'=>'Visitors Insurance','sub'=>'For parents & students visiting Canada'],['icon'=>'💎','title'=>'Manjil Designs Jewelry','sub'=>'Best Gold, Diamond & Silver · Brampton']] as $p)
-      <div style="border:1.5px solid var(--border);border-radius:var(--rl);padding:14px;text-align:center">
-        <div style="font-size:28px;margin-bottom:6px">{{ $p['icon'] }}</div>
-        <div style="font-size:12px;font-weight:600">{{ $p['title'] }}</div>
-        <div style="font-size:10.5px;color:var(--muted)">{{ $p['sub'] }}</div>
+  <div class="sh">
+    <div class="sh-title"><i class="fa-solid fa-briefcase"></i> Jobs & IT Training</div>
+    <a href="{{ route('jobs.index') }}" class="sh-link">View All <i class="fa-solid fa-arrow-right" style="font-size:10px"></i></a>
+  </div>
+  @if($latestJobs->isEmpty() && (request('province') || request('city')))
+    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:30px;text-align:center;color:var(--muted);font-size:13px;margin-bottom:22px">
+      <div style="font-size:32px;margin-bottom:8px">💼</div>
+      No jobs in <strong>{{ request('city') ?: request('province') }}</strong> yet.
+      <a href="{{ route('post.create') }}" style="color:var(--primary);font-weight:600;text-decoration:none">Post a job →</a>
+    </div>
+  @else
+  <div class="jobs-list">
+    @if($latestJobs->isEmpty())
+      @foreach([
+        ['💻','Full Stack Developer — Laravel & Vue.js','TechMove Inc. · Full Time · Toronto',['Laravel','Vue.js','Remote OK'],'$80K–$90K'],
+        ['📊','Senior Accountant — CPA preferred','Maple Finance Group · Full Time · Mississauga',['CPA','Accounting','Finance'],'$75K–$85K'],
+        ['🏥','Registered Nurse — Long Term Care Facility','Sunrise Care Home · Full Time · Toronto',['RN','Healthcare'],'$35–$40/hr'],
+        ['📚','Math & Science Tutor — Grade 9 to 12','BrightMinds Tutoring · Part Time · Toronto',['Tutoring','Education'],'$20–$30/hr'],
+      ] as $i=>$ph)
+      <div class="job-card" style="pointer-events:none">
+        <div class="job-logo" style="padding:0;overflow:hidden"><img src="{{ $jobImgs[$i%count($jobImgs)] }}" alt="{{ $ph[1] }}" style="width:100%;height:100%;object-fit:cover;border-radius:9px"></div>
+        <div class="job-info"><div class="job-title">{{ $ph[1] }}</div><div class="job-co">{{ $ph[2] }}</div><div class="job-tags">@foreach($ph[3] as $t)<span class="job-tag">{{ $t }}</span>@endforeach</div></div>
+        <div class="job-sal">{{ $ph[4] }}</div>
       </div>
       @endforeach
-    </div>
-  @else
-    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:12px">
-      @foreach($promoItems as $biz)
-      <a href="{{ route('directory.show', $biz->slug) }}" style="border:1.5px solid var(--border);border-radius:var(--rl);padding:14px;text-align:center;display:block;text-decoration:none;color:var(--text);transition:border-color .15s" onmouseover="this.style.borderColor='var(--red)'" onmouseout="this.style.borderColor='var(--border)'">
-        <div style="font-size:28px;margin-bottom:6px">{{ $biz->category->icon ?? '🏢' }}</div>
-        <div style="font-size:12px;font-weight:600">{{ Str::limit($biz->name, 30) }}</div>
-        <div style="font-size:10.5px;color:var(--muted)">{{ $biz->city }}</div>
-        @if($biz->phone)<div style="margin-top:6px;display:inline-block;background:var(--red);color:#fff;font-size:10px;padding:3px 10px;border-radius:20px">Call Now</div>@endif
+    @else
+      @foreach($latestJobs as $i=>$job)
+      <a href="{{ route('jobs.show', $job->slug) }}" class="job-card">
+        <div class="job-logo" style="padding:0;overflow:hidden"><img src="{{ $jobImgs[$i%count($jobImgs)] }}" alt="{{ $job->title }}" style="width:100%;height:100%;object-fit:cover;border-radius:9px"></div>
+        <div class="job-info">
+          <div class="job-title">{{ $job->title }}@if($job->company) — {{ $job->company }}@endif</div>
+          <div class="job-co">{{ $job->job_type_label }}@if($job->city) · {{ $job->city }}@endif</div>
+          <div class="job-tags">@if($job->category)<span class="job-tag">{{ $job->category->name }}</span>@endif<span class="job-tag">{{ $job->job_type_label }}</span></div>
+        </div>
+        @if($job->salary)<div class="job-sal">{{ $job->salary }}</div>@endif
       </a>
       @endforeach
-    </div>
+    @endif
+  </div>
   @endif
-</div>
 
-</div>{{-- /content --}}
+  <div class="sec-div"></div>
 
-{{-- ═══════════ RIGHT SIDEBAR ═══════════ --}}
-<div class="sidebar-right">
+  {{-- INLINE AD --}}
+  <x-ad-slot position="inline" :ads="$ads" />
 
-  {{-- SUBSCRIBE --}}
-  <div class="widget">
-    <div class="widget-head">📧 Subscribe Newsletter <a href="#">Free</a></div>
-    <div class="sub-form">
-      <input type="email" placeholder="Your email address">
-      <button type="button" id="sub-btn">Subscribe for Free Updates</button>
+  {{-- BUSINESS DIRECTORY --}}
+  @php
+  $bizImgs=['https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=300&h=160&fit=crop','https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=300&h=160&fit=crop','https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=300&h=160&fit=crop','https://images.unsplash.com/photo-1604719312566-8912e9667d9f?w=300&h=160&fit=crop'];
+  @endphp
+  <div class="sh">
+    <div class="sh-title"><i class="fa-solid fa-building-columns"></i> Business Directory</div>
+    <a href="{{ route('directory.index') }}" class="sh-link">{{ $stats['businesses']>0?number_format($stats['businesses']).'+ Listings':'View All' }} <i class="fa-solid fa-arrow-right" style="font-size:10px"></i></a>
+  </div>
+  @if($latestBusinesses->isEmpty() && (request('province') || request('city')))
+    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:30px;text-align:center;color:var(--muted);font-size:13px;margin-bottom:22px">
+      <div style="font-size:32px;margin-bottom:8px">🏢</div>
+      No businesses in <strong>{{ request('city') ?: request('province') }}</strong> yet.
+      <a href="{{ route('post.create') }}" style="color:var(--primary);font-weight:600;text-decoration:none">List your business →</a>
     </div>
+  @else
+  <div class="biz-grid">
+    @if($latestBusinesses->isEmpty())
+      @foreach([['🍛','Taste of India Restaurant','Restaurant · Brampton',4.5],['⚖️','Canada Immigration Experts','Immigration · Mississauga',4.0],['🏠','Patel Realty Group','Real Estate · Toronto',5.0],['🛒','Spice Garden Indian Grocery','Grocery · Brampton',3.7]] as $i=>$ph)
+      <div class="biz-card" style="pointer-events:none">
+        <div class="biz-img"><img src="{{ $bizImgs[$i%count($bizImgs)] }}" alt="{{ $ph[1] }}"></div>
+        <div class="biz-body"><div class="biz-name">{{ $ph[1] }}</div><div class="biz-cat">{{ $ph[2] }}</div><div class="biz-stars"><i class="fa-solid fa-star"></i> {{ $ph[3] }}</div></div>
+      </div>
+      @endforeach
+    @else
+      @foreach($latestBusinesses->take(4) as $i=>$biz)
+      <a href="{{ route('directory.show', $biz->slug) }}" class="biz-card">
+        <div class="biz-img">
+          @if($biz->image_url)<img src="{{ $biz->image_url }}" alt="{{ $biz->name }}">
+          @else<img src="{{ $bizImgs[$i%count($bizImgs)] }}" alt="{{ $biz->name }}">@endif
+        </div>
+        <div class="biz-body">
+          <div class="biz-name">{{ Str::limit($biz->name,22) }}</div>
+          <div class="biz-cat">{{ $biz->category->name??'Business' }}@if($biz->city) · {{ $biz->city }}@endif</div>
+          @if($biz->rating>0)<div class="biz-stars"><i class="fa-solid fa-star"></i> {{ number_format($biz->rating,1) }}</div>@endif
+        </div>
+      </a>
+      @endforeach
+    @endif
+  </div>
+  @endif
+
+  {{-- ALL LISTINGS — only show when there's data OR no location filter --}}
+  @php
+  $allImgs=['https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=140&h=128&fit=crop','https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=140&h=128&fit=crop','https://images.unsplash.com/photo-1605901309584-818e25960a8f?w=140&h=128&fit=crop','https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=140&h=128&fit=crop'];
+  $hideAllListings = $latestListings->isEmpty() && (request('province') || request('city'));
+  @endphp
+  @unless($hideAllListings)
+  <div class="sh">
+    <div class="sh-title"><i class="fa-solid fa-list"></i> All Listings</div>
+    <a href="{{ route('classifieds.index') }}" class="sh-link">View All <i class="fa-solid fa-arrow-right" style="font-size:10px"></i></a>
+  </div>
+  <div class="al-list">
+    @if($latestListings->count()>4)
+      @foreach($latestListings->skip(4)->take(5) as $i=>$listing)
+      <a href="{{ route('classifieds.show', $listing->slug) }}" class="al-item">
+        <div class="al-thumb">
+          @if($listing->image_url)<img src="{{ $listing->image_url }}" alt="{{ $listing->title }}">
+          @else<img src="{{ $allImgs[$i%count($allImgs)] }}" alt="{{ $listing->title }}">@endif
+        </div>
+        <div class="al-info">
+          <div class="al-title">{{ $listing->title }}</div>
+          @if($listing->price)<div class="al-price">{{ $listing->price }}<small>{{ $listing->price_unit }}</small></div>@endif
+          <div class="al-meta"><span><i class="fa-solid fa-location-dot"></i>{{ $listing->location }}</span><span><i class="fa-regular fa-clock"></i>{{ $listing->created_at->diffForHumans() }}</span></div>
+        </div>
+        <div style="color:#ddd;align-self:flex-start;margin-top:2px"><i class="fa-regular fa-heart" style="font-size:16px"></i></div>
+      </a>
+      @endforeach
+    @else
+      @foreach([
+        ['https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=140&h=128&fit=crop','Mountain Bike — barely used, great condition','$250','Brampton, ON','1h ago','Buy & Sell'],
+        ['https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=140&h=128&fit=crop','1 Bed Apartment — near university, utilities included','$1,100','Brampton, ON','2h ago','Rentals','/mo'],
+        ['https://images.unsplash.com/photo-1605901309584-818e25960a8f?w=140&h=128&fit=crop','PlayStation 5 — disc edition, 2 controllers','$800','Mississauga, ON','3h ago','Electronics'],
+        ['https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=140&h=128&fit=crop','Indian tiffin service — GTA area, veg & jain options','$200','Mississauga, ON','4h ago','Services','/mo'],
+      ] as $ph)
+      <div class="al-item" style="pointer-events:none">
+        <div class="al-thumb"><img src="{{ $ph[0] }}" alt="{{ $ph[1] }}"></div>
+        <div class="al-info">
+          <div class="al-title">{{ $ph[1] }}</div>
+          <div class="al-price">{{ $ph[2] }}@isset($ph[6])<small>{{ $ph[6] }}</small>@endisset</div>
+          <div class="al-meta"><span><i class="fa-solid fa-location-dot"></i>{{ $ph[3] }}</span><span><i class="fa-regular fa-clock"></i>{{ $ph[4] }}</span></div>
+        </div>
+        <div style="color:#ddd;align-self:flex-start;margin-top:2px"><i class="fa-regular fa-heart" style="font-size:16px"></i></div>
+      </div>
+      @endforeach
+    @endif
+  </div>
+  @endunless
+
+  {{-- MOBILE ONLY: Sidebar Ads --}}
+  @if($ads->where('position','sidebar')->isNotEmpty())
+  <div class="mobile-sidebar-ads">
+    <x-ad-slot position="sidebar" :ads="$ads" />
+  </div>
+  @endif
+
+</div>{{-- /home-main --}}
+
+{{-- ═══ SIDEBAR ═══ --}}
+<div class="home-sidebar">
+
+  {{-- POST AD --}}
+  <div class="sb-card">
+    <div class="sb-head"><i class="fa-solid fa-bullhorn"></i> Post your ad</div>
+    @auth
+      <a href="{{ route('post.create') }}" class="post-btn"><i class="fa-solid fa-plus"></i> Post an Ad for Free</a>
+    @else
+      <a href="{{ route('register') }}" class="post-btn"><i class="fa-solid fa-plus"></i> Post an Ad for Free</a>
+    @endauth
+    <div class="free-note"><i class="fa-solid fa-circle-check"></i> 100% free · No hidden fees · Instant</div>
+  </div>
+
+  {{-- PAID SIDEBAR ADS --}}
+  @if($ads->where('position','sidebar')->isNotEmpty())
+  <div class="sb-card" style="padding:10px">
+    <x-ad-slot position="sidebar" :ads="$ads" />
+  </div>
+  @endif
+
+  {{-- STATS --}}
+  <div class="sb-card">
+    <div class="sb-head"><i class="fa-solid fa-chart-bar"></i> Site Stats</div>
+    <div class="stat-grid">
+      <div class="stat-box"><div class="stat-num">{{ number_format($stats['businesses']) }}+</div><div class="stat-lbl">Businesses</div></div>
+      <div class="stat-box"><div class="stat-num">{{ number_format($stats['listings']) }}+</div><div class="stat-lbl">Free Ads</div></div>
+      <div class="stat-box"><div class="stat-num">{{ number_format($stats['events']) }}+</div><div class="stat-lbl">Events</div></div>
+      <div class="stat-box"><div class="stat-num">1.6M+</div><div class="stat-lbl">Community</div></div>
+    </div>
+  </div>
+
+  {{-- NEWSLETTER --}}
+  <div class="sb-card" style="background:linear-gradient(135deg,#1a3a8f,#122970);border-color:transparent">
+    <div class="sb-head" style="color:#fff"><i class="fa-solid fa-envelope" style="color:var(--accent)"></i> Newsletter</div>
+    <input type="email" id="sub-email" placeholder="Your email address" style="width:100%;border:none;border-radius:7px;padding:9px 12px;font-size:12.5px;margin-bottom:8px;font-family:var(--fb)">
+    <button id="sub-btn" style="width:100%;background:var(--accent);color:#fff;border:none;padding:9px;border-radius:7px;font-size:12.5px;font-weight:700;cursor:pointer">Subscribe Free</button>
   </div>
 
   {{-- QUICK LINKS --}}
-  <div class="widget">
-    <div class="widget-head">⚡ Quick Links</div>
-    <a href="{{ route('matrimonial.index') }}" class="qlink"><span class="ql-icon">💒</span> Wedding Connections <span class="ql-arr">›</span></a>
-    <a href="{{ route('classifieds.index', ['category' => $classifiedCategories->where('name','Roommates')->first()?->id]) }}" class="qlink"><span class="ql-icon">🏠</span> Find Roommate <span class="ql-arr">›</span></a>
-    <a href="{{ route('classifieds.index', ['category' => $classifiedCategories->where('name','Autos')->first()?->id]) }}" class="qlink"><span class="ql-icon">🚗</span> Buy / Sell Cars <span class="ql-arr">›</span></a>
-    <a href="{{ route('directory.index') }}" class="qlink"><span class="ql-icon">✈️</span> Travel Agents <span class="ql-arr">›</span></a>
-    <a href="{{ route('blog.index') }}" class="qlink"><span class="ql-icon">📰</span> Community Blog <span class="ql-arr">›</span></a>
-    <a href="{{ route('feed') }}" class="qlink"><span class="ql-icon">📲</span> Community Feed <span class="ql-arr">›</span></a>
-    <a href="{{ route('jobs.index') }}" class="qlink"><span class="ql-icon">💼</span> Find a Job <span class="ql-arr">›</span></a>
+  <div class="sb-card">
+    <div class="sb-head"><i class="fa-solid fa-link"></i> Quick Links</div>
+    <a href="{{ route('classifieds.index', ['category' => $roommatesCatId]) }}" class="ql"><div class="ql-ico" style="background:#fce4ec"><i class="fa-solid fa-person-shelter" style="color:#c2185b"></i></div> Find Roommate</a>
+    <a href="{{ route('classifieds.index', ['category' => $autosCategoryId]) }}" class="ql"><div class="ql-ico" style="background:#fff3e0"><i class="fa-solid fa-car" style="color:#e65100"></i></div> Buy / Sell Cars</a>
+    <a href="{{ route('directory.index', ['category' => $travelAgentCatId]) }}" class="ql"><div class="ql-ico" style="background:#e8f5e9"><i class="fa-solid fa-plane" style="color:#2e7d32"></i></div> Travel Agents</a>
+    <a href="{{ route('blog.index') }}" class="ql"><div class="ql-ico" style="background:#e8edf7"><i class="fa-solid fa-users" style="color:var(--primary)"></i></div> Community Blog</a>
+    <a href="{{ route('feed') }}" class="ql"><div class="ql-ico" style="background:#e0f7fa"><i class="fa-solid fa-rss" style="color:#00838f"></i></div> Community Feed</a>
+    <a href="{{ route('jobs.index') }}" class="ql"><div class="ql-ico" style="background:#fef6e4"><i class="fa-solid fa-briefcase" style="color:#7a5200"></i></div> Find a Job</a>
   </div>
 
   {{-- MI POLL --}}
-  <div class="widget">
-    <div class="widget-head">📊 Mi Poll</div>
-    <div class="widget-body">
-      <p style="font-size:12px;font-weight:500;margin-bottom:12px">Do you expect the Canadian job market to improve for software programmers in 2026?</p>
-      <div class="poll-opt">
-        <span class="poll-label">Yes</span>
-        <div class="poll-bar-wrap"><div class="poll-bar" style="width:62%"><span class="poll-val">62%</span></div></div>
+  @if($poll)
+  <div class="sb-card" id="poll-widget" data-poll-id="{{ $poll->id }}" data-vote-url="{{ route('poll.vote', $poll->id) }}">
+    <div class="sb-head"><i class="fa-solid fa-chart-simple"></i> GoBazaar Poll</div>
+    <div class="poll-q">{{ $poll->question }}</div>
+
+    {{-- Voting view (radio choices) --}}
+    <div id="poll-choices">
+      @foreach($poll->options as $opt)
+      <label class="poll-choice" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;margin-bottom:7px;cursor:pointer;font-size:13px;transition:border-color .15s" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="if(!this.querySelector('input').checked)this.style.borderColor='var(--border)'">
+        <input type="radio" name="poll-option" value="{{ $opt->id }}" style="accent-color:var(--primary);cursor:pointer">
+        <span>{{ $opt->label }}</span>
+      </label>
+      @endforeach
+      <button class="poll-btn" id="poll-vote-btn" onclick="submitPollVote()">Vote</button>
+    </div>
+
+    {{-- Results view (hidden until voted) --}}
+    <div id="poll-results" style="display:none">
+      @foreach($poll->options as $opt)
+      <div class="poll-row" data-opt="{{ $opt->id }}">
+        <span class="poll-lbl">{{ Str::limit($opt->label, 10) }}</span>
+        <div class="poll-bar-bg"><div class="poll-bar poll-bar-fill" style="width:{{ $opt->percentage }}%;background:{{ $loop->first ? 'var(--primary)' : '#9ca3af' }}">{{ $opt->percentage }}%</div></div>
       </div>
-      <div class="poll-opt">
-        <span class="poll-label">No</span>
-        <div class="poll-bar-wrap"><div class="poll-bar" style="width:38%"><span class="poll-val">38%</span></div></div>
-      </div>
-      <button class="poll-btn" id="poll-btn">Vote</button>
+      @endforeach
+      <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:6px"><span id="poll-total">{{ $poll->total_votes }}</span> votes · <span style="color:#16a34a;font-weight:600">✓ You voted</span></div>
     </div>
   </div>
+  @endif
 
-  {{-- FEATURED ADS --}}
-  <div class="widget">
-    <div class="widget-head">⭐ Featured Ads <a href="{{ route('post.create') }}">Advertise</a></div>
-    <div class="widget-body">
-      @if($sidebarFeatured->isEmpty())
-        <div class="w-ad"><div class="w-ad-inner"><div class="icon">🛡️</div><div class="title">Anne Insurance Group</div><div class="sub">Auto · Home · Life · Business Insurance</div><span class="cta">Get Quote</span></div></div>
-        <div class="w-ad"><div class="w-ad-inner"><div class="icon">🏠</div><div class="title">Koshy George — Realtor</div><div class="sub">Residential & Commercial · GTA</div><span class="cta">Contact Now</span></div></div>
-        <div class="w-ad"><div class="w-ad-inner" style="background:var(--amber-bg);border-color:#FDE68A"><div class="icon">💎</div><div class="title">Manjil Designs Jewelry</div><div class="sub">Best Gold, Diamond & Silver · Brampton</div><span class="cta">Shop Now</span></div></div>
-      @else
-        @foreach($sidebarFeatured as $listing)
-        <a href="{{ route('classifieds.show', $listing->slug) }}" class="w-ad">
-          <div class="w-ad-inner">
-            <div class="icon">{{ $listing->category->icon ?? '📦' }}</div>
-            <div class="title">{{ Str::limit($listing->title, 28) }}</div>
-            <div class="sub">📍 {{ $listing->location }}</div>
-            @if($listing->price)<span class="cta">{{ $listing->price }}</span>@endif
-          </div>
+
+  {{-- LATEST ADS --}}
+  <div class="sb-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:11px">
+      <div class="sb-head" style="margin-bottom:0"><i class="fa-solid fa-clock"></i> Latest Ads</div>
+      <a href="{{ route('classifieds.index') }}" style="font-size:11px;color:var(--primary);font-weight:600;text-decoration:none">View all</a>
+    </div>
+    @php
+    $laImgs=['https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=96&h=96&fit=crop','https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=96&h=96&fit=crop','https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=96&h=96&fit=crop','https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=96&h=96&fit=crop'];
+    @endphp
+    <div class="la-list">
+      @if($latestListings->isNotEmpty())
+        @foreach($latestListings->take(4) as $i=>$listing)
+        <a href="{{ route('classifieds.show', $listing->slug) }}" class="la-item">
+          <div class="la-thumb">@if($listing->image_url)<img src="{{ $listing->image_url }}" alt="{{ $listing->title }}">@else<img src="{{ $laImgs[$i%count($laImgs)] }}" alt="{{ $listing->title }}">@endif</div>
+          <div class="la-info"><div class="la-name">{{ Str::limit($listing->title,28) }}</div>@if($listing->price)<div class="la-price">{{ $listing->price }}<small>{{ $listing->price_unit }}</small></div>@endif<div class="la-loc"><i class="fa-solid fa-location-dot" style="font-size:10px"></i> {{ $listing->location }}</div></div>
+          <div class="la-side"><div class="la-fav"><i class="fa-regular fa-heart"></i></div><div class="la-time">{{ $listing->created_at->diffForHumans(null,true) }}</div></div>
         </a>
+        @endforeach
+      @else
+        @foreach([['🪑','Wooden Dining Table Set','$350','Brampton, ON','10 min'],['💼','Part-time Cashier','$16','Brampton, ON','25 min'],['🛏️','Room for Rent near U of T','$650','Toronto, ON','1h ago'],['🚗','2020 Toyota Corolla — 45K km','$18,500','Mississauga, ON','2h ago']] as $i=>$ph)
+        <div class="la-item">
+          <div class="la-thumb"><img src="{{ $laImgs[$i%count($laImgs)] }}" alt="{{ $ph[1] }}"></div>
+          <div class="la-info"><div class="la-name">{{ $ph[1] }}</div><div class="la-price">{{ $ph[2] }}</div><div class="la-loc"><i class="fa-solid fa-location-dot" style="font-size:10px"></i> {{ $ph[3] }}</div></div>
+          <div class="la-side"><div class="la-fav"><i class="fa-regular fa-heart"></i></div><div class="la-time">{{ $ph[4] }}</div></div>
+        </div>
         @endforeach
       @endif
     </div>
   </div>
 
-  {{-- TRENDING TODAY --}}
-  <div class="widget">
-    <div class="widget-head">🔥 Trending Today</div>
-    @if($trendingListings->isEmpty())
-      <div class="trend-item"><span class="trend-num">1</span><div><div class="trend-title">Rent Vintage Cars for Wedding & Special Events</div><div class="trend-cat">Directory · Toronto</div></div></div>
-      <div class="trend-item"><span class="trend-num">2</span><div><div class="trend-title">New Job Listings — Apply Now</div><div class="trend-cat">Jobs · Multiple Cities</div></div></div>
-      <div class="trend-item"><span class="trend-num">3</span><div><div class="trend-title">Key Revisions in Canada-India Trade Deal</div><div class="trend-cat">News · Community</div></div></div>
-      <div class="trend-item"><span class="trend-num">4</span><div><div class="trend-title">Diwali Mela 2026 — Toronto Expo Centre</div><div class="trend-cat">Events · Oct 18</div></div></div>
-    @else
-      @foreach($trendingListings as $i => $listing)
-      <a href="{{ route('classifieds.show', $listing->slug) }}" class="trend-item">
-        <span class="trend-num">{{ $i + 1 }}</span>
-        <div>
-          <div class="trend-title">{{ Str::limit($listing->title, 48) }}</div>
-          <div class="trend-cat">{{ $listing->category->name ?? 'Classifieds' }} · {{ $listing->location }}</div>
-        </div>
-      </a>
-      @endforeach
-    @endif
+  {{-- ADVERTISE --}}
+  <div class="sb-card" style="background:#122970;border-color:#2a4fa8;text-align:center">
+    <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:5px">Advertise with Us</div>
+    <div style="font-size:11px;color:rgba(255,255,255,.7);margin-bottom:11px;line-height:1.5">Reach thousands of Indian-Canadians. Get listed by brand & category.</div>
+    <button onclick="document.getElementById('advertise-modal').classList.add('open')"
+            style="display:block;width:100%;background:var(--accent);color:#fff;padding:9px;border-radius:7px;font-size:12px;font-weight:700;border:none;cursor:pointer">
+      Click Here for Info
+    </button>
   </div>
 
-  {{-- LATEST BUSINESSES --}}
-  <div class="widget">
-    <div class="widget-head">🆕 Latest in Canada <a href="{{ route('directory.index') }}">View All</a></div>
-    @if($latestSidebarBiz->isEmpty())
-      <div class="row-item" style="pointer-events:none"><div class="ri-body"><div class="ri-title">Motor City Vintage Rentals</div><div class="ri-sub">Toronto, ON</div></div><span class="ri-badge badge-new">New</span></div>
-      <div class="row-item" style="pointer-events:none"><div class="ri-body"><div class="ri-title">AM Rental Property Management</div><div class="ri-sub">GTA, ON</div></div></div>
-      <div class="row-item" style="pointer-events:none"><div class="ri-body"><div class="ri-title">GoBazzar Digital Display Network</div><div class="ri-sub">Canada-wide</div></div><span class="ri-badge badge-feat">Featured</span></div>
-      <div class="row-item" style="pointer-events:none"><div class="ri-body"><div class="ri-title">Nazaare Photography — Beyond Lenses</div><div class="ri-sub">Brampton, ON</div></div></div>
-      <div class="row-item" style="pointer-events:none"><div class="ri-body"><div class="ri-title">LifeLab Kids — Developmental Therapy</div><div class="ri-sub">Mississauga, ON</div></div></div>
-    @else
-      @foreach($latestSidebarBiz as $biz)
-      <a href="{{ route('directory.show', $biz->slug) }}" class="row-item">
-        <div class="ri-body">
-          <div class="ri-title">{{ $biz->name }}</div>
-          <div class="ri-sub">{{ $biz->city ?? ($biz->category->name ?? '') }}</div>
-        </div>
-        @if($biz->is_featured)<span class="ri-badge badge-feat">Featured</span>@elseif($biz->created_at->gte(now()->subDays(7)))<span class="ri-badge badge-new">New</span>@endif
-      </a>
-      @endforeach
-    @endif
-  </div>
-
-  {{-- ADVERTISE WITH US --}}
-  <div class="widget" style="background:var(--dark)">
-    <div style="padding:16px;text-align:center">
-      <div style="font-family:var(--fh);font-size:14px;font-weight:800;color:#fff;margin-bottom:6px">Advertise With Us</div>
-      <p style="font-size:11.5px;color:rgba(255,255,255,.55);line-height:1.6;margin-bottom:14px">Reach thousands of Indian-Canadians. Customize your ad by need & budget.</p>
-      <a href="mailto:info@gobazzar.ca" class="btn btn-red" style="width:100%;justify-content:center;display:flex">Click Here for Info</a>
-    </div>
-  </div>
-
-</div>{{-- /sidebar-right --}}
-</div>{{-- /main-wrap --}}
+</div>{{-- /home-sidebar --}}
+</div>{{-- /home-body --}}
 
 @endsection
 
+@push('modals')
+{{-- ADVERTISE MODAL --}}
+<div id="advertise-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;background:rgba(0,0,0,.55);align-items:center;justify-content:center;padding:16px"
+     onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="adv-modal-box">
+    <div class="adv-modal-head">
+      <h3>📢 Advertise with GoBazaar</h3>
+      <button class="adv-modal-close" onclick="document.getElementById('advertise-modal').classList.remove('open')">✕</button>
+    </div>
+    <div class="adv-modal-body">
+
+      {{-- Success state --}}
+      <div id="adv-success" style="display:none;text-align:center;padding:30px 20px">
+        <div style="font-size:52px;margin-bottom:12px">🎉</div>
+        <div style="font-family:var(--fh);font-size:18px;font-weight:800;color:var(--text);margin-bottom:8px">Enquiry Submitted!</div>
+        <div style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:20px">Thank you! Our team will contact you within 24 hours with ad placement options and pricing.</div>
+        <button type="button" onclick="document.getElementById('advertise-modal').classList.remove('open')"
+                style="background:var(--primary);color:#fff;border:none;border-radius:8px;padding:10px 28px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--fb)">
+          Close
+        </button>
+      </div>
+
+      {{-- Form --}}
+      <div id="adv-form-wrap">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6">
+        Fill in your details and we'll contact you within 24 hours with ad placement options and pricing.
+      </p>
+
+      <form id="adv-form" action="{{ route('advertise.store') }}" method="POST">
+        @csrf
+        <div class="adv-grid">
+          <div class="adv-field">
+            <label>Your Name *</label>
+            <input type="text" name="name" value="{{ auth()->user()->name ?? old('name') }}" required placeholder="Full name">
+          </div>
+          <div class="adv-field">
+            <label>Email *</label>
+            <input type="email" name="email" value="{{ auth()->user()->email ?? old('email') }}" required placeholder="your@email.com">
+          </div>
+        </div>
+        <div class="adv-grid">
+          <div class="adv-field">
+            <label>Phone / WhatsApp</label>
+            <input type="text" name="phone" placeholder="+1 (416) 555-0123">
+          </div>
+          <div class="adv-field">
+            <label>Business Name</label>
+            <input type="text" name="business_name" placeholder="Your business">
+          </div>
+        </div>
+        <div class="adv-grid">
+          <div class="adv-field">
+            <label>Ad Position Interested In</label>
+            <select name="ad_position">
+              <option value="">-- Select --</option>
+              <option value="home-banner">Home Top Banner</option>
+              <option value="sidebar">Sidebar</option>
+              <option value="inline">Inline (Between Listings)</option>
+              <option value="all">All Positions</option>
+            </select>
+          </div>
+          <div class="adv-field">
+            <label>Monthly Budget</label>
+            <select name="budget">
+              <option value="">-- Select --</option>
+              <option value="under-100">Under $100</option>
+              <option value="100-300">$100 – $300</option>
+              <option value="300-500">$300 – $500</option>
+              <option value="500+">$500+</option>
+            </select>
+          </div>
+        </div>
+        <div class="adv-field">
+          <label>Website (optional)</label>
+          <input type="url" name="website" placeholder="https://yourbusiness.com">
+        </div>
+        <div class="adv-field">
+          <label>Message (optional)</label>
+          <textarea name="message" placeholder="Tell us about your business or what you'd like to promote…"></textarea>
+        </div>
+        <button type="submit" class="adv-submit" id="adv-submit-btn">
+          <i class="fa-solid fa-paper-plane"></i> Send Enquiry
+        </button>
+      </form>
+      </div>{{-- /adv-form-wrap --}}
+    </div>
+  </div>
+</div>
+<style>
+#advertise-modal.open{display:flex !important}
+.adv-modal-box{background:#fff;border-radius:16px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25);animation:advSlide .2s ease}
+@keyframes advSlide{from{transform:translateY(-20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.adv-modal-head{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid #f0f0f0}
+.adv-modal-head h3{font-family:var(--fh);font-size:17px;font-weight:800;color:var(--text)}
+.adv-modal-close{width:32px;height:32px;border-radius:50%;background:#f5f5f5;border:none;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;color:#555}
+.adv-modal-body{padding:20px}
+.adv-field{margin-bottom:14px}
+.adv-field label{display:block;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.adv-field input,.adv-field select,.adv-field textarea{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;font-family:var(--fb);color:var(--text);transition:border .15s}
+.adv-field input:focus,.adv-field select:focus,.adv-field textarea:focus{outline:none;border-color:var(--primary)}
+.adv-field textarea{resize:vertical;min-height:70px}
+.adv-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.adv-submit{width:100%;background:var(--primary);color:#fff;border:none;border-radius:8px;padding:12px;font-size:13.5px;font-weight:700;cursor:pointer;font-family:var(--fb);margin-top:4px;transition:background .2s}
+.adv-submit:hover{background:var(--primary-dark)}
+</style>
+@endpush
+
 @push('scripts')
 <script>
-function heroLoadCities(province) {
-  var citySel = document.getElementById('hero-city');
-  if (!citySel) return;
-  citySel.innerHTML = '<option value="">Loading…</option>';
-  fetch('{{ route('locations.cities') }}?province=' + encodeURIComponent(province))
-    .then(function(r){ return r.json(); })
-    .then(function(cities) {
-      citySel.innerHTML = '<option value="">All Cities</option>';
-      cities.forEach(function(c) {
+function heroLoadCities(province, selectCity) {
+  var sel = document.getElementById('hero-city');
+  if (!sel) return;
+  if (!province) { sel.innerHTML = '<option value="">All Cities</option>'; return; }
+  sel.innerHTML = '<option value="">Loading…</option>';
+  fetch('{{ route("locations.cities") }}?province=' + encodeURIComponent(province))
+    .then(r => r.json()).then(cities => {
+      sel.innerHTML = '<option value="">All Cities</option>';
+      cities.forEach(c => {
         var o = document.createElement('option');
         o.value = c; o.textContent = c;
-        citySel.appendChild(o);
+        if (selectCity && c === selectCity) o.selected = true;
+        sel.appendChild(o);
       });
     });
 }
-function heroLoadCitiesM(province) {
-  var citySel = document.getElementById('hero-city-m');
-  if (!citySel) return;
-  citySel.innerHTML = '<option value="">Loading…</option>';
-  fetch('{{ route('locations.cities') }}?province=' + encodeURIComponent(province))
-    .then(function(r){ return r.json(); })
-    .then(function(cities) {
-      citySel.innerHTML = '<option value="">All Cities</option>';
-      cities.forEach(function(c) {
-        var o = document.createElement('option');
-        o.value = c; o.textContent = c;
-        citySel.appendChild(o);
-      });
-    });
-}
-function heroSubmit(e) {
-  e.preventDefault();
-  var isMobile = window.innerWidth <= 900;
-  var search   = document.getElementById(isMobile ? 'hero-search-m' : 'hero-search')?.value.trim() || '';
-  var province = document.getElementById(isMobile ? 'hero-province-m' : 'hero-province')?.value || '';
-  var city     = document.getElementById(isMobile ? 'hero-city-m' : 'hero-city')?.value || '';
 
+function heroSubmit() {
+  var q    = document.getElementById('hero-q')?.value.trim() || '';
+  var prov = document.getElementById('hero-prov')?.value || '';
+  var city = document.getElementById('hero-city')?.value || '';
   var params = new URLSearchParams();
-  if (province) params.set('province', province);
-  if (city)     params.set('city', city);
+  if (prov) params.set('province', prov);
+  if (city) params.set('city', city);
+  if (q) { params.set('search', q); window.location.href = '{{ route("classifieds.index") }}?' + params; }
+  else { window.location.href = '{{ route("home") }}' + (params.toString() ? '?' + params : ''); }
+}
+document.getElementById('hero-q')?.addEventListener('keydown', e => { if (e.key === 'Enter') heroSubmit(); });
 
-  if (search) {
-    params.set('search', search);
-    window.location.href = '{{ route('classifieds.index') }}?' + params.toString();
-  } else {
-    window.location.href = '{{ route('home') }}?' + params.toString();
+// Sync hero selects from localStorage (single source of truth)
+(function() {
+  var prov = localStorage.getItem('gobazaar_province') || '';
+  var city = localStorage.getItem('gobazaar_city') || '';
+  var provSel = document.getElementById('hero-prov');
+  if (provSel && prov) {
+    provSel.value = prov;
+    heroLoadCities(prov, city);
+  }
+})();
+// ── POLL VOTING ──────────────────────────────────────────────────
+function getPollToken() {
+  var t = localStorage.getItem('gobazaar_voter_token');
+  if (!t) { t = 'v_' + Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem('gobazaar_voter_token', t); }
+  return t;
+}
+
+function showPollResults(data) {
+  document.getElementById('poll-choices').style.display = 'none';
+  var resultsBox = document.getElementById('poll-results');
+  resultsBox.style.display = 'block';
+  if (data && data.options) {
+    data.options.forEach(function(o, i) {
+      var row = resultsBox.querySelector('[data-opt="' + o.id + '"]');
+      if (row) {
+        var bar = row.querySelector('.poll-bar-fill');
+        bar.style.width = o.pct + '%';
+        bar.textContent = o.pct + '%';
+      }
+    });
+    document.getElementById('poll-total').textContent = data.total;
   }
 }
 
-document.getElementById('poll-btn')?.addEventListener('click', function(){
-  this.textContent = '✅ Vote Recorded!';
-  this.disabled = true;
-  this.style.background = 'var(--green)';
-});
-document.getElementById('sub-btn')?.addEventListener('click', function(){
-  const input = this.previousElementSibling;
-  if(input.value.includes('@')){
-    this.textContent = '✅ Subscribed!';
-    this.disabled = true;
-    this.style.background = 'var(--green)';
-    input.disabled = true;
-  } else {
-    input.style.borderColor = 'var(--red)';
-    input.placeholder = 'Enter a valid email…';
+function submitPollVote() {
+  var widget = document.getElementById('poll-widget');
+  if (!widget) return;
+  var checked = widget.querySelector('input[name="poll-option"]:checked');
+  if (!checked) {
+    var btn = document.getElementById('poll-vote-btn');
+    btn.textContent = 'Please select an option';
+    setTimeout(function(){ btn.textContent = 'Vote'; }, 1500);
+    return;
   }
+  var btn = document.getElementById('poll-vote-btn');
+  btn.textContent = 'Submitting…'; btn.disabled = true;
+
+  fetch(widget.dataset.voteUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+    body: JSON.stringify({ option_id: checked.value, token: getPollToken() })
+  })
+  .then(r => r.json())
+  .then(data => { showPollResults(data); markPollVoted(widget.dataset.pollId); })
+  .catch(() => { btn.textContent = 'Try again'; btn.disabled = false; });
+}
+
+function markPollVoted(pollId) {
+  var voted = JSON.parse(localStorage.getItem('gobazaar_voted_polls') || '[]');
+  if (!voted.includes(pollId)) { voted.push(pollId); localStorage.setItem('gobazaar_voted_polls', JSON.stringify(voted)); }
+}
+
+// On load: if already voted this poll, show results immediately
+(function() {
+  var widget = document.getElementById('poll-widget');
+  if (!widget) return;
+  var voted = JSON.parse(localStorage.getItem('gobazaar_voted_polls') || '[]');
+  if (voted.includes(widget.dataset.pollId)) {
+    showPollResults(null); // results already rendered server-side with current %
+  }
+})();
+document.getElementById('sub-btn')?.addEventListener('click', function(){
+  var inp = document.getElementById('sub-email');
+  if (inp?.value.includes('@')) { this.textContent = '✅ Subscribed!'; this.disabled = true; inp.disabled = true; }
+  else if (inp) { inp.style.outline = '2px solid red'; inp.placeholder = 'Enter a valid email'; }
+});
+// Advertise form AJAX submit
+document.getElementById('adv-form')?.addEventListener('submit', function(e) {
+  e.preventDefault();
+  var btn = document.getElementById('adv-submit-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending…';
+
+  fetch(this.action, {
+    method: 'POST',
+    headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'X-Requested-With': 'XMLHttpRequest' },
+    body: new FormData(this),
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      document.getElementById('adv-form-wrap').style.display = 'none';
+      document.getElementById('adv-success').style.display = 'block';
+    } else {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Send Enquiry';
+    }
+  })
+  .catch(() => {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Send Enquiry';
+  });
 });
 </script>
 @endpush

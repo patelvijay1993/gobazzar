@@ -56,6 +56,13 @@ class LocationResource extends Resource
                 Forms\Components\Toggle::make('is_active')
                     ->default(true)
                     ->helperText('Inactive cities are hidden from all dropdowns'),
+
+                Forms\Components\FileUpload::make('city_image')
+                    ->label('City Image')
+                    ->image()
+                    ->directory('locations/cities')
+                    ->imagePreviewHeight('80')
+                    ->columnSpanFull(),
             ])->columns(2),
         ]);
     }
@@ -69,6 +76,12 @@ class LocationResource extends Resource
                     ->sortable()
                     ->badge()
                     ->color('info'),
+
+                Tables\Columns\ImageColumn::make('city_image')
+                    ->label('City Img')
+                    ->circular()
+                    ->defaultImageUrl(null)
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('city')
                     ->searchable()

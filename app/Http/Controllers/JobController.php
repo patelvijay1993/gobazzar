@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Advertisement;
 use App\Models\Category;
 use App\Models\Job;
 use App\Models\Location;
@@ -14,8 +15,7 @@ class JobController extends Controller
         $categories = Category::where('type', 'jobs')->where('is_active', true)->orderBy('sort_order')->get();
 
         $jobs = Job::with('category')
-            ->where('status', 'active')
-            ->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()))
+            ->live()
             ->when($request->category,  fn ($q) => $q->where('category_id', $request->category))
             ->when($request->search,    fn ($q) => $q->where(fn ($q2) =>
                 $q2->where('title', 'like', '%' . $request->search . '%')
@@ -31,13 +31,16 @@ class JobController extends Controller
 
         $provinces = Location::activeProvinces();
         $cities    = Location::activeCities($request->province);
+        $ads       = Advertisement::forPosition('sidebar', $request->city, $request->province, 'jobs')
+            ->merge(Advertisement::forPosition('inline', $request->city, $request->province, 'jobs'))
+            ->unique('id');
 
-        return view('jobs.index', compact('categories', 'jobs', 'cities', 'provinces'));
+        return view('jobs.index', compact('categories', 'jobs', 'cities', 'provinces', 'ads'));
     }
 
     public function show(Job $job)
     {
-        abort_if($job->status !== 'active', 404);
+        abort_if($job->status !== 'active' || $job->isExpired(), 404);
         $job->increment('views');
         $related = Job::where('category_id', $job->category_id)
             ->where('id', '!=', $job->id)

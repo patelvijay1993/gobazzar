@@ -3,6 +3,8 @@
 
 @push('styles')
 <style>
+/* Legacy var bridge */
+body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border2:#e2e0db;--surface:#fff;--bg:#f9fafb;--hint:#9ca3af;--rl:14px;--r:8px;--amber:#92400e;--amber-bg:#fef9c3;--amber-light:#fef9c3;--dark:#1a3a8f;--dark2:#122970;--gold:#e8a020;--blue:#1d4ed8;--blue-bg:#eff6ff;--green:#16a34a;--green-bg:#dcfce7;}
 .show-wrap{max-width:1200px;margin:24px auto;padding:0 20px;display:grid;grid-template-columns:1fr 300px;gap:24px;align-items:start}
 @media(max-width:768px){.show-wrap{grid-template-columns:1fr;padding:0 14px}.job-title{font-size:18px}.job-meta-grid{grid-template-columns:1fr 1fr}.job-header{flex-wrap:wrap}}
 @media(max-width:480px){.job-meta-grid{grid-template-columns:1fr}}
@@ -29,6 +31,11 @@
 .sidebar-head{background:var(--dark);color:#fff;padding:10px 14px;font-family:var(--fh);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px}
 .sidebar-body{padding:16px}
 .btn-block{display:block;width:100%;text-align:center;padding:12px;border-radius:var(--r);font-size:13px;font-weight:600;margin-bottom:8px;transition:all .15s}
+.apply-btn-main{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:12px;border-radius:9px;font-size:13.5px;font-weight:700;margin-bottom:9px;text-decoration:none;transition:all .18s}
+.apply-primary{background:var(--primary);color:#fff}
+.apply-primary:hover{background:var(--primary-dark)}
+.apply-outline{background:#fff;border:1.5px solid var(--primary);color:var(--primary)}
+.apply-outline:hover{background:var(--primary-light)}
 .rel-job{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);align-items:center}
 .rel-job:last-child{border-bottom:none}
 .rel-logo{width:36px;height:36px;border-radius:8px;background:var(--bg);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
@@ -50,7 +57,7 @@
     <div class="job-header">
       <div class="job-logo-lg">
         @if($job->company_logo)
-          <img src="{{ asset('storage/'.$job->company_logo) }}" alt="{{ $job->company }}">
+          <img src="{{ $job->logo_url }}" alt="{{ $job->company }}">
         @else 💼 @endif
       </div>
       <div>
@@ -129,10 +136,10 @@
       <div class="sidebar-head">Apply Now</div>
       <div class="sidebar-body">
         @if($job->apply_url)
-          <a href="{{ $job->apply_url }}" target="_blank" class="btn btn-red btn-block">🚀 Apply Online</a>
+          <a href="{{ $job->apply_url }}" target="_blank" class="apply-btn-main apply-primary"><i class="fa-solid fa-rocket"></i> Apply Online</a>
         @endif
         @if($job->apply_email)
-          <a href="mailto:{{ $job->apply_email }}?subject=Application: {{ $job->title }}" class="btn btn-ghost btn-block">✉ Apply via Email</a>
+          <a href="mailto:{{ $job->apply_email }}?subject=Application: {{ $job->title }}" class="apply-btn-main apply-outline"><i class="fa-solid fa-envelope"></i> Apply via Email</a>
         @endif
         @if(!$job->apply_url && !$job->apply_email)
           <p style="color:var(--muted);font-size:12px;text-align:center">Contact company directly</p>
@@ -156,6 +163,13 @@
       </div>
     </div>
     @endif
+    @auth
+    <div style="text-align:center;margin-top:4px">
+      <button onclick="openReportModal('job', {{ $job->id }})" style="background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border-radius:6px;transition:color .15s" onmouseover="this.style.color='#e74c3c'" onmouseout="this.style.color='var(--muted)'">
+        <i class="fa-solid fa-flag"></i> Report this job
+      </button>
+    </div>
+    @endauth
   </div>
 </div>
 @endsection

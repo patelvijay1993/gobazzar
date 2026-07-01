@@ -3,6 +3,8 @@
 
 @push('styles')
 <style>
+/* Legacy var bridge */
+body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border2:#e2e0db;--surface:#fff;--bg:#f9fafb;--hint:#9ca3af;--rl:14px;--r:8px;--amber:#92400e;--amber-bg:#fef9c3;--amber-light:#fef9c3;--dark:#1a3a8f;--dark2:#122970;--gold:#e8a020;--blue:#1d4ed8;--blue-bg:#eff6ff;--green:#16a34a;--green-bg:#dcfce7;}
 .feed-hero{background:linear-gradient(135deg,var(--dark) 0%,var(--dark2) 100%);color:#fff;padding:40px 20px;text-align:center}
 .feed-hero h1{font-family:var(--fh);font-size:26px;font-weight:800;margin-bottom:6px}
 .feed-hero p{color:rgba(255,255,255,.6);font-size:13px}
@@ -55,7 +57,7 @@
 <div class="feed-wrap">
   {{-- Filter tabs --}}
   <div class="filter-bar">
-    @foreach(['all'=>'🌐 All','classifieds'=>'🏷️ Classifieds','jobs'=>'💼 Jobs','events'=>'🎉 Events','businesses'=>'🏢 Directory','matrimonials'=>'💍 Matrimonial'] as $key=>$label)
+    @foreach(['all'=>'🌐 All','classifieds'=>'🏷️ Classifieds','jobs'=>'💼 Jobs','events'=>'🎉 Events','businesses'=>'🏢 Directory'] as $key=>$label)
       <a href="{{ route('feed', ['filter'=>$key]) }}" class="f-tab {{ $filter===$key ? 'active' : '' }}">{{ $label }}</a>
     @endforeach
     @auth
@@ -78,7 +80,7 @@
       <div class="feed-card">
         <a href="{{ route('classifieds.show', $item->slug) }}">
           <div class="feed-card-img">
-            @if($item->image)<img src="{{ asset('storage/'.$item->image) }}" alt="{{ $item->title }}">
+            @if($item->image)<img src="{{ $item->image_url }}" alt="{{ $item->title }}">
             @else {{ $item->category->icon ?? '🏷️' }} @endif
           </div>
         </a>
@@ -119,7 +121,7 @@
       <div class="feed-card">
         <a href="{{ route('jobs.show', $item->slug) }}">
           <div class="feed-card-img" style="background:#eff6ff">
-            @if($item->company_logo)<img src="{{ asset('storage/'.$item->company_logo) }}" alt="{{ $item->company }}">
+            @if($item->company_logo)<img src="{{ $item->logo_url }}" alt="{{ $item->company }}">
             @else 💼 @endif
           </div>
         </a>
@@ -163,7 +165,7 @@
       <div class="feed-card">
         <a href="{{ route('events.show', $item->slug) }}">
           <div class="feed-card-img" style="background:#fdf2f8">
-            @if($item->image)<img src="{{ asset('storage/'.$item->image) }}" alt="{{ $item->title }}">
+            @if($item->image)<img src="{{ $item->image_url }}" alt="{{ $item->title }}">
             @else 🎉 @endif
           </div>
         </a>
@@ -204,8 +206,8 @@
       <div class="feed-card">
         <a href="{{ route('directory.show', $item->slug) }}">
           <div class="feed-card-img" style="background:#ecfdf5">
-            @if($item->image)<img src="{{ asset('storage/'.$item->image) }}" alt="{{ $item->name }}">
-            @elseif($item->logo)<img src="{{ asset('storage/'.$item->logo) }}" alt="{{ $item->name }}">
+            @if($item->image)<img src="{{ $item->image_url }}" alt="{{ $item->name }}">
+            @elseif($item->logo)<img src="{{ $item->logo_url }}" alt="{{ $item->name }}">
             @else 🏢 @endif
           </div>
         </a>
@@ -235,41 +237,6 @@
   </div>
   @endif
 
-  {{-- Matrimonials --}}
-  @if($filter === 'all' || $filter === 'matrimonials')
-  <div class="feed-section">
-    <div class="section-h">
-      <h2>💍 Matrimonial</h2>
-      <a href="{{ route('matrimonial.index') }}">View all →</a>
-    </div>
-    @if($matrimonials->isEmpty())
-      <div class="empty-section">No matrimonial profiles yet.</div>
-    @else
-    <div class="feed-grid">
-      @foreach($matrimonials as $item)
-      <div class="feed-card">
-        <a href="{{ route('matrimonial.show', $item->slug) }}">
-          <div class="feed-card-img" style="background:linear-gradient(135deg,#f3e8ff,#fce7f3)">
-            @if($item->photo)<img src="{{ asset('storage/'.$item->photo) }}" alt="{{ $item->name }}">
-            @else {{ $item->gender === 'male' ? '👨' : '👩' }} @endif
-          </div>
-        </a>
-        <div class="feed-card-body">
-          <span class="feed-card-type type-matrimonial">Matrimonial</span>
-          <h3><a href="{{ route('matrimonial.show', $item->slug) }}">{{ $item->name }}</a></h3>
-          <div class="feed-meta">
-            <span>{{ $item->age }} yrs</span>
-            @if($item->religion)<span>{{ $item->religion }}</span>@endif
-            @if($item->city)<span>📍 {{ $item->city }}</span>@endif
-          </div>
-          @if($item->occupation)<div style="font-size:11px;color:var(--muted);margin-top:4px">{{ $item->occupation }}</div>@endif
-        </div>
-      </div>
-      @endforeach
-    </div>
-    @endif
-  </div>
-  @endif
 
 </div>
 @endsection

@@ -1,182 +1,234 @@
 @extends('layouts.app')
-
-@section('title', 'Blog — GoBazzar')
+@section('title', 'Blog — GoBazaar — Indian Community in Canada')
 
 @push('styles')
 <style>
-.blog-hero{background:linear-gradient(135deg,var(--dark) 0%,var(--dark2) 100%);color:#fff;padding:48px 20px;text-align:center}
-.blog-hero h1{font-family:var(--fh);font-size:28px;font-weight:800;margin-bottom:8px}
-.blog-hero p{color:rgba(255,255,255,.6);font-size:14px}
+/* ── LAYOUT ── */
+.blog-wrap{max-width:1280px;margin:20px auto;padding:0 20px;display:grid;grid-template-columns:1fr 280px;gap:24px;align-items:start}
 
-.blog-layout{max-width:1200px;margin:32px auto;padding:0 20px;display:grid;grid-template-columns:1fr 280px;gap:28px}
-@media(max-width:768px){.blog-layout{grid-template-columns:1fr}}
+/* ── SEARCH ── */
+.blog-search{background:#fff;border:1.5px solid var(--border);border-radius:var(--radius);display:flex;overflow:hidden;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.blog-search input{flex:1;border:none;padding:11px 14px;font-size:13.5px;background:none;color:#111;font-family:var(--fb)}
+.blog-search input:focus{outline:none}
+.blog-search button{background:var(--primary);color:#fff;border:none;padding:0 20px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap;transition:background .2s}
+.blog-search button:hover{background:var(--primary-dark)}
 
-/* Featured post */
-.featured-post{background:var(--surface);border-radius:var(--rl);overflow:hidden;border:1px solid var(--border);margin:0 20px 28px;max-width:1160px;margin-left:auto;margin-right:auto;display:grid;grid-template-columns:1fr 1fr}
-@media(max-width:768px){.featured-post{grid-template-columns:1fr;margin:0 20px 24px}}
-.featured-post-img{height:280px;background:#eee;overflow:hidden}
-.featured-post-img img{width:100%;height:100%;object-fit:cover}
-.featured-post-body{padding:32px}
-.featured-badge{display:inline-block;background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:.5px;margin-bottom:12px;text-transform:uppercase}
-.featured-post-body h2{font-family:var(--fh);font-size:22px;font-weight:700;margin-bottom:10px;line-height:1.35}
-.featured-post-body p{color:var(--muted);font-size:13px;line-height:1.65;margin-bottom:16px}
-.post-meta{font-size:11px;color:var(--hint);display:flex;gap:14px;flex-wrap:wrap}
+/* ── FEATURED POST ── */
+.featured-post{background:#fff;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;display:grid;grid-template-columns:1.1fr 1fr;margin-bottom:20px;text-decoration:none;color:var(--text);transition:box-shadow .2s}
+.featured-post:hover{box-shadow:0 6px 24px rgba(26,58,143,.12)}
+.featured-img{height:260px;overflow:hidden;background:#f5f0ec}
+.featured-img img{width:100%;height:100%;object-fit:cover;display:block}
+.featured-body{padding:28px;display:flex;flex-direction:column;justify-content:center;gap:10px}
+.featured-eyebrow{display:flex;align-items:center;gap:8px}
+.feat-badge{background:var(--primary);color:#fff;font-size:9.5px;font-weight:700;padding:3px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.5px}
+.feat-cat{font-size:11px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.5px}
+.featured-body h2{font-family:var(--fh);font-size:20px;font-weight:800;line-height:1.3;color:var(--text)}
+.featured-body p{font-size:13px;color:var(--muted);line-height:1.65}
+.featured-meta{display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.featured-meta i{font-size:11px;color:var(--primary);opacity:.7;margin-right:3px}
+.read-more-btn{display:inline-flex;align-items:center;gap:6px;background:var(--primary);color:#fff;font-size:12.5px;font-weight:600;padding:8px 16px;border-radius:20px;margin-top:2px;width:fit-content;transition:background .2s}
+.read-more-btn:hover{background:var(--primary-dark)}
 
-/* Posts grid */
-.posts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px}
-.post-card{background:var(--surface);border-radius:var(--rl);border:1px solid var(--border);overflow:hidden;transition:box-shadow .2s}
-.post-card:hover{box-shadow:var(--sh)}
-.post-card-img{height:168px;background:#eee;overflow:hidden}
-.post-card-img img{width:100%;height:100%;object-fit:cover}
-.post-card-body{padding:16px}
-.post-cat{font-size:10px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
-.post-card-body h3{font-family:var(--fh);font-size:15px;font-weight:700;line-height:1.4;margin-bottom:8px}
-.post-card-body p{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:12px}
-.post-card-body h3 a{color:var(--text)}
-.post-card-body h3 a:hover{color:var(--red)}
+/* ── POSTS GRID ── */
+.posts-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.post-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:all .18s;display:block;text-decoration:none;color:var(--text)}
+.post-card:hover{border-color:var(--primary);box-shadow:0 4px 16px rgba(26,58,143,.1);transform:translateY(-2px)}
+.post-card-img{height:160px;overflow:hidden;background:#f5f0ec;position:relative}
+.post-card-img img{width:100%;height:100%;object-fit:cover;display:block}
+.post-cat-tag{position:absolute;top:10px;left:10px;background:var(--primary);color:#fff;font-size:9.5px;font-weight:700;padding:3px 9px;border-radius:20px;text-transform:uppercase;letter-spacing:.4px}
+.post-card-body{padding:14px}
+.post-cat-label{font-size:10.5px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.post-card-body h3{font-family:var(--fh);font-size:14px;font-weight:700;line-height:1.4;margin-bottom:6px;color:var(--text);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.post-card-body p{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.post-foot{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border);padding-top:9px;font-size:11px;color:var(--muted)}
+.post-foot i{font-size:10px;margin-right:3px;color:var(--primary);opacity:.7}
 
-/* Sidebar */
-.sidebar-box{background:var(--surface);border-radius:var(--rl);border:1px solid var(--border);padding:20px;margin-bottom:20px}
-.sidebar-box h4{font-family:var(--fh);font-size:13px;font-weight:700;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border)}
-.cat-pill{display:inline-block;background:var(--bg);border:1px solid var(--border2);border-radius:20px;padding:5px 14px;font-size:12px;color:var(--muted);margin:4px 3px;cursor:pointer;transition:all .15s}
-.cat-pill:hover,.cat-pill.active{background:var(--red);border-color:var(--red);color:#fff}
+/* ── ACTIVE FILTERS ── */
+.active-filters{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px}
+.filter-tag{display:inline-flex;align-items:center;gap:5px;background:var(--primary-light);color:var(--primary);font-size:12px;font-weight:600;padding:4px 10px;border-radius:20px;text-decoration:none;border:1px solid #c5d0ef}
+.filter-tag:hover{background:#d0d9f0}
 
-/* Search */
-.search-form{display:flex;gap:8px;margin-bottom:20px;max-width:1160px;margin-left:auto;margin-right:auto;padding:0 20px}
-.search-form input{flex:1;border:1.5px solid var(--border2);border-radius:var(--r);padding:9px 14px;font-size:13px}
-.search-form input:focus{border-color:var(--red)}
-.search-form button{background:var(--red);color:#fff;border:none;border-radius:var(--r);padding:9px 18px;font-size:13px;cursor:pointer}
+/* ── SIDEBAR ── */
+.sb-box{background:#fff;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:14px}
+.sb-box-head{background:var(--primary);color:#fff;padding:10px 14px;font-family:var(--fh);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;display:flex;align-items:center;gap:7px}
+.sb-box-head i{font-size:13px;opacity:.85}
+.sb-body{padding:14px}
+.cat-pill{display:inline-block;background:#f0ede8;border:1px solid var(--border);border-radius:20px;padding:5px 14px;font-size:12px;color:var(--muted);margin:3px;cursor:pointer;transition:all .15s;text-decoration:none}
+.cat-pill:hover,.cat-pill.active{background:var(--primary);border-color:var(--primary);color:#fff}
+
+.latest-item{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border)}
+.latest-item:last-child{border-bottom:none;padding-bottom:0}
+.latest-thumb{width:52px;height:48px;border-radius:7px;overflow:hidden;background:#f5f0ec;flex-shrink:0}
+.latest-thumb img{width:100%;height:100%;object-fit:cover}
+.latest-info a{font-size:12px;font-weight:600;color:var(--text);line-height:1.4;display:block;text-decoration:none}
+.latest-info a:hover{color:var(--primary)}
+.latest-info span{font-size:11px;color:var(--muted)}
+
+.empty-state{padding:60px 20px;text-align:center;background:#fff;border:1px solid var(--border);border-radius:var(--radius)}
+.empty-state .empty-icon{font-size:48px;margin-bottom:12px}
+.empty-state h3{font-family:var(--fh);font-size:16px;margin-bottom:6px}
+.empty-state p{font-size:13px;color:var(--muted)}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .blog-wrap{grid-template-columns:1fr;padding:0 14px;margin:14px auto}
+  .blog-wrap aside{display:none}
+  .posts-grid{grid-template-columns:repeat(2,1fr)}
+  .featured-post{grid-template-columns:1fr}
+  .featured-img{height:200px}
+}
+@media(max-width:520px){
+  .posts-grid{grid-template-columns:1fr}
+  .featured-body{padding:16px}
+  .featured-body h2{font-size:17px}
+  .post-card-img{height:140px}
+}
 </style>
 @endpush
 
 @section('content')
+<div class="blog-wrap">
 
-<div class="blog-hero">
-  <h1>GoBazzar Blog</h1>
-  <p>Stories, tips, and insights for the Indian community in Canada</p>
-</div>
+  {{-- MAIN CONTENT --}}
+  <div>
+    {{-- Search --}}
+    <form method="GET" action="{{ route('blog.index') }}">
+      @if(request('category'))<input type="hidden" name="category" value="{{ request('category') }}">@endif
+      <div class="blog-search">
+        <i class="fa-solid fa-magnifying-glass" style="padding:0 10px 0 14px;color:#bbb;font-size:15px;align-self:center;flex-shrink:0"></i>
+        <input type="text" name="search" value="{{ request('search') }}" placeholder="Search articles, topics...">
+        <button type="submit"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
+      </div>
+    </form>
 
-{{-- Search --}}
-<div style="max-width:1200px;margin:24px auto 0;padding:0 20px">
-  <form method="GET" action="{{ route('blog.index') }}" class="search-form" style="padding:0;margin:0">
-    <input type="text" name="search" value="{{ request('search') }}" placeholder="Search articles…">
-    @if(request('category'))
-      <input type="hidden" name="category" value="{{ request('category') }}">
+    {{-- Active filters --}}
+    @if(request('search') || request('category'))
+    <div class="active-filters">
+      @if(request('search'))
+        <a href="{{ route('blog.index', request()->except('search','page')) }}" class="filter-tag">"{{ request('search') }}" <i class="fa-solid fa-times"></i></a>
+      @endif
+      @if(request('category'))
+        <a href="{{ route('blog.index', request()->except('category','page')) }}" class="filter-tag"><i class="fa-solid fa-tag"></i> {{ request('category') }} <i class="fa-solid fa-times"></i></a>
+      @endif
+      <a href="{{ route('blog.index') }}" style="font-size:12px;color:var(--muted);align-self:center;text-decoration:none;margin-left:4px">Clear all</a>
+    </div>
     @endif
-    <button type="submit">Search</button>
-  </form>
-</div>
 
-{{-- Featured Post --}}
-@if($featured && !request('search') && !request('category'))
-<div style="max-width:1200px;margin:20px auto 0;padding:0 20px">
-  <a href="{{ route('blog.show', $featured->slug) }}" style="display:block;text-decoration:none;color:inherit">
-    <div class="featured-post" style="margin:0">
-      <div class="featured-post-img">
-        @if($featured->image)
-          <img src="{{ asset('storage/'.$featured->image) }}" alt="{{ $featured->title }}">
+    {{-- Featured Post --}}
+    @if($featured && !request('search') && !request('category'))
+    <a href="{{ route('blog.show', $featured->slug) }}" class="featured-post">
+      <div class="featured-img">
+        @if($featured->image_url)
+          <img src="{{ $featured->image_url }}" alt="{{ $featured->title }}">
         @else
-          <div style="width:100%;height:100%;background:linear-gradient(135deg,var(--red-pale),var(--border));display:grid;place-items:center;font-size:48px">📰</div>
+          <div style="width:100%;height:100%;background:linear-gradient(135deg,var(--primary-light),#c5d0ef);display:grid;place-items:center;font-size:56px">📰</div>
         @endif
       </div>
-      <div class="featured-post-body">
-        <span class="featured-badge">Featured</span>
-        @if($featured->category)<div style="font-size:11px;color:var(--red);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">{{ $featured->category }}</div>@endif
-        <h2>{{ $featured->title }}</h2>
-        @if($featured->excerpt)<p>{{ $featured->excerpt }}</p>@endif
-        <div class="post-meta">
-          @if($featured->author)<span>✍️ {{ $featured->author->name }}</span>@endif
-          <span>🕐 {{ $featured->read_time }}</span>
-          @if($featured->published_at)<span>📅 {{ $featured->published_at->format('M j, Y') }}</span>@endif
-          <span>👁 {{ number_format($featured->views) }} views</span>
+      <div class="featured-body">
+        <div class="featured-eyebrow">
+          <span class="feat-badge"><i class="fa-solid fa-star" style="font-size:8px"></i> Featured</span>
+          @if($featured->category)<span class="feat-cat">{{ $featured->category }}</span>@endif
         </div>
+        <h2>{{ $featured->title }}</h2>
+        @if($featured->excerpt)<p>{{ Str::limit($featured->excerpt, 120) }}</p>@endif
+        <div class="featured-meta">
+          @if($featured->author)<span><i class="fa-regular fa-user"></i>{{ $featured->author->name }}</span>@endif
+          <span><i class="fa-regular fa-clock"></i>{{ $featured->read_time }}</span>
+          @if($featured->published_at)<span><i class="fa-regular fa-calendar"></i>{{ $featured->published_at->format('M j, Y') }}</span>@endif
+          <span><i class="fa-regular fa-eye"></i>{{ number_format($featured->views) }} views</span>
+        </div>
+        <span class="read-more-btn"><i class="fa-solid fa-arrow-right"></i> Read Article</span>
       </div>
-    </div>
-  </a>
-</div>
-@endif
-
-<div class="blog-layout">
-  {{-- Main content --}}
-  <div>
-    @if(request('search') || request('category'))
-    <div style="margin-bottom:16px;font-size:13px;color:var(--muted)">
-      @if(request('search'))Showing results for "<strong>{{ request('search') }}</strong>"@endif
-      @if(request('category'))Category: <strong>{{ request('category') }}</strong>@endif
-      — <a href="{{ route('blog.index') }}" style="color:var(--red)">Clear</a>
-    </div>
+    </a>
     @endif
 
+    {{-- Posts Grid --}}
     @if($posts->isEmpty())
-      <div style="text-align:center;padding:60px 20px;color:var(--muted)">
-        <div style="font-size:40px;margin-bottom:12px">📝</div>
-        <p>No posts found.</p>
+      <div class="empty-state">
+        <div class="empty-icon">📝</div>
+        <h3>No posts found</h3>
+        <p>Try a different search or category.</p>
       </div>
     @else
       <div class="posts-grid">
         @foreach($posts as $post)
-        <div class="post-card">
-          <a href="{{ route('blog.show', $post->slug) }}">
-            <div class="post-card-img">
-              @if($post->image)
-                <img src="{{ asset('storage/'.$post->image) }}" alt="{{ $post->title }}">
-              @else
-                <div style="width:100%;height:100%;background:linear-gradient(135deg,var(--red-pale),var(--border));display:grid;place-items:center;font-size:36px">📰</div>
-              @endif
-            </div>
-          </a>
+        <a href="{{ route('blog.show', $post->slug) }}" class="post-card">
+          <div class="post-card-img">
+            @if($post->image_url)
+              <img src="{{ $post->image_url }}" alt="{{ $post->title }}">
+            @else
+              <div style="width:100%;height:100%;background:linear-gradient(135deg,var(--primary-light),#c5d0ef);display:grid;place-items:center;font-size:36px">📰</div>
+            @endif
+            @if($post->category)<span class="post-cat-tag">{{ $post->category }}</span>@endif
+          </div>
           <div class="post-card-body">
-            @if($post->category)<div class="post-cat">{{ $post->category }}</div>@endif
-            <h3><a href="{{ route('blog.show', $post->slug) }}">{{ $post->title }}</a></h3>
-            @if($post->excerpt)<p>{{ Str::limit($post->excerpt, 100) }}</p>@endif
-            <div class="post-meta">
-              <span>🕐 {{ $post->read_time }}</span>
-              @if($post->published_at)<span>{{ $post->published_at->format('M j, Y') }}</span>@endif
+            <h3>{{ $post->title }}</h3>
+            @if($post->excerpt)<p>{{ Str::limit($post->excerpt, 90) }}</p>@endif
+            <div class="post-foot">
+              <span><i class="fa-regular fa-clock"></i>{{ $post->read_time }}</span>
+              @if($post->published_at)<span><i class="fa-regular fa-calendar"></i>{{ $post->published_at->format('M j, Y') }}</span>@endif
+              <span><i class="fa-regular fa-eye"></i>{{ number_format($post->views) }}</span>
             </div>
+          </div>
+        </a>
+        @endforeach
+      </div>
+      <div style="margin-top:20px">{{ $posts->withQueryString()->links() }}</div>
+    @endif
+  </div>
+
+  {{-- SIDEBAR --}}
+  <aside>
+    {{-- Categories --}}
+    <div class="sb-box">
+      <div class="sb-box-head"><i class="fa-solid fa-tags"></i> Categories</div>
+      <div class="sb-body">
+        <a href="{{ route('blog.index', request()->except('category','page')) }}"
+           class="cat-pill {{ !request('category') ? 'active' : '' }}">All</a>
+        @foreach($categories as $cat)
+          <a href="{{ route('blog.index', array_merge(request()->except('category','page'), ['category' => $cat])) }}"
+             class="cat-pill {{ request('category') === $cat ? 'active' : '' }}">{{ $cat }}</a>
+        @endforeach
+      </div>
+    </div>
+
+    {{-- Latest Posts --}}
+    <div class="sb-box">
+      <div class="sb-box-head"><i class="fa-solid fa-clock-rotate-left"></i> Latest Posts</div>
+      <div class="sb-body" style="padding-top:6px;padding-bottom:6px">
+        @php
+          $latestPosts = \App\Models\BlogPost::where('status','published')->latest('published_at')->limit(5)->get();
+        @endphp
+        @foreach($latestPosts as $lp)
+        <div class="latest-item">
+          <div class="latest-thumb">
+            @if($lp->image_url)
+              <img src="{{ $lp->image_url }}" alt="{{ $lp->title }}">
+            @else
+              <div style="width:100%;height:100%;background:var(--primary-light);display:grid;place-items:center;font-size:20px">📰</div>
+            @endif
+          </div>
+          <div class="latest-info">
+            <a href="{{ route('blog.show', $lp->slug) }}">{{ Str::limit($lp->title, 52) }}</a>
+            <span>{{ $lp->published_at?->format('M j, Y') }}</span>
           </div>
         </div>
         @endforeach
       </div>
-
-      <div style="margin-top:28px">
-        {{ $posts->withQueryString()->links() }}
-      </div>
-    @endif
-  </div>
-
-  {{-- Sidebar --}}
-  <aside>
-    <div class="sidebar-box">
-      <h4>Categories</h4>
-      <div>
-        <a href="{{ route('blog.index', array_merge(request()->except('category','page'), [])) }}"
-           class="cat-pill {{ !request('category') ? 'active' : '' }}">All</a>
-        @foreach($categories as $cat)
-        <a href="{{ route('blog.index', array_merge(request()->except('category','page'), ['category' => $cat])) }}"
-           class="cat-pill {{ request('category') === $cat ? 'active' : '' }}">{{ $cat }}</a>
-        @endforeach
-      </div>
     </div>
 
-    <div class="sidebar-box">
-      <h4>Latest Posts</h4>
-      @php
-        $latest = \App\Models\BlogPost::where('status','published')->latest('published_at')->limit(5)->get();
-      @endphp
-      @foreach($latest as $lp)
-      <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border)">
-        @if($lp->image)
-          <img src="{{ asset('storage/'.$lp->image) }}" style="width:48px;height:48px;border-radius:6px;object-fit:cover;flex-shrink:0">
-        @else
-          <div style="width:48px;height:48px;border-radius:6px;background:var(--red-pale);display:grid;place-items:center;font-size:20px;flex-shrink:0">📰</div>
-        @endif
-        <div>
-          <a href="{{ route('blog.show', $lp->slug) }}" style="font-size:12px;font-weight:600;color:var(--text);line-height:1.4;display:block">{{ Str::limit($lp->title, 50) }}</a>
-          <span style="font-size:11px;color:var(--hint)">{{ $lp->published_at?->format('M j, Y') }}</span>
-        </div>
-      </div>
-      @endforeach
+    {{-- Write for us --}}
+    <div class="sb-box" style="background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);border-color:transparent;padding:18px;text-align:center">
+      <div style="font-size:28px;margin-bottom:8px">✍️</div>
+      <div style="font-family:var(--fh);font-size:14px;font-weight:700;color:#fff;margin-bottom:5px">Write for GoBazaar</div>
+      <div style="font-size:11px;color:rgba(255,255,255,.65);margin-bottom:13px;line-height:1.5">Share your knowledge with the Indian-Canadian community</div>
+      @auth
+        <a href="{{ route('post.create') }}" style="display:block;background:var(--accent);color:#fff;padding:9px;border-radius:6px;font-size:13px;font-weight:700;text-decoration:none"><i class="fa-solid fa-pen"></i> Submit Article</a>
+      @else
+        <a href="{{ route('register') }}" style="display:block;background:var(--accent);color:#fff;padding:9px;border-radius:6px;font-size:13px;font-weight:700;text-decoration:none"><i class="fa-solid fa-pen"></i> Submit Article</a>
+      @endauth
     </div>
   </aside>
+
 </div>
 @endsection

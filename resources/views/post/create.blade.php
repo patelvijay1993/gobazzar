@@ -4,6 +4,12 @@
 
 @push('styles')
 <style>
+/* Map legacy theme vars to current blue theme */
+.post-wrap{
+  --red:var(--primary);--red-dark:var(--primary-dark);--red-pale:var(--primary-light);
+  --border2:var(--border);--surface:#fff;--bg:#f9fafb;--hint:#9ca3af;
+  --rl:14px;--r:8px;--amber:#92400e;--amber-bg:#fef9c3;--dark:#1a3a8f;--gold:#e8a020;
+}
 .post-wrap{max-width:860px;margin:32px auto;padding:0 20px}
 @media(max-width:600px){.post-wrap{padding:0 14px;margin:16px auto}.form-card-body{padding:16px}.post-hero h1{font-size:20px}}
 .post-hero{text-align:center;margin-bottom:28px}
@@ -78,10 +84,27 @@ textarea.form-input{resize:vertical;min-height:100px}
       <div class="tab-icon">🎉</div>
       <div class="tab-label">Event</div>
     </div>
-    <div class="type-tab {{ $type==='business' ? 'active' : '' }}" onclick="switchType('business',this)">
-      <div class="tab-icon">🏢</div>
-      <div class="tab-label">Directory</div>
-    </div>
+    @if($canBusiness)
+      <div class="type-tab {{ $type==='business' ? 'active' : '' }}" onclick="switchType('business',this)">
+        <div class="tab-icon">🏢</div>
+        <div class="tab-label">Register Business</div>
+      </div>
+      <div class="type-tab {{ $type==='business-post' ? 'active' : '' }}" onclick="switchType('business-post',this)">
+        <div class="tab-icon">📦</div>
+        <div class="tab-label">Business Post</div>
+      </div>
+    @else
+      <a href="{{ route('pricing') }}" class="type-tab" style="opacity:.55;cursor:pointer;text-decoration:none" title="Upgrade to Verified or Power Seller to register a business">
+        <div class="tab-icon">🏢</div>
+        <div class="tab-label">Register Business</div>
+        <div style="font-size:9px;color:var(--red);font-weight:700;margin-top:2px">🔒 Verified+</div>
+      </a>
+      <a href="{{ route('pricing') }}" class="type-tab" style="opacity:.55;cursor:pointer;text-decoration:none" title="Upgrade to Verified or Power Seller to post business products">
+        <div class="tab-icon">📦</div>
+        <div class="tab-label">Business Post</div>
+        <div style="font-size:9px;color:var(--red);font-weight:700;margin-top:2px">🔒 Verified+</div>
+      </a>
+    @endif
   </div>
 
   @if($errors->any())
@@ -93,23 +116,55 @@ textarea.form-input{resize:vertical;min-height:100px}
   </div>
   @endif
 
-  @php $activePlan = Auth::user()->activePlan(); $postDays = Auth::user()->postDays(); @endphp
+  @php
+    $authUser    = Auth::user();
+    $activePlan  = $authUser->activePlan();
+    $planName    = $authUser->planName();
+    $postDays    = $authUser->postDays();
+    $maxListings = $authUser->maxListings();
+    $usedListings= $authUser->activeListingCount();
+  @endphp
+
+  {{-- Plan Status Bar --}}
   <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
-    <div style="font-size:13px">
-      <span style="color:var(--muted)">Your plan:</span>
-      <strong style="color:var(--text);margin:0 6px;text-transform:capitalize">{{ $activePlan }}</strong>
-      <span style="color:var(--muted)">·</span>
-      <span style="color:var(--muted);margin-left:6px">Posts stay live for
-        <strong style="color:var(--text)">{{ $postDays ? $postDays.' days' : 'permanently' }}</strong>
+    <div style="font-size:13px;display:flex;flex-wrap:wrap;gap:12px;align-items:center">
+      <span>
+        <span style="color:var(--muted)">Plan:</span>
+        <strong style="color:var(--text);margin-left:5px">{{ $planName }}</strong>
+        @if($authUser->hasVerifiedBadge())
+          <span style="background:#dbeafe;color:#1d4ed8;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;margin-left:4px">✓ Verified</span>
+        @endif
+      </span>
+      <span style="color:#d1d5db">|</span>
+      <span style="color:var(--muted)">Listings:
+        <strong style="color:{{ $usedListings >= $maxListings ? '#dc2626' : 'var(--text)' }}">{{ $usedListings }} / {{ $maxListings === 9999 ? '∞' : $maxListings }}</strong>
+      </span>
+      <span style="color:#d1d5db">|</span>
+      <span style="color:var(--muted)">Visibility:
+        <strong style="color:var(--text)">{{ $postDays ? $postDays.' days' : 'Auto-renew ∞' }}</strong>
       </span>
     </div>
     @if($activePlan === 'free')
-      <a href="{{ route('pricing') }}" style="font-size:12px;font-weight:600;color:var(--red);white-space:nowrap">⬆ Upgrade for longer visibility →</a>
+      <a href="{{ route('pricing') }}" style="font-size:12px;font-weight:600;color:var(--red);white-space:nowrap">⬆ Upgrade Plan →</a>
     @endif
   </div>
 
   {{-- ── CLASSIFIED ─────────────────────────────────────────────── --}}
   <div id="form-classified" class="{{ $type!=='classified' ? 'hidden' : '' }}">
+    @if(!$authUser->canPostListing())
+      <div style="background:#fef2f2;border:1.5px solid #fca5a5;border-radius:var(--r);padding:16px 18px;margin-bottom:16px;display:flex;gap:12px;align-items:flex-start">
+        <i class="fa-solid fa-circle-xmark" style="color:#dc2626;font-size:18px;flex-shrink:0;margin-top:2px"></i>
+        <div>
+          <strong style="color:#dc2626;font-size:13px">Listing limit reached ({{ $usedListings }}/{{ $maxListings }})</strong><br>
+          <span style="font-size:12px;color:#991b1b">Delete an inactive listing or <a href="{{ route('pricing') }}" style="color:#dc2626;font-weight:700;text-decoration:underline">upgrade your plan</a> to post more.</span>
+        </div>
+      </div>
+    @elseif($usedListings >= $maxListings - 1 && $maxListings < 9999)
+      <div class="notice-box" style="margin-bottom:16px">
+        <i class="fa-solid fa-triangle-exclamation" style="flex-shrink:0"></i>
+        <span>You're using <strong>{{ $usedListings }}/{{ $maxListings }}</strong> active listings on the {{ $planName }} plan. <a href="{{ route('pricing') }}" style="color:inherit;font-weight:700;text-decoration:underline">Upgrade</a> before you run out.</span>
+      </div>
+    @endif
     <form method="POST" action="{{ route('post.classified') }}" enctype="multipart/form-data">
       @csrf
       <div class="form-card">
@@ -199,7 +254,7 @@ textarea.form-input{resize:vertical;min-height:100px}
               <label class="form-label">Contact Email</label>
               <input type="email" name="contact_email" class="form-input" value="{{ old('contact_email', Auth::user()->email) }}">
             </div>
-            <x-image-uploader name="images" :multiple="true" :max="5" label="Photos (up to 5)" />
+            <x-image-uploader name="images" :multiple="true" :max="$maxImages" :label="'Photos (up to '.$maxImages.')'" :hint="'Your '.$user->planName().' plan allows '.$maxImages.' photos per listing'" />
           </div>
 
           <button type="submit" class="btn-submit">Submit Ad →</button>
@@ -429,6 +484,34 @@ textarea.form-input{resize:vertical;min-height:100px}
 
   {{-- ── BUSINESS ─────────────────────────────────────────────────── --}}
   <div id="form-business" class="{{ $type!=='business' ? 'hidden' : '' }}">
+    @if(!$canBusiness)
+      <div class="form-card">
+        <div class="form-card-body" style="text-align:center;padding:48px 28px">
+          <div style="font-size:52px;margin-bottom:14px">🔒</div>
+          <h3 style="font-family:var(--fh);font-size:20px;font-weight:800;margin-bottom:8px;color:var(--text)">Business Listings require Verified or Power Seller</h3>
+          <p style="font-size:13.5px;color:var(--muted);max-width:420px;margin:0 auto 24px;line-height:1.6">
+            Your Free plan does not include business directory listings. Upgrade to <strong>Verified ($4.99/mo)</strong> to list 1 business, or <strong>Power Seller ($14.99/mo)</strong> for unlimited businesses.
+          </p>
+          <a href="{{ route('pricing') }}" class="btn-submit" style="text-decoration:none;display:inline-flex">⬆ View Plans & Upgrade</a>
+        </div>
+      </div>
+    @elseif($myBusiness)
+      {{-- Already has a business → edit only, no new register --}}
+      <div class="form-card">
+        <div class="form-card-head">🏢 Your Business</div>
+        <div class="form-card-body" style="text-align:center;padding:40px 28px">
+          <div style="font-size:46px;margin-bottom:12px">🏢</div>
+          <h3 style="font-family:var(--fh);font-size:18px;font-weight:800;margin-bottom:6px;color:var(--text)">{{ $myBusiness->name }}</h3>
+          <p style="font-size:13px;color:var(--muted);margin-bottom:22px;line-height:1.6;max-width:420px;margin:0 auto 22px">
+            You can register only one business per account. You can edit your existing business or add posts to it.
+          </p>
+          <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+            <a href="{{ route('post.edit', ['type'=>'business','id'=>$myBusiness->id]) }}" class="btn-submit" style="text-decoration:none">✏️ Edit Business</a>
+            <button type="button" class="btn-submit" style="background:var(--gold)" onclick="switchType('business-post', document.querySelectorAll('.type-tab')[4])">📦 Add a Post →</button>
+          </div>
+        </div>
+      </div>
+    @else
     <form method="POST" action="{{ route('post.business') }}" enctype="multipart/form-data">
       @csrf
       <div class="form-card">
@@ -443,17 +526,23 @@ textarea.form-input{resize:vertical;min-height:100px}
             <div class="form-row" style="margin-bottom:14px">
               <div class="form-group">
                 <label class="form-label">Category</label>
-                <select name="category_id" class="form-input">
+                <select name="category_id" id="biz-category" class="form-input" onchange="loadSubCats('biz-subcategory', this.value)">
                   <option value="">Select category</option>
-                  @foreach($categories->get('directory', collect()) as $cat)
+                  @foreach($directoryParents as $cat)
                     <option value="{{ $cat->id }}" {{ old('category_id')==$cat->id ? 'selected' : '' }}>{{ $cat->icon }} {{ $cat->name }}</option>
                   @endforeach
                 </select>
               </div>
               <div class="form-group">
-                <label class="form-label">Phone</label>
-                <input type="text" name="phone" class="form-input" value="{{ old('phone', Auth::user()->phone) }}">
+                <label class="form-label">Sub-Category</label>
+                <select name="subcategory_id" id="biz-subcategory" class="form-input">
+                  <option value="">Select sub-category (optional)</option>
+                </select>
               </div>
+            </div>
+            <div class="form-group" style="margin-bottom:14px">
+              <label class="form-label">Phone</label>
+              <input type="text" name="phone" class="form-input" value="{{ old('phone', Auth::user()->phone) }}">
             </div>
             <div class="form-group" style="margin-bottom:14px">
               <label class="form-label">Description</label>
@@ -503,7 +592,7 @@ textarea.form-input{resize:vertical;min-height:100px}
           <div class="form-section">
             <div class="form-section-title">Photos</div>
             <div style="margin-bottom:16px">
-              <x-image-uploader name="images" :multiple="true" :max="5" label="Business Photos (up to 5)" hint="First photo will be the main banner" />
+              <x-image-uploader name="images" :multiple="true" :max="$maxImages" :label="'Business Photos (up to '.$maxImages.')'" :hint="'First photo will be the main banner · '.$user->planName().' plan: '.$maxImages.' photos'" />
             </div>
             <x-image-uploader name="logo" :multiple="false" :max="1" label="Logo" hint="Square image preferred (e.g. 200×200)" />
           </div>
@@ -512,6 +601,106 @@ textarea.form-input{resize:vertical;min-height:100px}
         </div>
       </div>
     </form>
+    @endif
+  </div>
+
+  {{-- ── BUSINESS POST (product/service under a registered business) ── --}}
+  <div id="form-business-post" class="{{ $type!=='business-post' ? 'hidden' : '' }}">
+    @if(!$canBusiness)
+      <div class="form-card">
+        <div class="form-card-body" style="text-align:center;padding:48px 28px">
+          <div style="font-size:52px;margin-bottom:14px">🔒</div>
+          <h3 style="font-family:var(--fh);font-size:20px;font-weight:800;margin-bottom:8px;color:var(--text)">Business Posts require Verified or Power Seller</h3>
+          <p style="font-size:13.5px;color:var(--muted);max-width:420px;margin:0 auto 24px;line-height:1.6">
+            Upgrade to <strong>Verified ($4.99/mo)</strong> or <strong>Power Seller ($14.99/mo)</strong> to list your business and add products/service posts.
+          </p>
+          <a href="{{ route('pricing') }}" class="btn-submit" style="text-decoration:none;display:inline-flex">⬆ View Plans & Upgrade</a>
+        </div>
+      </div>
+    @elseif($myBusinesses->isEmpty())
+      {{-- Has plan, but no business yet → prompt to register first --}}
+      <div class="form-card">
+        <div class="form-card-head">📦 Post in Your Business</div>
+        <div class="form-card-body" style="text-align:center;padding:48px 28px">
+          <div style="font-size:48px;margin-bottom:14px">🏢</div>
+          <h3 style="font-family:var(--fh);font-size:18px;font-weight:800;margin-bottom:8px;color:var(--text)">Register a business first</h3>
+          <p style="font-size:13px;color:var(--muted);margin-bottom:22px;line-height:1.6;max-width:420px;margin-left:auto;margin-right:auto">
+            To add products or service posts, you need a registered business. It only takes a minute — register your business, then come back here to post.
+          </p>
+          <button type="button" class="btn-submit" onclick="switchType('business', document.querySelectorAll('.type-tab')[3])">
+            🏢 Register Your Business →
+          </button>
+        </div>
+      </div>
+    @else
+      @php $bizForPost = $myBusinesses->first(); @endphp
+      <form method="POST" action="{{ route('post.business-post') }}" enctype="multipart/form-data">
+        @csrf
+        <input type="hidden" name="business_id" value="{{ $bizForPost->id }}">
+        <div class="form-card">
+          <div class="form-card-head">📦 Add a Post to "{{ $bizForPost->name }}"</div>
+          <div class="form-card-body">
+
+            <div class="form-section">
+              <div class="form-section-title">Category</div>
+              <div class="form-row" style="margin-bottom:0">
+                <div class="form-group">
+                  <label class="form-label">Category <span>*</span></label>
+                  <select name="category_id" id="bp-category" class="form-input" required onchange="bpOnCategoryChange()">
+                    <option value="">Select category</option>
+                    @foreach($directoryParents as $cat)
+                      <option value="{{ $cat->id }}" {{ old('category_id')==$cat->id ? 'selected' : '' }}>{{ $cat->icon }} {{ $cat->name }}</option>
+                    @endforeach
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Sub-Category</label>
+                  <select name="subcategory_id" id="bp-subcategory" class="form-input" onchange="bpLoadFields()">
+                    <option value="">Select sub-category (optional)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <div class="form-section-title">Post Details</div>
+              <div class="form-group" style="margin-bottom:14px">
+                <label class="form-label">Title <span>*</span></label>
+                <input type="text" name="title" class="form-input" value="{{ old('title') }}" required placeholder="e.g. Veg Thali — Lunch Special">
+              </div>
+              <div class="form-row" style="margin-bottom:14px">
+                <div class="form-group">
+                  <label class="form-label">Price</label>
+                  <input type="text" name="price" class="form-input" value="{{ old('price') }}" placeholder="e.g. $12.99">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Price Unit</label>
+                  <input type="text" name="price_unit" class="form-input" value="{{ old('price_unit') }}" placeholder="e.g. /plate, /hr">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea name="description" id="bp-description" style="display:none">{{ old('description') }}</textarea>
+                <div id="bp-description-editor" class="ql-editor-wrap"></div>
+              </div>
+            </div>
+
+            {{-- Dynamic custom fields per category --}}
+            <div class="form-section hidden" id="bp-custom-section">
+              <div class="form-section-title" id="bp-custom-title">Additional Details</div>
+              <div id="bp-custom-fields"></div>
+            </div>
+
+            <div class="form-section">
+              <div class="form-section-title">Photos</div>
+              <x-image-uploader name="images" :multiple="true" :max="$maxImages" :label="'Post Photos (up to '.$maxImages.')'" :hint="'First photo will be the main image · '.$user->planName().' plan: '.$maxImages.' photos'" />
+            </div>
+
+            <button type="submit" class="btn-submit">Publish Post →</button>
+          </div>
+        </div>
+      </form>
+    @endif
   </div>
 
   {{-- MATRIMONIAL REMOVED --}}
@@ -685,13 +874,81 @@ textarea.form-input{resize:vertical;min-height:100px}
 @push('scripts')
 <script>
 function switchType(type, el) {
-  ['classified','job','event','business'].forEach(t => {
-    document.getElementById('form-'+t).classList.add('hidden');
+  ['classified','job','event','business','business-post'].forEach(t => {
+    var f = document.getElementById('form-'+t);
+    if (f) f.classList.add('hidden');
   });
   document.querySelectorAll('.type-tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('form-'+type).classList.remove('hidden');
-  el.classList.add('active');
+  var target = document.getElementById('form-'+type);
+  if (target) target.classList.remove('hidden');
+  if (el) el.classList.add('active');
   history.replaceState(null,'','/post/create?type='+type);
+}
+
+// ── Business-post: category change → load subs + fields ──────────
+function bpOnCategoryChange() {
+  loadSubCats('bp-subcategory', document.getElementById('bp-category').value);
+  bpLoadFields();
+}
+
+// Load custom fields for the chosen sub-category (or category)
+function bpLoadFields() {
+  var sub = document.getElementById('bp-subcategory').value;
+  var cat = document.getElementById('bp-category').value;
+  var id  = sub || cat;
+  var section = document.getElementById('bp-custom-section');
+  var wrap    = document.getElementById('bp-custom-fields');
+  if (!id) { section.classList.add('hidden'); wrap.innerHTML = ''; return; }
+
+  fetch('/categories/' + id + '/fields')
+    .then(r => r.json())
+    .then(fields => {
+      if (!fields.length) { section.classList.add('hidden'); wrap.innerHTML = ''; return; }
+      wrap.innerHTML = fields.map(bpFieldHtml).join('');
+      section.classList.remove('hidden');
+    })
+    .catch(() => { section.classList.add('hidden'); wrap.innerHTML = ''; });
+}
+
+function bpFieldHtml(f) {
+  var req = f.required ? ' <span>*</span>' : '';
+  var reqAttr = f.required ? ' required' : '';
+  var name = 'cf[' + f.key + ']';
+  var inner = '';
+  if (f.type === 'textarea') {
+    inner = '<textarea class="form-input" name="' + name + '" placeholder="' + (f.placeholder||'') + '"' + reqAttr + '></textarea>';
+  } else if (f.type === 'number') {
+    inner = '<input type="number" class="form-input" name="' + name + '" placeholder="' + (f.placeholder||'') + '"' + reqAttr + '>';
+  } else if (f.type === 'select') {
+    var opts = '<option value="">Select…</option>' + (f.options||[]).map(function(o){ return '<option value="'+o+'">'+o+'</option>'; }).join('');
+    inner = '<select class="form-input" name="' + name + '"' + reqAttr + '>' + opts + '</select>';
+  } else if (f.type === 'checkbox') {
+    inner = '<label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" value="1" name="' + name + '" style="width:18px;height:18px">Yes</label>';
+    return '<div class="form-group" style="margin-bottom:14px"><label class="form-label">' + f.label + req + '</label>' + inner + '</div>';
+  } else {
+    inner = '<input type="text" class="form-input" name="' + name + '" placeholder="' + (f.placeholder||'') + '"' + reqAttr + '>';
+  }
+  return '<div class="form-group" style="margin-bottom:14px"><label class="form-label">' + f.label + req + '</label>' + inner + '</div>';
+}
+
+// ── Sub-category cascade (parent → children) ──────────────────────
+function loadSubCats(selectId, parentId) {
+  var sel = document.getElementById(selectId);
+  if (!sel) return;
+  sel.innerHTML = '<option value="">Loading…</option>';
+  if (!parentId) { sel.innerHTML = '<option value="">Select sub-category (optional)</option>'; return; }
+  fetch('{{ route("categories.subs") }}?parent=' + encodeURIComponent(parentId))
+    .then(r => r.json())
+    .then(subs => {
+      sel.innerHTML = '<option value="">Select sub-category (optional)</option>';
+      subs.forEach(function(c) {
+        var o = document.createElement('option');
+        o.value = c.id;
+        o.textContent = (c.icon ? c.icon + ' ' : '') + c.name;
+        sel.appendChild(o);
+      });
+    })
+    .catch(() => { sel.innerHTML = '<option value="">Select sub-category (optional)</option>'; });
 }
 
 // ── Quill rich-text editors ───────────────────────────────────────
@@ -700,12 +957,58 @@ var _qlToolbar = [
   [{'list':'ordered'},{'list':'bullet'}],
   ['clean']
 ];
+// Toolbar WITH image support (business description)
+var _qlToolbarImg = [
+  ['bold','italic','underline'],
+  [{'list':'ordered'},{'list':'bullet'}],
+  ['link','image'],
+  ['clean']
+];
 
-function _qlInit(editorId, textareaId) {
+// Upload selected image to server, insert its URL into the editor
+function _qlImageHandler(quill) {
+  return function() {
+    var input = document.createElement('input');
+    input.setAttribute('type', 'file');
+    input.setAttribute('accept', 'image/*');
+    input.click();
+    input.onchange = function() {
+      var file = input.files[0];
+      if (!file) return;
+      var fd = new FormData();
+      fd.append('image', file);
+      var range = quill.getSelection(true);
+      quill.insertText(range.index, 'Uploading image…', { italic: true });
+      fetch('{{ route("post.editor-image") }}', {
+        method: 'POST',
+        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'X-Requested-With': 'XMLHttpRequest' },
+        body: fd,
+      })
+      .then(r => r.json())
+      .then(data => {
+        quill.deleteText(range.index, 'Uploading image…'.length);
+        if (data.url) {
+          quill.insertEmbed(range.index, 'image', data.url);
+          quill.setSelection(range.index + 1);
+        }
+      })
+      .catch(() => {
+        quill.deleteText(range.index, 'Uploading image…'.length);
+        alert('Image upload failed. Please try again.');
+      });
+    };
+  };
+}
+
+function _qlInit(editorId, textareaId, withImage) {
   var ta  = document.getElementById(textareaId);
   var el  = document.getElementById(editorId);
   if (!ta || !el) return;
-  var q = new Quill(el, { theme:'snow', modules:{ toolbar: _qlToolbar } });
+  var modules = { toolbar: withImage ? _qlToolbarImg : _qlToolbar };
+  var q = new Quill(el, { theme:'snow', modules: modules });
+  if (withImage) {
+    q.getModule('toolbar').addHandler('image', _qlImageHandler(q));
+  }
   if (ta.value) q.clipboard.dangerouslyPasteHTML(ta.value);
   // sync to hidden textarea before form submit
   el.closest('form').addEventListener('submit', function() {
@@ -717,7 +1020,8 @@ _qlInit('cl-description-editor',   'cl-description');
 _qlInit('job-description-editor',  'job-description');
 _qlInit('job-requirements-editor', 'job-requirements');
 _qlInit('ev-description-editor',   'ev-description');
-_qlInit('biz-description-editor',  'biz-description');
+_qlInit('biz-description-editor',  'biz-description', true);
+_qlInit('bp-description-editor',   'bp-description', true);
 </script>
 @endpush
 @endsection
