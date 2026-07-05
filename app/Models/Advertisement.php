@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 
 class Advertisement extends Model
@@ -26,9 +27,14 @@ class Advertisement extends Model
         'inline'      => ['width' => 800,  'height' => 120],
     ];
 
+    public function stats(): HasMany
+    {
+        return $this->hasMany(AdStat::class);
+    }
+
     public function getImageUrlAttribute(): string
     {
-        return Storage::disk('public')->url($this->image);
+        return Storage::disk(config('filesystems.default'))->url($this->image);
     }
 
     /**
@@ -71,3 +77,4 @@ class Advertisement extends Model
         return $ads->unique('id');
     }
 }
+

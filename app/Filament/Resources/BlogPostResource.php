@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\BlogPostResource\Pages;
 use App\Models\BlogPost;
+use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -22,6 +23,13 @@ class BlogPostResource extends Resource
     {
         return $form->schema([
             Forms\Components\Section::make('Post Details')->schema([
+                Forms\Components\Select::make('user_id')
+                    ->label('Author')
+                    ->options(User::orderBy('name')->pluck('name', 'id'))
+                    ->searchable()
+                    ->nullable()
+                    ->placeholder('— Select Author —')
+                    ->columnSpanFull(),
                 Forms\Components\TextInput::make('title')
                     ->required()
                     ->live(onBlur: true)
@@ -47,6 +55,7 @@ class BlogPostResource extends Resource
             Forms\Components\Section::make('Media & Meta')->schema([
                 Forms\Components\FileUpload::make('image')
                     ->image()
+                    ->disk(config('filesystems.default'))
                     ->directory('blog')
                     ->columnSpanFull(),
                 Forms\Components\TagsInput::make('tags'),
@@ -101,3 +110,4 @@ class BlogPostResource extends Resource
         ];
     }
 }
+

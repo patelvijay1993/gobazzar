@@ -14,7 +14,7 @@ $durationMs   = ($slotAds->first()->slide_duration ?? 3) * 1000;
 @elseif($count === 1)
   {{-- single ad, no slider needed --}}
   @php $ad = $slotAds->first(); @endphp
-  <a href="{{ $ad->click_url }}"
+  <a href="{{ route('ads.click', $ad) }}"
      target="_blank" rel="noopener sponsored"
      class="ad-slot ad-slot--{{ $position }} {{ $class }}"
      title="{{ $ad->title }}">
@@ -24,6 +24,11 @@ $durationMs   = ($slotAds->first()->slide_duration ?? 3) * 1000;
          loading="lazy"
          style="width:100%;height:{{ $size['height'] }}px;object-fit:cover;display:block;border-radius:8px">
   </a>
+  @once
+  <script>
+  fetch('/ads/{{ $ad->id }}/impression', { method:'POST', headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}','Content-Type':'application/json'} });
+  </script>
+  @endonce
 @else
   {{-- slider --}}
   <div id="{{ $sliderId }}"
@@ -33,7 +38,7 @@ $durationMs   = ($slotAds->first()->slide_duration ?? 3) * 1000;
     <span class="ad-label" style="z-index:10">Ad</span>
 
     @foreach($slotAds as $i => $ad)
-    <a href="{{ $ad->click_url }}"
+    <a href="{{ route('ads.click', $ad) }}"
        target="_blank" rel="noopener sponsored"
        class="ad-slide"
        data-index="{{ $i }}"
@@ -44,6 +49,11 @@ $durationMs   = ($slotAds->first()->slide_duration ?? 3) * 1000;
            style="width:100%;height:{{ $size['height'] }}px;object-fit:cover;display:block">
     </a>
     @endforeach
+    <script>
+    @foreach($slotAds as $ad)
+    fetch('/ads/{{ $ad->id }}/impression', { method:'POST', headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}','Content-Type':'application/json'} });
+    @endforeach
+    </script>
 
     {{-- dots --}}
     @if($count > 1)

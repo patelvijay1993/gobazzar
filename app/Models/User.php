@@ -7,10 +7,12 @@ use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use App\Notifications\VerifyEmailNotification;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 
 class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 {
@@ -21,6 +23,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         'city', 'province', 'bio', 'is_admin', 'is_active',
         'plan', 'plan_expires_at',
         'stripe_customer_id', 'stripe_subscription_id', 'subscription_status',
+        'featured_credits_used', 'featured_credits_reset_at',
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -28,17 +31,18 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
-            'password'          => 'hashed',
-            'is_admin'          => 'boolean',
-            'is_active'         => 'boolean',
-            'plan_expires_at'   => 'datetime',
+            'email_verified_at'           => 'datetime',
+            'password'                    => 'hashed',
+            'is_admin'                    => 'boolean',
+            'is_active'                   => 'boolean',
+            'plan_expires_at'             => 'datetime',
+            'featured_credits_reset_at'   => 'datetime',
         ];
     }
 
     public function canAccessPanel(Panel $panel): bool
     {
-        return $this->is_admin || $this->id === 1;
+        return $this->is_admin === true;
     }
 
     // ── Plan resolution ───────────────────────────────────────────
@@ -88,13 +92,20 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         return $this->planModel()?->max_images ?? 3;
     }
 
-    /** Count of currently active (non-expired) listings. */
+    /** Count of currently active (non-expired) listings + jobs combined (shared plan budget). */
     public function activeListingCount(): int
     {
-        return $this->listings()
+        $classifieds = $this->listings()
             ->where('status', 'active')
             ->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()))
             ->count();
+
+        $jobs = $this->hasMany(Job::class)
+            ->where('status', 'active')
+            ->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()))
+            ->count();
+
+        return $classifieds + $jobs;
     }
 
     public function canPostListing(): bool
@@ -170,6 +181,30 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         return $this->planModel()?->featured_credits ?? 0;
     }
 
+    /** Credits still available this billing cycle (auto-resets monthly). */
+    public function featuredCreditsRemaining(): int
+    {
+        $this->maybeResetCredits();
+        return max(0, $this->featuredCredits() - $this->featured_credits_used);
+    }
+
+    public function canFeatureListing(): bool
+    {
+        return $this->featuredCredits() > 0 && $this->featuredCreditsRemaining() > 0;
+    }
+
+    /** Reset used credits if a month has passed since last reset. */
+    public function maybeResetCredits(): void
+    {
+        $resetAt = $this->featured_credits_reset_at;
+        if (!$resetAt || $resetAt->isPast()) {
+            $this->update([
+                'featured_credits_used'     => 0,
+                'featured_credits_reset_at' => now()->addMonth(),
+            ]);
+        }
+    }
+
     public function hasBulkUpload(): bool
     {
         return (bool) ($this->planModel()?->bulk_upload ?? false);
@@ -182,10 +217,28 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         return $this->hasMany(Listing::class);
     }
 
+    public function userFavorites(): HasMany
+    {
+        return $this->hasMany(UserFavorite::class);
+    }
+
+    public function featuredCreditLogs(): HasMany
+    {
+        return $this->hasMany(FeaturedCreditLog::class);
+    }
+
     // ── Custom verification email ─────────────────────────────────
 
     public function sendEmailVerificationNotification(): void
     {
         $this->notify(new VerifyEmailNotification);
     }
+
+    public function getAvatarUrlAttribute(): ?string
+    {
+        if (!$this->avatar) return null;
+        if (str_starts_with($this->avatar, 'http')) return $this->avatar;
+        return Storage::disk(config('filesystems.default'))->url($this->avatar);
+    }
 }
+

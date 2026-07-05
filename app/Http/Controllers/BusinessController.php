@@ -7,6 +7,9 @@ use App\Models\Business;
 use App\Models\BusinessPost;
 use App\Models\Category;
 use App\Models\Location;
+use App\Models\ActivityLog;
+use App\Models\PageView;
+use App\Models\SearchLog;
 use Illuminate\Http\Request;
 
 class BusinessController extends Controller
@@ -28,9 +31,9 @@ class BusinessController extends Controller
                     ->pluck('id');
                 $q->whereIn('category_id', $ids);
             })
-            ->when($request->search,   fn ($q) => $q->where(fn ($q2) =>
-                $q2->where('name', 'like', '%' . $request->search . '%')
-                   ->orWhere('description', 'like', '%' . $request->search . '%')))
+            ->when($request->search,   fn ($q) => $q->where(fn ($q2) => $q2
+                ->where('name',        'like', '%' . addcslashes($request->search, '%_\\') . '%')
+                ->orWhere('description', 'like', '%' . addcslashes($request->search, '%_\\') . '%')))
             ->when($request->city,     fn ($q) => $q->where('city', $request->city))
             ->when($request->province, fn ($q) => $q->where('province', $request->province))
             ->orderByDesc('is_featured')
@@ -45,12 +48,21 @@ class BusinessController extends Controller
             ->merge(Advertisement::forPosition('inline', $request->city, $request->province, 'directory'))
             ->unique('id');
 
+        SearchLog::record($request, 'businesses', $businesses->total());
+        PageView::recordPage('directory', $request);
+
         return view('directory.index', compact('categories', 'businesses', 'cities', 'provinces', 'ads'));
     }
 
-    public function show(Business $business)
+    public function show(Request $request, Business $business)
     {
         abort_if($business->status !== 'active', 404);
+        PageView::record($business, $request);
+        ActivityLog::log($request, 'viewed_business', [
+            'subject_type'  => get_class($business),
+            'subject_id'    => $business->id,
+            'subject_label' => $business->name,
+        ]);
 
         $posts = $business->posts()
             ->live()
@@ -91,7 +103,15 @@ class BusinessController extends Controller
     {
         abort_if($business->status !== 'active', 404);
         abort_if($post->business_id !== $business->id, 404);
-        abort_if($post->status !== 'active' || $post->isExpired(), 404);
+        if ($post->status !== 'active') abort(404);
+        if ($post->isExpired()) {
+            return response(view('errors.expired', [
+                'type'      => 'post',
+                'title'     => $post->title,
+                'expiredAt' => $post->expires_at,
+                'browseUrl' => route('directory.show', $business->slug),
+            ]), 410);
+        }
 
         $post->increment('views');
 

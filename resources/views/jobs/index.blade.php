@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Jobs — Indian Community in Canada')
+@section('title', 'Jobs')
 
 @push('styles')
 <style>
@@ -86,6 +86,7 @@
 @endpush
 
 @section('content')
+<h1 style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0">Jobs — Indian Community in Canada</h1>
 <div class="jobs-wrap">
 
   {{-- Mobile toggle --}}
@@ -266,7 +267,7 @@
             </div>
             <div class="job-right">
               @if($job->salary)
-                <div class="job-salary">{{ $job->salary }}</div>
+                <div class="job-salary">{{ $job->formatted_salary }}</div>
               @endif
               <div class="job-date">{{ $job->created_at->format('d M Y') }}</div>
               <span class="apply-btn">Apply Now →</span>

@@ -70,14 +70,34 @@ class ReportResource extends Resource
                     }),
 
                 Tables\Columns\TextColumn::make('reportable_type')
-                    ->label('Content Type')
-                    ->formatStateUsing(fn($state) => class_basename($state))
-                    ->badge()->color('primary'),
+                    ->label('Type')
+                    ->formatStateUsing(fn ($state) => match (class_basename($state)) {
+                        'Listing'  => '🏷️ Classified',
+                        'Job'      => '💼 Job',
+                        'Event'    => '🎉 Event',
+                        'Business' => '🏢 Business',
+                        'BlogPost' => '📝 Blog',
+                        default    => class_basename($state),
+                    })
+                    ->badge()
+                    ->color(fn ($state) => match (class_basename($state)) {
+                        'Listing'  => 'info',
+                        'Job'      => 'success',
+                        'Event'    => 'warning',
+                        'Business' => 'danger',
+                        'BlogPost' => 'gray',
+                        default    => 'gray',
+                    }),
 
-                Tables\Columns\TextColumn::make('reportable_id')->label('Content ID'),
+                Tables\Columns\TextColumn::make('reportable_id')
+                    ->label('Content')
+                    ->getStateUsing(fn (Report $record) => $record->reportable?->title ?? $record->reportable?->name ?? '#'.$record->reportable_id)
+                    ->limit(35)
+                    ->placeholder('—'),
 
                 Tables\Columns\TextColumn::make('details')
-                    ->limit(50)
+                    ->label('Details')
+                    ->limit(40)
                     ->placeholder('—'),
 
                 Tables\Columns\TextColumn::make('user.name')
@@ -107,11 +127,30 @@ class ReportResource extends Resource
                         'fake'        => 'Fake',
                         'other'       => 'Other',
                     ]),
+                Tables\Filters\SelectFilter::make('reportable_type')
+                    ->label('Post Type')
+                    ->options([
+                        'App\\Models\\Listing'  => '🏷️ Classifieds',
+                        'App\\Models\\Job'      => '💼 Jobs',
+                        'App\\Models\\Event'    => '🎉 Events',
+                        'App\\Models\\Business' => '🏢 Businesses',
+                        'App\\Models\\BlogPost' => '📝 Blog',
+                    ]),
             ])
             ->actions([
+                Tables\Actions\Action::make('details')
+                    ->label('Details')
+                    ->icon('heroicon-o-document-text')
+                    ->color('info')
+                    ->modalHeading(fn(Report $r) => 'Report #' . $r->id . ' — ' . ucfirst($r->reason))
+                    ->modalWidth('2xl')
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel('Close')
+                    ->modalContent(fn(Report $record) => view('filament.modals.report-details', ['record' => $record])),
+
                 Tables\Actions\Action::make('view_content')
-                    ->label('View')
-                    ->icon('heroicon-o-eye')
+                    ->label('View Post')
+                    ->icon('heroicon-o-arrow-top-right-on-square')
                     ->url(fn(Report $record) => self::getContentUrl($record))
                     ->openUrlInNewTab()
                     ->color('gray'),

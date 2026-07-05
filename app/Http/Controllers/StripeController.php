@@ -77,10 +77,18 @@ class StripeController extends Controller
             return redirect()->route('account');
         }
 
-        $session = \Stripe\Checkout\Session::retrieve([
-            'id'     => $request->session_id,
-            'expand' => ['subscription'],
-        ]);
+        try {
+            $session = \Stripe\Checkout\Session::retrieve([
+                'id'     => $request->session_id,
+                'expand' => ['subscription'],
+            ]);
+        } catch (\Stripe\Exception\InvalidRequestException $e) {
+            Log::warning('Stripe success: invalid session_id — '.$e->getMessage(), ['user_id' => Auth::id()]);
+            return redirect()->route('pricing')->with('error', 'Payment session not found or already processed.');
+        } catch (\Throwable $e) {
+            Log::error('Stripe success error: '.$e->getMessage(), ['user_id' => Auth::id()]);
+            return redirect()->route('pricing')->with('error', 'An error occurred verifying your payment. Please contact support.');
+        }
 
         if ($session->payment_status === 'paid' || $session->status === 'complete') {
             $user     = Auth::user();

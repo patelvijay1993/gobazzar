@@ -6,6 +6,9 @@ use App\Models\Advertisement;
 use App\Models\Category;
 use App\Models\Event;
 use App\Models\Location;
+use App\Models\ActivityLog;
+use App\Models\PageView;
+use App\Models\SearchLog;
 use Illuminate\Http\Request;
 
 class EventController extends Controller
@@ -17,7 +20,7 @@ class EventController extends Controller
         $events = Event::with('category')
             ->where('status', 'active')
             ->when($request->category, fn ($q) => $q->where('category_id', $request->category))
-            ->when($request->search,   fn ($q) => $q->where('title', 'like', '%' . $request->search . '%'))
+            ->when($request->search,   fn ($q) => $q->where('title', 'like', '%' . addcslashes($request->search, '%_\\') . '%'))
             ->when($request->city,     fn ($q) => $q->where('city', $request->city))
             ->when($request->province, fn ($q) => $q->where('province', $request->province))
             ->when($request->filter === 'upcoming', fn ($q) => $q->where('start_date', '>=', now()))
@@ -32,13 +35,22 @@ class EventController extends Controller
             ->merge(Advertisement::forPosition('inline', $request->city, $request->province, 'events'))
             ->unique('id');
 
+        SearchLog::record($request, 'events', $events->total());
+        PageView::recordPage('events', $request);
+
         return view('events.index', compact('categories', 'events', 'cities', 'provinces', 'ads'));
     }
 
-    public function show(Event $event)
+    public function show(Request $request, Event $event)
     {
         abort_if($event->status !== 'active', 404);
         $event->increment('views');
+        PageView::record($event, $request);
+        ActivityLog::log($request, 'viewed_event', [
+            'subject_type'  => get_class($event),
+            'subject_id'    => $event->id,
+            'subject_label' => $event->title,
+        ]);
         $related = Event::where('category_id', $event->category_id)
             ->where('id', '!=', $event->id)
             ->where('status', 'active')

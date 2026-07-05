@@ -17,8 +17,8 @@ class PlanResource extends Resource
     protected static ?string $navigationLabel = 'Pricing Plans';
     protected static ?string $modelLabel      = 'Plan';
     protected static ?string $pluralModelLabel = 'Pricing Plans';
-    protected static ?string $navigationGroup = 'Settings';
-    protected static ?int    $navigationSort  = 1;
+    protected static ?string $navigationGroup = 'Finance';
+    protected static ?int    $navigationSort  = 3;
 
     public static function form(Form $form): Form
     {
@@ -37,13 +37,13 @@ class PlanResource extends Resource
 
                 Forms\Components\TextInput::make('icon')
                     ->label('Icon (emoji)')
-                    ->default('⚡')
+                    ->default('🆓')
                     ->maxLength(10),
 
                 Forms\Components\TextInput::make('icon_bg')
                     ->label('Icon Background Color')
-                    ->default('#eff6ff')
-                    ->helperText('Hex color e.g. #eff6ff'),
+                    ->default('#f0ede8')
+                    ->helperText('Hex color e.g. #f0ede8'),
 
                 Forms\Components\TextInput::make('tagline')
                     ->maxLength(100)

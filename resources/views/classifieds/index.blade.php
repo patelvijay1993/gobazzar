@@ -111,6 +111,7 @@
 @endpush
 
 @section('content')
+<h1 style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0">Classifieds — Find Anything in Canada</h1>
 <div class="cl-wrap">
 
   {{-- Mobile toggle --}}
@@ -263,7 +264,7 @@
             </div>
             <div class="ad-body">
               @if($listing->price)
-                <div class="ad-price">{{ $listing->price }}<small>{{ $listing->price_unit }}</small></div>
+                <div class="ad-price">{{ $listing->formatted_price }}<small>{{ $listing->price_unit }}</small></div>
               @endif
               <div class="ad-title">
                 {{ $listing->title }}

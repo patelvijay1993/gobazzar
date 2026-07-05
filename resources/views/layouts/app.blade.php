@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>@yield('title', 'GoBazaar') — Indian Community in Canada</title>
 <meta name="description" content="@yield('description', 'Best community website for Indians living in Canada.')">
+<meta name="csrf-token" content="{{ csrf_token() }}">
+<link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon.png') }}">
+<link rel="shortcut icon" href="{{ asset('favicon.png') }}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Noto+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -242,7 +245,7 @@ footer.site-footer{background:var(--nav-bg);border-top:2px solid #2a4fa8;margin-
     </button>
 
     <a href="{{ route('home') }}" class="logo">
-      <div class="logo-icon" style="font-size:22px">🛍️</div>
+      <img src="{{ asset('images/logo.png') }}" alt="GoBazaar" style="height:44px;width:44px;object-fit:contain;background:rgba(255,255,255,0.20);border-radius:10px;padding:4px">
       <div>
         <div class="logo-name">Go<span>Bazaar</span></div>
         <div class="logo-tag">Buy. Sell. Connect.</div>
@@ -268,10 +271,10 @@ footer.site-footer{background:var(--nav-bg);border-top:2px solid #2a4fa8;margin-
           <span>Hi, {{ Str::limit(Auth::user()->name, 10) }}</span>
           <i class="fa-solid fa-chevron-down" style="font-size:10px;color:rgba(255,255,255,.6)"></i>
         </a>
-        <form action="{{ route('logout') }}" method="POST" style="display:inline">
+        <form id="nav-logout-form" action="{{ route('logout') }}" method="POST" style="display:inline">
           @csrf
-          <button type="submit" class="nav-auth-link" style="background:none;border:none;padding:0">Logout</button>
         </form>
+        <button type="submit" form="nav-logout-form" class="nav-auth-link" style="background:none;border:none;padding:0;cursor:pointer">Logout</button>
       @else
         <a href="{{ route('login') }}" class="nav-auth-link">Login</a>
         <a href="{{ route('post.create') }}" class="nav-post-btn"><i class="fa-solid fa-plus"></i> Post Free Ad</a>
@@ -302,6 +305,7 @@ footer.site-footer{background:var(--nav-bg);border-top:2px solid #2a4fa8;margin-
     <a href="{{ route('blog.index') }}" class="{{ request()->routeIs('blog.*') ? 'active' : '' }}">
       <i class="fa-solid fa-newspaper"></i> Blog
     </a>
+    {{-- Matrimonial: hidden until v2 --}}
     <a href="{{ route('pricing') }}" class="{{ request()->routeIs('pricing*') ? 'active' : '' }}">
       <i class="fa-solid fa-dollar-sign"></i> Pricing
     </a>
@@ -314,7 +318,7 @@ footer.site-footer{background:var(--nav-bg);border-top:2px solid #2a4fa8;margin-
   <div class="nav-drawer-bg" onclick="toggleDrawer()"></div>
   <div class="nav-drawer-panel">
     <div class="drawer-logo">
-      <div style="width:36px;height:36px;background:var(--primary);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff">🛍️</div>
+      <img src="{{ asset('images/logo.png') }}" alt="GoBazaar" style="width:36px;height:36px;object-fit:contain;background:rgba(255,255,255,0.20);border-radius:8px;padding:3px">
       <div>
         <div style="font-family:var(--fh);font-size:18px;font-weight:800;color:var(--primary)">Go<span style="color:var(--accent)">Bazaar</span></div>
         <div style="font-size:10px;color:var(--muted)">Buy. Sell. Connect.</div>
@@ -329,16 +333,17 @@ footer.site-footer{background:var(--nav-bg);border-top:2px solid #2a4fa8;margin-
     <a href="{{ route('events.index') }}" class="drawer-link {{ request()->routeIs('events.*') ? 'active' : '' }}"><i class="fa-solid fa-calendar-days" style="width:18px"></i> Events</a>
     <a href="{{ route('directory.index') }}" class="drawer-link {{ request()->routeIs('directory.*') ? 'active' : '' }}"><i class="fa-solid fa-building-columns" style="width:18px"></i> Directory</a>
     <a href="{{ route('blog.index') }}" class="drawer-link {{ request()->routeIs('blog.*') ? 'active' : '' }}"><i class="fa-solid fa-newspaper" style="width:18px"></i> Blog</a>
+    {{-- Matrimonial: hidden until v2 --}}
     <a href="{{ route('pricing') }}" class="drawer-link {{ request()->routeIs('pricing*') ? 'active' : '' }}"><i class="fa-solid fa-dollar-sign" style="width:18px"></i> Pricing</a>
     <div class="drawer-divider"></div>
     <div class="drawer-actions">
       @auth
         <a href="{{ route('post.create') }}" class="drawer-btn drawer-btn-primary"><i class="fa-solid fa-plus"></i> Post Free Ad</a>
         <a href="{{ route('account') }}" class="drawer-btn drawer-btn-outline">👤 My Account</a>
-        <form action="{{ route('logout') }}" method="POST">
+        <form id="drawer-logout-form" action="{{ route('logout') }}" method="POST">
           @csrf
-          <button type="submit" class="drawer-btn drawer-btn-outline" style="width:100%;border:1.5px solid var(--border);border-radius:var(--radius-sm)">Logout</button>
         </form>
+        <button type="submit" form="drawer-logout-form" class="drawer-btn drawer-btn-outline" style="width:100%;border:1.5px solid var(--border);border-radius:var(--radius-sm)">Logout</button>
       @else
         <a href="{{ route('post.create') }}" class="drawer-btn drawer-btn-primary"><i class="fa-solid fa-plus"></i> Post Free Ad</a>
         <a href="{{ route('register') }}" class="drawer-btn drawer-btn-outline">Register Free</a>
@@ -370,7 +375,7 @@ footer.site-footer{background:var(--nav-bg);border-top:2px solid #2a4fa8;margin-
           <div style="font-size:10px;color:rgba(255,255,255,.5)">Buy. Sell. Connect.</div>
         </div>
       </div>
-      <p>Canada's #1 Indian Community Portal. Classifieds · Yellow Pages · Events · Jobs · Blog · Matrimonial — everything the Indian-Canadian community needs, in one place.</p>
+      <p>Canada's #1 Indian Community Portal. Classifieds · Yellow Pages · Events · Jobs · Blog — everything the Indian-Canadian community needs, in one place.</p>
       <div class="footer-socials">
         <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
         <a href="#"><i class="fa-brands fa-instagram"></i></a>
@@ -402,7 +407,7 @@ footer.site-footer{background:var(--nav-bg);border-top:2px solid #2a4fa8;margin-
       <a href="{{ route('contact') }}">Contact Us</a>
       <a href="{{ route('privacy') }}">Privacy Policy</a>
       <a href="{{ route('terms') }}">Terms of Use</a>
-      <a href="/gobazzar-app/public/admin">Admin</a>
+      @auth @if(auth()->user()->is_admin)<a href="{{ url('/admin') }}">Admin</a>@endif @endauth
     </div>
   </div>
   <div class="footer-bottom">
@@ -915,6 +920,66 @@ function loadCities(citySelectId, province) {
       });
     });
 }
+
+function detectLocation(provinceSelectId, citySelectId, btnEl) {
+  if (!navigator.geolocation) { alert('Geolocation is not supported by your browser.'); return; }
+  if (btnEl) { btnEl.disabled = true; btnEl.textContent = '📍 Detecting…'; }
+
+  navigator.geolocation.getCurrentPosition(function(pos) {
+    var lat = pos.coords.latitude, lon = pos.coords.longitude;
+    fetch('https://nominatim.openstreetmap.org/reverse?lat=' + lat + '&lon=' + lon + '&format=json', {
+      headers: { 'Accept-Language': 'en' }
+    })
+    .then(r => r.json())
+    .then(function(data) {
+      if (btnEl) { btnEl.disabled = false; btnEl.textContent = '📍 Use my location'; }
+      var addr = data.address || {};
+      // Nominatim returns state/province under different keys depending on country
+      var detectedProvince = addr.state || addr.region || addr.county || '';
+      var detectedCity     = addr.city || addr.town || addr.village || addr.suburb || '';
+
+      // Match province: find best option in the select that contains the detected value
+      var provSel = document.getElementById(provinceSelectId);
+      if (!provSel) return;
+      var matched = '';
+      Array.from(provSel.options).forEach(function(opt) {
+        if (!opt.value) return;
+        var ov = opt.value.toLowerCase(), dv = detectedProvince.toLowerCase();
+        if (dv.includes(ov) || ov.includes(dv)) matched = opt.value;
+      });
+
+      if (matched) {
+        provSel.value = matched;
+        // Load cities for matched province, then select city
+        var citySel = document.getElementById(citySelectId);
+        citySel.innerHTML = '<option value="">Loading…</option>';
+        fetch('{{ route('locations.cities') }}?province=' + encodeURIComponent(matched))
+          .then(r => r.json())
+          .then(function(cities) {
+            citySel.innerHTML = '<option value="">Select city</option>';
+            var cityMatched = '';
+            cities.forEach(function(c) {
+              var o = document.createElement('option');
+              o.value = c; o.textContent = c;
+              citySel.appendChild(o);
+              var cv = c.toLowerCase(), dv = detectedCity.toLowerCase();
+              if (!cityMatched && (dv.includes(cv) || cv.includes(dv))) cityMatched = c;
+            });
+            if (cityMatched) citySel.value = cityMatched;
+          });
+      } else {
+        alert('Could not match your location to a known province. Please select manually.');
+      }
+    })
+    .catch(function() {
+      if (btnEl) { btnEl.disabled = false; btnEl.textContent = '📍 Use my location'; }
+      alert('Could not fetch location details. Please select manually.');
+    });
+  }, function() {
+    if (btnEl) { btnEl.disabled = false; btnEl.textContent = '📍 Use my location'; }
+    alert('Location access was denied. Please allow location access and try again.');
+  });
+}
 </script>
 
 <script>
@@ -952,6 +1017,146 @@ function loadCities(citySelectId, province) {
   });
   obs.observe(document.body, { childList: true, subtree: true });
 })();
+</script>
+<script>
+(function(){
+  // GoBazaar image placeholder — shown when any <img> fails to load
+  var PH = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23d1d5db'/%3E%3Ctext x='200' y='165' font-family='sans-serif' font-size='42' font-weight='700' fill='%236b7280' text-anchor='middle'%3EGoBazaar%3C/text%3E%3C/svg%3E";
+
+  function applyPlaceholder(img) {
+    if (img.dataset.phApplied) return;
+    img.dataset.phApplied = '1';
+    img.onerror = null;
+    img.src = PH;
+    img.style.objectFit = 'contain';
+  }
+
+  function hookImg(img) {
+    if (!img.dataset.phHooked) {
+      img.dataset.phHooked = '1';
+      img.addEventListener('error', function(){ applyPlaceholder(this); });
+      // Already broken (cached failure or no src)
+      if (img.complete && img.naturalWidth === 0 && img.src && !img.src.startsWith('data:')) {
+        applyPlaceholder(img);
+      }
+    }
+  }
+
+  document.querySelectorAll('img').forEach(hookImg);
+
+  // Watch for dynamically inserted images (sliders, lazy loaders, etc.)
+  var mo = new MutationObserver(function(muts){
+    muts.forEach(function(m){
+      m.addedNodes.forEach(function(n){
+        if (n.nodeType !== 1) return;
+        if (n.tagName === 'IMG') hookImg(n);
+        n.querySelectorAll && n.querySelectorAll('img').forEach(hookImg);
+      });
+    });
+  });
+  mo.observe(document.body, { childList: true, subtree: true });
+})();
+</script>
+
+<script>
+// Favorite toggle — works on any .fav-btn button
+document.addEventListener('click', function(e) {
+  var btn = e.target.closest('.fav-btn');
+  if (!btn) return;
+  e.preventDefault();
+  btn.disabled = true;
+
+  var type = btn.dataset.type;
+  var id   = btn.dataset.id;
+  var csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+  fetch('{{ route("favorites.toggle") }}', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf },
+    body: JSON.stringify({ type: type, id: id })
+  })
+  .then(function(r) {
+    if (r.status === 403) {
+      r.json().then(function(d) { alert(d.error || 'Upgrade required.'); });
+      btn.disabled = false;
+      return;
+    }
+    return r.json();
+  })
+  .then(function(data) {
+    if (!data) return;
+    btn.disabled = false;
+    if (data.favorited) {
+      btn.classList.add('fav-active');
+      btn.style.background = '#fee2e2';
+      btn.style.borderColor = '#fca5a5';
+      btn.style.color = '#dc2626';
+      btn.querySelector('i').className = 'fa-solid fa-heart';
+      btn.querySelector('.fav-label').textContent = 'Saved';
+      btn.title = 'Remove from Saved';
+    } else {
+      btn.classList.remove('fav-active');
+      btn.style.background = '#f3f4f6';
+      btn.style.borderColor = '#e5e7eb';
+      btn.style.color = '#9ca3af';
+      btn.querySelector('i').className = 'fa-regular fa-heart';
+      btn.querySelector('.fav-label').textContent = 'Save';
+      btn.title = 'Save to Favorites';
+    }
+  })
+  .catch(function() { btn.disabled = false; });
+});
+</script>
+
+<script>
+// Feature listing toggle — works on any .feature-btn button (account page classifieds panel)
+document.addEventListener('click', function(e) {
+  var btn = e.target.closest('.feature-btn');
+  if (!btn) return;
+  e.preventDefault();
+  btn.disabled = true;
+
+  var listingId = btn.dataset.listingId;
+  var csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+  fetch('{{ route("featured.toggle") }}', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf },
+    body: JSON.stringify({ listing_id: listingId })
+  })
+  .then(function(r) {
+    return r.json().then(function(data) { return { status: r.status, data: data }; });
+  })
+  .then(function(res) {
+    btn.disabled = false;
+    var data = res.data;
+    if (res.status === 422 || data.error) {
+      alert(data.error || 'Could not feature this listing.');
+      return;
+    }
+    if (data.featured) {
+      btn.textContent = '✓ Featured';
+      btn.dataset.featured = '1';
+      btn.style.background = '#fef3c7';
+      btn.style.color = '#92400e';
+      btn.style.borderColor = '#f59e0b';
+      btn.style.fontWeight = '700';
+    } else {
+      btn.textContent = '⭐ Feature';
+      btn.dataset.featured = '0';
+      btn.style.background = '#fff';
+      btn.style.color = '#b45309';
+      btn.style.borderColor = '#fcd34d';
+      btn.style.fontWeight = '';
+    }
+    // Update credits banner if present
+    var bannerCredit = document.querySelector('[data-credits-remaining]');
+    if (bannerCredit && data.credits_remaining !== undefined) {
+      bannerCredit.textContent = data.credits_remaining;
+    }
+  })
+  .catch(function() { btn.disabled = false; });
+});
 </script>
 </body>
 </html>

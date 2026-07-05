@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Storage;
 
 class Matrimonial extends Model
 {
@@ -41,4 +42,12 @@ class Matrimonial extends Model
             default         => ucfirst($this->marital_status),
         };
     }
+
+    public function getPhotoUrlAttribute(): ?string
+    {
+        if (!$this->photo) return null;
+        if (str_starts_with($this->photo, 'http')) return $this->photo;
+        return Storage::disk(config('filesystems.default'))->url($this->photo);
+    }
 }
+

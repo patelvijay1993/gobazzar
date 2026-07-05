@@ -19,7 +19,7 @@ use Illuminate\Support\Str;
 
 class PostController extends Controller
 {
-    // ── Helpers ───────────────────────────────────────────────────
+    // â"€â"€ Helpers â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
 
     private function resolveModel(string $type): string
     {
@@ -67,9 +67,9 @@ class PostController extends Controller
 
     /**
      * Run spam/dummy/abuse moderation on a post's title + description.
-     * Throws ValidationException (→ back with errors) if content looks bad.
+     * Throws ValidationException (â†’ back with errors) if content looks bad.
      */
-    private function moderate(Request $request, string $titleKey = 'title'): void
+    private function moderate(Request $request, string $titleKey = 'title', string $postType = 'unknown'): void
     {
         $minTitle = config('moderation.min_title_length');
         $minDesc  = config('moderation.min_description_length');
@@ -81,12 +81,19 @@ class PostController extends Controller
             $fields['description'] = [$request->input('description'), 'Description', $minDesc];
         }
 
-        app(ContentModerator::class)->validateOrFail($fields);
+        $context = [
+            'post_type' => $postType,
+            'user_id'   => Auth::id(),
+            'ip'        => $request->ip(),
+            'raw_data'  => $request->except(['_token', 'password']),
+        ];
+
+        app(ContentModerator::class)->validateOrFail($fields, $context);
     }
 
     /**
      * Build the validation rule string for an uploaded image based on
-     * config/moderation.php — verifies it's a real image of sane dimensions.
+     * config/moderation.php â€" verifies it's a real image of sane dimensions.
      */
     private static function imgRules(): string
     {
@@ -99,7 +106,13 @@ class PostController extends Controller
         ]);
     }
 
-    // ── Create ────────────────────────────────────────────────────
+    /** URL validation: must be a valid URL with http:// or https:// scheme only. */
+    private static function urlRules(int $max = 255): string
+    {
+        return 'url|regex:/^https?:\/\//i|max:' . $max;
+    }
+
+    // â"€â"€ Create â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
 
     public function create(Request $request)
     {
@@ -120,21 +133,21 @@ class PostController extends Controller
         ));
     }
 
-    // ── Rich-text editor inline image upload ─────────────────────
+    // â"€â"€ Rich-text editor inline image upload â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
     public function uploadEditorImage(Request $request)
     {
         $request->validate([
             'image' => 'required|'.self::imgRules(),
         ]);
 
-        $path = $request->file('image')->store('editor', 's3');
+        $path = $request->file('image')->store('editor', config('filesystems.default'));
 
         return response()->json([
-            'url' => Storage::disk('s3')->url($path),
+            'url' => Storage::disk(config('filesystems.default'))->url($path),
         ]);
     }
 
-    // ── Feed (public) ─────────────────────────────────────────────
+    // â"€â"€ Feed (public) â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
 
     public function feed(Request $request)
     {
@@ -163,7 +176,7 @@ class PostController extends Controller
         return view('feed', compact('classifieds', 'jobs', 'events', 'businesses', 'matrimonials', 'filter'));
     }
 
-    // ── Edit ──────────────────────────────────────────────────────
+    // â"€â"€ Edit â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
 
     public function edit(string $type, int $id)
     {
@@ -171,15 +184,15 @@ class PostController extends Controller
         $categories = $this->getCategories();
         $provinces  = Location::activeProvinces();
         $cities     = Location::activeCities();
-        // Custom fields for a business-post's category (for editing values)
         $customFields = ($type === 'business-post' && $record->category)
             ? $record->category->applicableFields()
             : collect();
         $maxImages = Auth::user()->maxImages();
-        return view('post.edit', compact('type', 'record', 'categories', 'provinces', 'cities', 'customFields', 'maxImages'));
+        $directoryParents = Category::where('type', 'directory')->whereNull('parent_id')->orderBy('name')->get();
+        return view('post.edit', compact('type', 'record', 'categories', 'provinces', 'cities', 'customFields', 'maxImages', 'directoryParents'));
     }
 
-    // ── Update ────────────────────────────────────────────────────
+    // â"€â"€ Update â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
 
     public function update(Request $request, string $type, int $id)
     {
@@ -197,26 +210,26 @@ class PostController extends Controller
         return redirect()->route('account')->with('success', 'Your post has been updated.');
     }
 
-    // ── Destroy ───────────────────────────────────────────────────
+    // â"€â"€ Destroy â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
 
     public function destroy(string $type, int $id)
     {
         $record = $this->findOwned($type, $id);
 
         foreach (['image', 'photo', 'logo', 'company_logo'] as $field) {
-            if (!empty($record->$field)) {
-                Storage::disk('s3')->delete($record->$field);
+            if (!empty($record->$field) && !str_starts_with($record->$field, 'http')) {
+                Storage::disk(config('filesystems.default'))->delete($record->$field);
             }
         }
         foreach ($record->images ?? [] as $path) {
-            Storage::disk('s3')->delete($path);
+            if (!str_starts_with($path, 'http')) Storage::disk(config('filesystems.default'))->delete($path);
         }
 
         $record->delete();
         return redirect()->route('account')->with('success', 'Post deleted successfully.');
     }
 
-    // ── Store methods ─────────────────────────────────────────────
+    // â"€â"€ Store methods â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
 
     public function storeClassified(Request $request)
     {
@@ -247,31 +260,31 @@ class PostController extends Controller
             );
         }
 
-        $this->moderate($request);
+        $this->moderate($request, 'title', 'classified');
 
         unset($data['images']); // handle separately
 
         $data['user_id']     = Auth::id();
         $data['slug']        = $this->uniqueSlug($data['title'], 'listings');
         $data['status']      = 'active';
+        $data['title']       = strip_tags($data['title']);
         $data['expires_at']  = $this->expiresAt();
         $data['is_verified'] = Auth::user()->hasVerifiedBadge();
 
         if ($request->hasFile('images')) {
             $paths = [];
             foreach ($request->file('images') as $file) {
-                $paths[] = $file->store('listings', 's3');
+                $paths[] = $file->store('listings', config('filesystems.default'));
             }
             $data['images'] = $paths;
             $data['image']  = $paths[0];
 
-            // Google Vision — safe search + category match (base64, works on localhost)
             $moderator    = app(\App\Services\ContentModerator::class);
             $categoryName = \App\Models\Category::find($data['category_id'])?->name;
             foreach ($paths as $path) {
                 $imgError = $moderator->checkImageFile($path, $categoryName);
                 if ($imgError) {
-                    foreach ($paths as $p) \Illuminate\Support\Facades\Storage::disk('s3')->delete($p);
+                    foreach ($paths as $p) \Illuminate\Support\Facades\Storage::disk(config('filesystems.default'))->delete($p);
                     throw \Illuminate\Validation\ValidationException::withMessages(['images' => $imgError]);
                 }
             }
@@ -315,19 +328,21 @@ class PostController extends Controller
             'city'         => 'required|string|max:100',
             'province'     => 'required|string|max:100',
             'apply_email'  => 'nullable|email|max:150',
-            'apply_url'    => 'nullable|url|max:255',
+            'apply_url'    => 'nullable|'.self::urlRules(255),
             'company_logo' => 'nullable|'.self::imgRules(),
         ]);
 
-        $this->moderate($request);
+        $data['title']      = strip_tags($data['title']);
+        $this->moderate($request, 'title', 'job');
 
         $data['user_id']    = Auth::id();
         $data['slug']       = $this->uniqueSlug($data['title'], 'job_listings');
         $data['status']     = 'active';
         $data['expires_at'] = $this->expiresAt();
 
+        unset($data['company_logo']);
         if ($request->hasFile('company_logo')) {
-            $data['company_logo'] = $request->file('company_logo')->store('jobs', 's3');
+            $data['company_logo'] = $request->file('company_logo')->store('jobs', config('filesystems.default'));
         }
 
         Job::create($data);
@@ -343,7 +358,7 @@ class PostController extends Controller
 
     public function storeEvent(Request $request)
     {
-        // All plans can post events — no limit enforcement needed
+        // All plans can post events â€" no limit enforcement needed
         $data = $request->validate([
             'title'           => 'required|string|max:150',
             'category_id'     => 'nullable|exists:categories,id',
@@ -357,11 +372,12 @@ class PostController extends Controller
             'organizer'       => 'nullable|string|max:150',
             'organizer_phone' => 'nullable|string|max:30',
             'organizer_email' => 'nullable|email|max:150',
-            'website'         => 'nullable|url|max:255',
+            'website'         => 'nullable|'.self::urlRules(255),
             'image'           => 'nullable|'.self::imgRules(),
         ]);
 
-        $this->moderate($request);
+        $data['title']      = strip_tags($data['title']);
+        $this->moderate($request, 'title', 'event');
 
         $data['user_id']    = Auth::id();
         $data['slug']       = $this->uniqueSlug($data['title'], 'events');
@@ -369,7 +385,7 @@ class PostController extends Controller
         $data['expires_at'] = null; // events are governed by start/end date, not plan expiry
 
         if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('events', 's3');
+            $data['image'] = $request->file('image')->store('events', config('filesystems.default'));
         }
 
         Event::create($data);
@@ -397,45 +413,76 @@ class PostController extends Controller
 
         $maxImg = $user->maxImages();
         $data = $request->validate([
-            'name'           => 'required|string|max:150',
-            'category_id'    => 'nullable|exists:categories,id',
-            'subcategory_id' => 'nullable|exists:categories,id',
-            'description'    => 'nullable|string',
-            'address'        => 'nullable|string|max:255',
-            'city'           => 'required|string|max:100',
-            'province'       => 'required|string|max:100',
-            'phone'          => 'nullable|string|max:30',
-            'email'          => 'nullable|email|max:150',
-            'website'        => 'nullable|url|max:255',
-            'images'         => "nullable|array|max:{$maxImg}",
-            'images.*'       => self::imgRules(),
-            'logo'           => 'nullable|'.self::imgRules(),
+            'name'              => 'required|string|max:150',
+            'category_id'       => 'required|exists:categories,id',
+            'subcategory_id'    => 'nullable|exists:categories,id',
+            'description'       => 'nullable|string',
+            'address'           => 'nullable|string|max:255',
+            'city'              => 'required|string|max:100',
+            'province'          => 'required|string|max:100',
+            'phone'             => 'nullable|string|max:30',
+            'email'             => 'nullable|email|max:150',
+            'website'           => 'nullable|'.self::urlRules(255),
+            'map_url'           => 'nullable|'.self::urlRules(500),
+            'tags_input'        => 'nullable|string|max:500',
+            'social'            => 'nullable|array',
+            'social.facebook'   => 'nullable|'.self::urlRules(255),
+            'social.instagram'  => 'nullable|'.self::urlRules(255),
+            'social.whatsapp'   => 'nullable|string|max:30',
+            'social.youtube'    => 'nullable|'.self::urlRules(255),
+            'social.twitter'    => 'nullable|'.self::urlRules(255),
+            'social.linkedin'   => 'nullable|'.self::urlRules(255),
+            'hours'             => 'nullable|array',
+            'images'            => "nullable|array|max:{$maxImg}",
+            'images.*'          => self::imgRules(),
+            'logo'              => 'nullable|'.self::imgRules(),
         ]);
 
-        $this->moderate($request, 'name');
+        $data['name'] = strip_tags($data['name']);
+        $this->moderate($request, 'name', 'business');
 
         if (!empty($data['subcategory_id'])) {
             $data['category_id'] = $data['subcategory_id'];
         }
         unset($data['subcategory_id'], $data['images']);
 
+        // Parse tags from comma-separated string
+        $tagsRaw = $data['tags_input'] ?? '';
+        $data['tags'] = array_values(array_filter(array_map('trim', explode(',', $tagsRaw))));
+        unset($data['tags_input']);
+
+        // Clean up hours — remove days that are closed or have no times
+        $hoursRaw = $data['hours'] ?? [];
+        $hours = [];
+        foreach ($hoursRaw as $day => $row) {
+            if (!empty($row['closed'])) {
+                $hours[$day] = ['closed' => true];
+            } elseif (!empty($row['open']) || !empty($row['close'])) {
+                $hours[$day] = ['open' => $row['open'] ?? '', 'close' => $row['close'] ?? ''];
+            }
+        }
+        $data['hours'] = empty($hours) ? null : $hours;
+
+        // Social links — keep only filled values
+        $socialRaw = array_filter($data['social'] ?? []);
+        $data['social'] = empty($socialRaw) ? null : $socialRaw;
+
         $data['user_id']     = Auth::id();
         $data['slug']        = $this->uniqueSlug($data['name'], 'businesses');
         $data['status']      = 'active';
         $data['rating']      = 0;
-        // Verified badge automatically applied if user's plan includes it
         $data['is_verified'] = $user->hasVerifiedBadge();
 
         if ($request->hasFile('images')) {
             $paths = [];
             foreach ($request->file('images') as $file) {
-                $paths[] = $file->store('businesses', 's3');
+                $paths[] = $file->store('businesses', config('filesystems.default'));
             }
             $data['images'] = $paths;
             $data['image']  = $paths[0];
         }
         if ($request->hasFile('logo')) {
-            $data['logo'] = $request->file('logo')->store('businesses', 's3');
+            $data['logo'] = $request->file('logo')->store('businesses', config('filesystems.default'));
         }
 
         Business::create($data);
@@ -478,7 +525,7 @@ class PostController extends Controller
             ->where('user_id', Auth::id())
             ->firstOrFail();
 
-        $this->moderate($request);
+        $this->moderate($request, 'title', 'business-post');
 
         // Effective category = sub-category if chosen, else parent
         $categoryId = !empty($data['subcategory_id']) ? $data['subcategory_id'] : $data['category_id'];
@@ -497,7 +544,7 @@ class PostController extends Controller
         if ($request->hasFile('images')) {
             $paths = [];
             foreach ($request->file('images') as $file) {
-                $paths[] = $file->store('business-posts', 's3');
+                $paths[] = $file->store('business-posts', config('filesystems.default'));
             }
             $data['images'] = $paths;
             $data['image']  = $paths[0];
@@ -561,6 +608,8 @@ class PostController extends Controller
             'contact_email'      => 'nullable|email|max:150',
             'hide_contact'       => 'nullable|boolean',
             'photo'              => 'nullable|'.self::imgRules(),
+            'photos'             => 'nullable|array|max:5',
+            'photos.*'           => self::imgRules(),
         ]);
 
         $data['user_id']      = Auth::id();
@@ -571,7 +620,16 @@ class PostController extends Controller
         $data['expires_at']   = $this->expiresAt();
 
         if ($request->hasFile('photo')) {
-            $data['photo'] = $request->file('photo')->store('matrimonials', 's3');
+            $data['photo'] = $request->file('photo')->store('matrimonials', config('filesystems.default'));
+        }
+
+        unset($data['photos']); // remove UploadedFile array from validated data before create
+        if ($request->hasFile('photos')) {
+            $photoPaths = [];
+            foreach ($request->file('photos') as $file) {
+                $photoPaths[] = $file->store('matrimonials', config('filesystems.default'));
+            }
+            $data['photos'] = $photoPaths;
         }
 
         Matrimonial::create($data);
@@ -583,7 +641,7 @@ class PostController extends Controller
         return redirect()->route('account')->with('success', $msg);
     }
 
-    // ── Private update helpers ────────────────────────────────────
+    // â"€â"€ Private update helpers â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
 
     private function updateClassified(Request $request, Listing $r): void
     {
@@ -603,13 +661,16 @@ class PostController extends Controller
             'images'        => "nullable|array|max:{$maxImg}",
             'images.*'      => self::imgRules(),
         ]);
-        $this->moderate($request);
+        $data['title'] = strip_tags($data['title']);
+        $this->moderate($request, 'title', 'classified');
         unset($data['images']);
         if ($request->hasFile('images')) {
-            foreach ($r->images ?? [] as $old) Storage::disk('s3')->delete($old);
+            foreach ($r->images ?? [] as $old) {
+                if ($old && !str_starts_with($old, 'http')) Storage::disk(config('filesystems.default'))->delete($old);
+            }
             $paths = [];
             foreach ($request->file('images') as $file) {
-                $paths[] = $file->store('listings', 's3');
+                $paths[] = $file->store('listings', config('filesystems.default'));
             }
             $data['images'] = $paths;
             $data['image']  = $paths[0];
@@ -633,13 +694,14 @@ class PostController extends Controller
             'city'         => 'required|string|max:100',
             'province'     => 'required|string|max:100',
             'apply_email'  => 'nullable|email|max:150',
-            'apply_url'    => 'nullable|url|max:255',
+            'apply_url'    => 'nullable|'.self::urlRules(255),
             'company_logo' => 'nullable|'.self::imgRules(),
         ]);
-        $this->moderate($request);
+        $this->moderate($request, 'title', 'job');
+        unset($data['company_logo']);
         if ($request->hasFile('company_logo')) {
-            if ($r->company_logo) Storage::disk('s3')->delete($r->company_logo);
-            $data['company_logo'] = $request->file('company_logo')->store('jobs', 's3');
+            if ($r->company_logo && !str_starts_with($r->company_logo, 'http')) Storage::disk(config('filesystems.default'))->delete($r->company_logo);
+            $data['company_logo'] = $request->file('company_logo')->store('jobs', config('filesystems.default'));
         }
         $r->update($data);
     }
@@ -659,13 +721,13 @@ class PostController extends Controller
             'organizer'       => 'nullable|string|max:150',
             'organizer_phone' => 'nullable|string|max:30',
             'organizer_email' => 'nullable|email|max:150',
-            'website'         => 'nullable|url|max:255',
+            'website'         => 'nullable|'.self::urlRules(255),
             'image'           => 'nullable|'.self::imgRules(),
         ]);
-        $this->moderate($request);
+        $this->moderate($request, 'title', 'event');
         if ($request->hasFile('image')) {
-            if ($r->image) Storage::disk('s3')->delete($r->image);
-            $data['image'] = $request->file('image')->store('events', 's3');
+            if ($r->image && !str_starts_with($r->image, 'http')) Storage::disk(config('filesystems.default'))->delete($r->image);
+            $data['image'] = $request->file('image')->store('events', config('filesystems.default'));
         }
         $r->update($data);
     }
@@ -674,34 +736,90 @@ class PostController extends Controller
     {
         $maxImg = Auth::user()->maxImages();
         $data = $request->validate([
-            'name'        => 'required|string|max:150',
-            'category_id' => 'nullable|exists:categories,id',
-            'description' => 'nullable|string',
-            'address'     => 'nullable|string|max:255',
-            'city'        => 'required|string|max:100',
-            'province'    => 'required|string|max:100',
-            'phone'       => 'nullable|string|max:30',
-            'email'       => 'nullable|email|max:150',
-            'website'     => 'nullable|url|max:255',
-            'images'      => "nullable|array|max:{$maxImg}",
-            'images.*'    => self::imgRules(),
-            'logo'        => 'nullable|'.self::imgRules(),
+            'name'           => 'required|string|max:150',
+            'category_id'    => 'nullable|exists:categories,id',
+            'subcategory_id' => 'nullable|exists:categories,id',
+            'description'    => 'nullable|string',
+            'address'        => 'nullable|string|max:255',
+            'city'           => 'required|string|max:100',
+            'province'       => 'required|string|max:100',
+            'phone'          => 'nullable|string|max:30',
+            'email'          => 'nullable|email|max:150',
+            'website'        => 'nullable|'.self::urlRules(255),
+            'map_url'        => 'nullable|'.self::urlRules(500),
+            'tags_input'     => 'nullable|string|max:500',
+            'social'             => 'nullable|array',
+            'social.facebook'    => 'nullable|'.self::urlRules(255),
+            'social.instagram'   => 'nullable|'.self::urlRules(255),
+            'social.whatsapp'    => 'nullable|string|max:30',
+            'social.youtube'     => 'nullable|'.self::urlRules(255),
+            'social.twitter'     => 'nullable|'.self::urlRules(255),
+            'social.linkedin'    => 'nullable|'.self::urlRules(255),
+            'hours'          => 'nullable|array',
+            'images'         => "nullable|array|max:{$maxImg}",
+            'images.*'       => self::imgRules(),
+            'logo'           => 'nullable|'.self::imgRules(),
         ]);
-        $this->moderate($request, 'name');
-        unset($data['images']);
-        if ($request->hasFile('images')) {
-            foreach ($r->images ?? [] as $old) Storage::disk('s3')->delete($old);
-            $paths = [];
-            foreach ($request->file('images') as $file) {
-                $paths[] = $file->store('businesses', 's3');
+
+        // Parse tags
+        if (!empty($data['tags_input'])) {
+            $data['tags'] = array_values(array_filter(array_map('trim', explode(',', $data['tags_input']))));
+        }
+        unset($data['tags_input']);
+
+        // Clean social
+        if (!empty($data['social'])) {
+            $data['social'] = array_filter($data['social'], fn($v) => !empty($v));
+        }
+
+        // Clean hours
+        if (!empty($data['hours'])) {
+            $cleaned = [];
+            foreach ($data['hours'] as $day => $h) {
+                if (!empty($h['closed'])) { $cleaned[$day] = ['closed' => true]; continue; }
+                if (!empty($h['open']) || !empty($h['close'])) $cleaned[$day] = ['open' => $h['open'] ?? '', 'close' => $h['close'] ?? ''];
             }
-            $data['images'] = $paths;
-            $data['image']  = $paths[0];
+            $data['hours'] = $cleaned;
         }
+
+        $this->moderate($request, 'name', 'business');
+        unset($data['images']);
+
+        // Handle individual photo removals
+        $currentImages = $r->images ?? ($r->image ? [$r->image] : []);
+        $toRemove = $request->input('remove_images', []);
+        if (!empty($toRemove)) {
+            foreach ($toRemove as $path) {
+                if (!str_starts_with($path, 'http')) Storage::disk(config('filesystems.default'))->delete($path);
+            }
+            $currentImages = array_values(array_filter($currentImages, fn($p) => !in_array($p, $toRemove)));
+            $data['images'] = $currentImages;
+            $data['image']  = $currentImages[0] ?? null;
+        }
+
+        // Handle new photo uploads — merge with remaining existing photos
+        if ($request->hasFile('images')) {
+            $newPaths = [];
+            foreach ($request->file('images') as $file) {
+                $newPaths[] = $file->store('businesses', config('filesystems.default'));
+            }
+            $merged = array_values(array_merge($currentImages, $newPaths));
+            $data['images'] = $merged;
+            $data['image']  = $merged[0];
+        }
+
+        // Handle logo removal
+        if ($request->input('remove_logo')) {
+            if ($r->logo && !str_starts_with($r->logo, 'http')) Storage::disk(config('filesystems.default'))->delete($r->logo);
+            $data['logo'] = null;
+        }
+
+        // Handle new logo upload
         if ($request->hasFile('logo')) {
-            if ($r->logo) Storage::disk('s3')->delete($r->logo);
-            $data['logo'] = $request->file('logo')->store('businesses', 's3');
+            if ($r->logo && !str_starts_with($r->logo, 'http')) Storage::disk(config('filesystems.default'))->delete($r->logo);
+            $data['logo'] = $request->file('logo')->store('businesses', config('filesystems.default'));
         }
+
         $r->update($data);
     }
 
@@ -717,7 +835,7 @@ class PostController extends Controller
             'images.*'    => self::imgRules(),
         ]);
 
-        $this->moderate($request);
+        $this->moderate($request, 'title', 'business-post');
 
         // Re-validate custom fields against the post's (unchanged) category
         if ($r->category) {
@@ -725,14 +843,15 @@ class PostController extends Controller
         }
 
         unset($data['images']);
+        $currentImages = array_filter($r->images ?? ($r->image ? [$r->image] : []));
         if ($request->hasFile('images')) {
-            foreach ($r->images ?? [] as $old) Storage::disk('s3')->delete($old);
-            $paths = [];
+            $newPaths = [];
             foreach ($request->file('images') as $file) {
-                $paths[] = $file->store('business-posts', 's3');
+                $newPaths[] = $file->store('business-posts', config('filesystems.default'));
             }
-            $data['images'] = $paths;
-            $data['image']  = $paths[0];
+            $merged = array_values(array_merge($currentImages, $newPaths));
+            $data['images'] = $merged;
+            $data['image']  = $merged[0];
         }
         $r->update($data);
     }
@@ -762,12 +881,29 @@ class PostController extends Controller
             'contact_email'      => 'nullable|email|max:150',
             'hide_contact'       => 'nullable|boolean',
             'photo'              => 'nullable|'.self::imgRules(),
+            'photos'             => 'nullable|array|max:5',
+            'photos.*'           => self::imgRules(),
         ]);
         if ($request->hasFile('photo')) {
-            if ($r->photo) Storage::disk('s3')->delete($r->photo);
-            $data['photo'] = $request->file('photo')->store('matrimonials', 's3');
+            if ($r->photo && !str_starts_with($r->photo, 'http')) Storage::disk(config('filesystems.default'))->delete($r->photo);
+            $data['photo'] = $request->file('photo')->store('matrimonials', config('filesystems.default'));
+        }
+        unset($data['photos']); // remove UploadedFile array before update
+        if ($request->hasFile('photos')) {
+            // Delete old gallery photos from S3 before uploading replacements
+            foreach ($r->photos ?? [] as $old) {
+                if ($old && !str_starts_with($old, 'http')) Storage::disk(config('filesystems.default'))->delete($old);
+            }
+            $photoPaths = [];
+            foreach ($request->file('photos') as $file) {
+                $photoPaths[] = $file->store('matrimonials', config('filesystems.default'));
+            }
+            $data['photos'] = $photoPaths;
         }
         $data['hide_contact'] = $request->boolean('hide_contact');
         $r->update($data);
     }
 }
+
+
+

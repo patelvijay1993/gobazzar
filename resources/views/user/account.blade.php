@@ -79,7 +79,7 @@
   <aside class="acct-sidebar">
     <div class="acct-profile">
       @if($user->avatar)
-        <img src="{{ str_starts_with($user->avatar,'http') ? $user->avatar : \Illuminate\Support\Facades\Storage::disk('s3')->url($user->avatar) }}" alt="{{ $user->name }}" class="acct-avatar">
+        <img src="{{ $user->avatar_url }}" alt="{{ $user->name }}" class="acct-avatar">
       @else
         <div class="acct-avatar-placeholder">{{ strtoupper(substr($user->name,0,1)) }}</div>
       @endif
@@ -112,6 +112,9 @@
 
     <nav class="acct-menu">
       <a href="#" class="acct-mi active" onclick="showPanel('submissions',this)"><i class="fa-solid fa-list"></i> My Submissions</a>
+      @if($user->hasFavorites())
+      <a href="{{ route('account.favorites') }}" class="acct-mi"><i class="fa-solid fa-heart"></i> Saved Items</a>
+      @endif
       <a href="#" class="acct-mi" onclick="showPanel('billing',this)"><i class="fa-solid fa-credit-card"></i> Billing & Payments</a>
       <a href="#" class="acct-mi" onclick="showPanel('profile',this)"><i class="fa-solid fa-user"></i> Edit Profile</a>
       <a href="#" class="acct-mi" onclick="showPanel('password',this)"><i class="fa-solid fa-lock"></i> Change Password</a>
@@ -137,6 +140,33 @@
           $totalCount = $listings->count() + $jobs->count() + $events->count() + $businesses->count() + $businessPosts->count();
         @endphp
 
+        {{-- Featured Credits Banner --}}
+        @if($user->featuredCredits() > 0)
+          @php
+            $creditsRemaining = $user->featuredCreditsRemaining();
+            $creditsTotal     = $user->featuredCredits();
+            $creditsUsed      = $creditsTotal - $creditsRemaining;
+            $resetAt          = $user->featured_credits_reset_at;
+          @endphp
+          <div style="background:linear-gradient(135deg,#fef9c3,#fef3c7);border:1.5px solid #f59e0b;border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="font-size:22px">⭐</span>
+              <div>
+                <div style="font-size:13px;font-weight:700;color:#92400e">Featured Listing Credits</div>
+                <div style="font-size:11px;color:#b45309">
+                  <strong>{{ $creditsRemaining }}/{{ $creditsTotal }}</strong> remaining this month
+                  @if($resetAt) · Resets {{ $resetAt->format('d M Y') }} @endif
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;gap:4px">
+              @for($i = 0; $i < $creditsTotal; $i++)
+                <div style="width:20px;height:8px;border-radius:4px;background:{{ $i < $creditsUsed ? '#d97706' : '#fcd34d' }};border:1px solid #f59e0b"></div>
+              @endfor
+            </div>
+          </div>
+        @endif
+
         @if($totalCount === 0)
           <div class="empty-state">
             <div style="font-size:40px;margin-bottom:10px">📭</div>
@@ -157,17 +187,34 @@
           <div class="sub-panel active" id="sub-classifieds">
             @foreach($listings as $item)
             <div class="sub-row">
-              <div class="sub-thumb">
-                @if($item->image_url)<img src="{{ $item->image_url }}" alt="">
-                @else {{ $item->category->icon ?? '🏷️' }} @endif
-              </div>
+              <a href="{{ route('classifieds.show', $item) }}" style="display:contents;text-decoration:none">
+                <div class="sub-thumb" style="cursor:pointer">
+                  @if($item->image_url)<img src="{{ $item->image_url }}" alt="">
+                  @else {{ $item->category->icon ?? '🏷️' }} @endif
+                </div>
+              </a>
               <div style="flex:1;min-width:0">
-                <div class="sub-title">{{ $item->title }}</div>
+                <a href="{{ route('classifieds.show', $item) }}" style="text-decoration:none;color:inherit">
+                  <div class="sub-title" style="cursor:pointer">{{ $item->title }}</div>
+                </a>
                 <div class="sub-meta">{{ $item->category->name ?? '' }} · {{ $item->location }} · {{ $item->created_at->format('d M Y') }}</div>
               </div>
               <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0">
                 <span class="status-badge status-{{ $item->status }}">{{ ucfirst($item->status) }}</span>
                 <div class="row-actions">
+                  @if($user->hasAnalytics())
+                    <a href="{{ route('account.analytics', $item->id) }}" class="btn-edit" style="background:var(--green-bg);color:var(--green);border-color:var(--green)">📊 Insights</a>
+                  @endif
+                  @if($user->featuredCredits() > 0)
+                    <button type="button"
+                      class="btn-edit feature-btn"
+                      style="{{ $item->is_featured ? 'background:#fef3c7;color:#92400e;border-color:#f59e0b;font-weight:700' : 'background:#fff;color:#b45309;border-color:#fcd34d' }}"
+                      data-listing-id="{{ $item->id }}"
+                      data-featured="{{ $item->is_featured ? '1' : '0' }}">
+                      {{ $item->is_featured ? '✓ Featured' : '⭐ Feature' }}
+                    </button>
+                  @endif
+                  <a href="{{ route('classifieds.show', $item) }}" class="btn-edit" style="background:#e0e7ff;color:#3730a3">View</a>
                   <a href="{{ route('post.edit', ['type'=>'classified','id'=>$item->id]) }}" class="btn-edit">Edit</a>
                   <form method="POST" action="{{ route('post.destroy', ['type'=>'classified','id'=>$item->id]) }}" onsubmit="return confirm('Delete this post?')">
                     @csrf @method('DELETE')
@@ -185,17 +232,22 @@
           <div class="sub-panel {{ $listings->isEmpty() ? 'active' : '' }}" id="sub-jobs">
             @foreach($jobs as $item)
             <div class="sub-row">
-              <div class="sub-thumb">
-                @if($item->company_logo)<img src="{{ $item->logo_url }}" alt="">
-                @else 💼 @endif
-              </div>
+              <a href="{{ route('jobs.show', $item) }}" style="display:contents;text-decoration:none">
+                <div class="sub-thumb" style="cursor:pointer">
+                  @if($item->company_logo)<img src="{{ $item->logo_url }}" alt="">
+                  @else 💼 @endif
+                </div>
+              </a>
               <div style="flex:1;min-width:0">
-                <div class="sub-title">{{ $item->title }}</div>
+                <a href="{{ route('jobs.show', $item) }}" style="text-decoration:none;color:inherit">
+                  <div class="sub-title" style="cursor:pointer">{{ $item->title }}</div>
+                </a>
                 <div class="sub-meta">{{ $item->company }} · {{ $item->city }} · {{ $item->created_at->format('d M Y') }}</div>
               </div>
               <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0">
                 <span class="status-badge status-{{ $item->status }}">{{ ucfirst($item->status) }}</span>
                 <div class="row-actions">
+                  <a href="{{ route('jobs.show', $item) }}" class="btn-edit" style="background:#e0e7ff;color:#3730a3">View</a>
                   <a href="{{ route('post.edit', ['type'=>'job','id'=>$item->id]) }}" class="btn-edit">Edit</a>
                   <form method="POST" action="{{ route('post.destroy', ['type'=>'job','id'=>$item->id]) }}" onsubmit="return confirm('Delete this post?')">
                     @csrf @method('DELETE')
@@ -213,17 +265,22 @@
           <div class="sub-panel {{ $listings->isEmpty() && $jobs->isEmpty() ? 'active' : '' }}" id="sub-events">
             @foreach($events as $item)
             <div class="sub-row">
-              <div class="sub-thumb">
-                @if($item->image_url)<img src="{{ $item->image_url }}" alt="">
-                @else 🎉 @endif
-              </div>
+              <a href="{{ route('events.show', $item) }}" style="display:contents;text-decoration:none">
+                <div class="sub-thumb" style="cursor:pointer">
+                  @if($item->image_url)<img src="{{ $item->image_url }}" alt="">
+                  @else 🎉 @endif
+                </div>
+              </a>
               <div style="flex:1;min-width:0">
-                <div class="sub-title">{{ $item->title }}</div>
+                <a href="{{ route('events.show', $item) }}" style="text-decoration:none;color:inherit">
+                  <div class="sub-title" style="cursor:pointer">{{ $item->title }}</div>
+                </a>
                 <div class="sub-meta">{{ $item->city }} · {{ $item->start_date?->format('d M Y') }} · {{ $item->created_at->format('d M Y') }}</div>
               </div>
               <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0">
                 <span class="status-badge status-{{ $item->status }}">{{ ucfirst($item->status) }}</span>
                 <div class="row-actions">
+                  <a href="{{ route('events.show', $item) }}" class="btn-edit" style="background:#e0e7ff;color:#3730a3">View</a>
                   <a href="{{ route('post.edit', ['type'=>'event','id'=>$item->id]) }}" class="btn-edit">Edit</a>
                   <form method="POST" action="{{ route('post.destroy', ['type'=>'event','id'=>$item->id]) }}" onsubmit="return confirm('Delete this post?')">
                     @csrf @method('DELETE')
@@ -241,17 +298,22 @@
           <div class="sub-panel {{ $listings->isEmpty() && $jobs->isEmpty() && $events->isEmpty() ? 'active' : '' }}" id="sub-biz">
             @foreach($businesses as $item)
             <div class="sub-row">
-              <div class="sub-thumb">
-                @if($item->image_url)<img src="{{ $item->image_url }}" alt="">
-                @else 🏢 @endif
-              </div>
+              <a href="{{ route('directory.show', $item) }}" style="display:contents;text-decoration:none">
+                <div class="sub-thumb" style="cursor:pointer">
+                  @if($item->image_url)<img src="{{ $item->image_url }}" alt="">
+                  @else 🏢 @endif
+                </div>
+              </a>
               <div style="flex:1;min-width:0">
-                <div class="sub-title">{{ $item->name }}</div>
+                <a href="{{ route('directory.show', $item) }}" style="text-decoration:none;color:inherit">
+                  <div class="sub-title" style="cursor:pointer">{{ $item->name }}</div>
+                </a>
                 <div class="sub-meta">{{ $item->category->name ?? '' }} · {{ $item->city }} · {{ $item->created_at->format('d M Y') }}</div>
               </div>
               <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0">
                 <span class="status-badge status-{{ $item->status }}">{{ ucfirst($item->status) }}</span>
                 <div class="row-actions">
+                  <a href="{{ route('directory.show', $item) }}" class="btn-edit" style="background:#e0e7ff;color:#3730a3">View</a>
                   <a href="{{ route('post.edit', ['type'=>'business','id'=>$item->id]) }}" class="btn-edit">Edit</a>
                   <form method="POST" action="{{ route('post.destroy', ['type'=>'business','id'=>$item->id]) }}" onsubmit="return confirm('Delete this post?')">
                     @csrf @method('DELETE')
@@ -453,7 +515,7 @@
           <div class="form-group">
             <label class="form-label">Profile Photo</label>
             @if($user->avatar)
-              <div style="margin-bottom:8px"><img src="{{ str_starts_with($user->avatar,'http') ? $user->avatar : \Illuminate\Support\Facades\Storage::disk('s3')->url($user->avatar) }}" style="width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid var(--border2)"></div>
+              <div style="margin-bottom:8px"><img src="{{ $user->avatar_url }}" style="width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid var(--border2)"></div>
             @endif
             <input type="file" name="avatar" class="form-input" accept="image/*">
           </div>
@@ -467,16 +529,17 @@
       <div class="panel-head"><span>Change Password</span></div>
       <div class="panel-body">
         @error('current_password')<div class="flash flash-error">{{ $message }}</div>@enderror
+        @error('password')<div class="flash flash-error">{{ $message }}</div>@enderror
         <form method="POST" action="{{ route('account.password') }}">
           @csrf @method('PATCH')
           <div class="form-group">
             <label class="form-label">Current Password</label>
-            <input type="password" name="current_password" class="form-input" required>
+            <input type="password" name="current_password" class="form-input {{ $errors->has('current_password') ? 'is-error' : '' }}" required>
           </div>
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">New Password</label>
-              <input type="password" name="password" class="form-input" placeholder="Min 8 characters" required>
+              <input type="password" name="password" class="form-input {{ $errors->has('password') ? 'is-error' : '' }}" placeholder="Min 8 characters" required>
             </div>
             <div class="form-group">
               <label class="form-label">Confirm Password</label>
@@ -505,6 +568,15 @@ function showSubTab(name, el) {
   document.getElementById('sub-' + name).classList.add('active');
   el.classList.add('active');
 }
+@if($errors->has('current_password') || $errors->has('password'))
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.acct-mi').forEach(m => m.classList.remove('active'));
+  document.getElementById('panel-password').classList.add('active');
+  var mi = document.querySelector('.acct-mi[onclick*="password"]');
+  if (mi) mi.classList.add('active');
+});
+@endif
 </script>
 @endpush
 @endsection

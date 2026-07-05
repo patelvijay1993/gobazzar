@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Traits\Favoritable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 
 class Listing extends Model
 {
+    use Favoritable;
     protected $fillable = [
         'user_id', 'category_id', 'title', 'slug', 'description',
         'price', 'price_unit', 'location', 'city', 'province', 'image', 'images', 'tags', 'badges',
@@ -34,10 +37,34 @@ class Listing extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function listingViews(): HasMany
+    {
+        return $this->hasMany(ListingView::class);
+    }
+
+    public function uniqueViewsCount(): int
+    {
+        return $this->listingViews()->distinct('ip')->count('ip');
+    }
+
+    public function viewsLast30Days(): int
+    {
+        return $this->listingViews()->where('viewed_at', '>=', now()->subDays(30))->count();
+    }
+
+    public function getFormattedPriceAttribute(): ?string
+    {
+        if (!$this->price) return null;
+        $p = trim($this->price);
+        if ($p === '' || preg_match('/^[^\d]/', $p)) return $p; // already has $ or is text
+        return '$' . $p;
+    }
+
     public function getImageUrlAttribute(): ?string
     {
         if (!$this->image) return null;
-        return str_starts_with($this->image, 'http') ? $this->image : Storage::disk('s3')->url($this->image);
+        if (str_starts_with($this->image, 'http')) return $this->image;
+        return Storage::disk(config('filesystems.default'))->url($this->image);
     }
 
     /** Active and not past expiry. */
@@ -52,3 +79,4 @@ class Listing extends Model
         return $this->expires_at && $this->expires_at->isPast();
     }
 }
+

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Storage;
 
 class BlogPost extends Model
 {
@@ -33,6 +34,8 @@ class BlogPost extends Model
     public function getImageUrlAttribute(): ?string
     {
         if (!$this->image) return null;
-        return str_starts_with($this->image, 'http') ? $this->image : asset('storage/'.$this->image);
+        if (str_starts_with($this->image, 'http')) return $this->image;
+        return Storage::disk(config('filesystems.default'))->url($this->image);
     }
 }
+

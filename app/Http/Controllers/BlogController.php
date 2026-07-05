@@ -12,8 +12,9 @@ class BlogController extends Controller
         $posts = BlogPost::with('author')
             ->where('status', 'published')
             ->when($request->category, fn ($q) => $q->where('category', $request->category))
-            ->when($request->search, fn ($q) => $q->where('title', 'like', '%'.$request->search.'%')
-                ->orWhere('excerpt', 'like', '%'.$request->search.'%'))
+            ->when($request->search, fn ($q) => $q->where(fn ($q2) => $q2
+                ->where('title',  'like', '%' . addcslashes($request->search, '%_\\') . '%')
+                ->orWhere('excerpt', 'like', '%' . addcslashes($request->search, '%_\\') . '%')))
             ->orderByDesc('is_featured')
             ->orderByDesc('published_at')
             ->paginate(9);

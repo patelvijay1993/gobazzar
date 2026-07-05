@@ -64,7 +64,7 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
       <h1 class="ev-title">{{ $event->title }}</h1>
 
       <span class="price-badge {{ $event->price === 'Free' ? 'price-free' : 'price-paid' }}">
-        {{ $event->price === 'Free' ? '🆓 Free Entry' : '🎟 '.$event->price }}
+        {{ $event->price === 'Free' ? '🆓 Free Entry' : '🎟 '.$event->formatted_price }}
       </span>
 
       <div class="ev-info-grid">
@@ -122,7 +122,7 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
       </div>
 
       @if($event->description)
-        <div class="ev-desc">{!! $event->description !!}</div>
+        <div class="ev-desc">{!! clean($event->description) !!}</div>
       @endif
 
       @if($event->tags)
@@ -180,6 +180,10 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
       </div>
     </div>
     @endif
+    <div style="margin-top:4px;margin-bottom:8px">
+      <x-favorite-btn type="event" :model-id="$event->id" :model-class="\App\Models\Event::class" />
+    </div>
+
     @auth
     <div style="text-align:center;margin-top:4px">
       <button onclick="openReportModal('event', {{ $event->id }})" style="background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border-radius:6px;transition:color .15s" onmouseover="this.style.color='#e74c3c'" onmouseout="this.style.color='var(--muted)'">

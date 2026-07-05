@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\JobResource\Pages;
 use App\Models\Category;
 use App\Models\Job;
+use App\Models\Location;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -33,9 +34,10 @@ class JobResource extends Resource
                 Forms\Components\Select::make('category_id')
                     ->label('Category')
                     ->options(Category::where('type', 'jobs')->where('is_active', true)->pluck('name', 'id'))
-                    ->searchable(),
+                    ->searchable()
+                    ->nullable(),
                 Forms\Components\Select::make('status')
-                    ->options(['draft' => 'Draft', 'active' => 'Active', 'closed' => 'Closed'])
+                    ->options(['draft' => 'Draft', 'active' => 'Active', 'closed' => 'Closed', 'flagged' => 'Flagged'])
                     ->default('draft')->required(),
                 Forms\Components\Select::make('job_type')
                     ->options(['full-time' => 'Full Time', 'part-time' => 'Part Time', 'contract' => 'Contract', 'freelance' => 'Freelance', 'internship' => 'Internship'])
@@ -45,20 +47,45 @@ class JobResource extends Resource
                     ->default('onsite'),
                 Forms\Components\TextInput::make('salary')->placeholder('$60K-$80K/yr'),
                 Forms\Components\TextInput::make('experience')->placeholder('3+ years'),
-                Forms\Components\RichEditor::make('description')->columnSpanFull(),
-                Forms\Components\RichEditor::make('requirements')->columnSpanFull(),
+                Forms\Components\RichEditor::make('description')
+                    ->columnSpanFull()
+                    ->toolbarButtons([
+                        'bold', 'italic', 'underline', 'strike',
+                        'bulletList', 'orderedList',
+                        'h2', 'h3',
+                        'link', 'blockquote',
+                        'undo', 'redo',
+                    ]),
+                Forms\Components\RichEditor::make('requirements')
+                    ->columnSpanFull()
+                    ->toolbarButtons([
+                        'bold', 'italic', 'underline', 'strike',
+                        'bulletList', 'orderedList',
+                        'h2', 'h3',
+                        'link', 'blockquote',
+                        'undo', 'redo',
+                    ]),
             ])->columns(3),
 
             Forms\Components\Section::make('Location')->schema([
                 Forms\Components\TextInput::make('location'),
-                Forms\Components\TextInput::make('city'),
-                Forms\Components\TextInput::make('province'),
+                Forms\Components\Select::make('province')
+                    ->options(fn () => Location::distinct()->orderBy('province')->pluck('province', 'province')->filter()->toArray())
+                    ->searchable()
+                    ->live()
+                    ->placeholder('— Select Province —')
+                    ->afterStateUpdated(fn (Forms\Set $set) => $set('city', null)),
+                Forms\Components\Select::make('city')
+                    ->options(fn (Forms\Get $get) => Location::where('province', $get('province'))->orderBy('city')->pluck('city', 'city')->filter()->toArray())
+                    ->searchable()
+                    ->placeholder('— Select City —')
+                    ->live(),
             ])->columns(3),
 
             Forms\Components\Section::make('Apply & Media')->schema([
                 Forms\Components\TextInput::make('apply_email')->email(),
                 Forms\Components\TextInput::make('apply_url')->url(),
-                Forms\Components\FileUpload::make('company_logo')->image()->directory('jobs'),
+                Forms\Components\FileUpload::make('company_logo')->image()->disk(config('filesystems.default'))->directory('jobs'),
                 Forms\Components\TagsInput::make('tags'),
                 Forms\Components\Toggle::make('is_featured'),
                 Forms\Components\DateTimePicker::make('expires_at'),
@@ -94,7 +121,7 @@ class JobResource extends Resource
             ->defaultSort('created_at', 'desc')
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
-                    ->options(['draft' => 'Draft', 'active' => 'Active', 'closed' => 'Closed']),
+                    ->options(['draft' => 'Draft', 'active' => 'Active', 'closed' => 'Closed', 'flagged' => 'Flagged']),
                 Tables\Filters\SelectFilter::make('job_type')
                     ->options(['full-time' => 'Full Time', 'part-time' => 'Part Time', 'contract' => 'Contract']),
                 Tables\Filters\SelectFilter::make('work_mode')
@@ -123,3 +150,4 @@ class JobResource extends Resource
         ];
     }
 }
+

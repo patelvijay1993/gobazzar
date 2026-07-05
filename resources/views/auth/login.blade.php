@@ -78,7 +78,7 @@
 
     <div class="auth-card">
       <div class="auth-card-head">
-        <h2>Welcome Back 🙏</h2>
+        <h1 style="font-family:var(--fh);font-size:20px;font-weight:800;color:#fff;margin-bottom:3px">Welcome Back 🙏</h1>
         <p>Login to your GoBazaar account</p>
       </div>
 
@@ -139,6 +139,7 @@
             <label>
               <input type="checkbox" name="remember"> Remember me
             </label>
+            <a href="{{ route('password.request') }}" style="font-size:12px;color:var(--primary)">Forgot Password?</a>
           </div>
 
           <button type="submit" class="btn-login">

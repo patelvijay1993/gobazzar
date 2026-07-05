@@ -21,7 +21,7 @@ class PurgeExpiredPosts extends Command
         // Listings
         $listings = Listing::whereNotNull('expires_at')->where('expires_at', '<=', $now)->get();
         foreach ($listings as $r) {
-            if ($r->image) Storage::disk('public')->delete($r->image);
+            if ($r->image) Storage::disk(config('filesystems.default'))->delete($r->image);
             $r->delete();
         }
         $this->info("Deleted {$listings->count()} expired listing(s).");
@@ -29,7 +29,7 @@ class PurgeExpiredPosts extends Command
         // Jobs
         $jobs = Job::whereNotNull('expires_at')->where('expires_at', '<=', $now)->get();
         foreach ($jobs as $r) {
-            if ($r->company_logo) Storage::disk('public')->delete($r->company_logo);
+            if ($r->company_logo) Storage::disk(config('filesystems.default'))->delete($r->company_logo);
             $r->delete();
         }
         $this->info("Deleted {$jobs->count()} expired job listing(s).");
@@ -37,7 +37,7 @@ class PurgeExpiredPosts extends Command
         // Matrimonials
         $matris = Matrimonial::whereNotNull('expires_at')->where('expires_at', '<=', $now)->get();
         foreach ($matris as $r) {
-            if ($r->photo) Storage::disk('public')->delete($r->photo);
+            if ($r->photo) Storage::disk(config('filesystems.default'))->delete($r->photo);
             $r->delete();
         }
         $this->info("Deleted {$matris->count()} expired matrimonial profile(s).");
@@ -45,3 +45,4 @@ class PurgeExpiredPosts extends Command
         return self::SUCCESS;
     }
 }
+

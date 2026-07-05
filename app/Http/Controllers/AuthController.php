@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
@@ -9,8 +10,10 @@ use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\URL;
-use Illuminate\Validation\Rules\Password;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rules\Password as PasswordRules;
 
 class AuthController extends Controller
 {
@@ -31,6 +34,7 @@ class AuthController extends Controller
         }
 
         $request->session()->regenerate();
+        ActivityLog::log($request, 'login');
 
         // Block unverified users only if setting is ON
         if (Setting::bool('email_verification_required', true) && !Auth::user()->hasVerifiedEmail()) {
@@ -56,7 +60,7 @@ class AuthController extends Controller
         $request->validate([
             'name'     => 'required|string|max:100',
             'email'    => 'required|email|unique:users',
-            'password' => ['required', 'confirmed', Password::min(8)],
+            'password' => ['required', 'confirmed', PasswordRules::min(8)],
             'phone'    => 'nullable|string|max:20',
             'city'     => 'nullable|string|max:100',
         ]);
@@ -68,6 +72,7 @@ class AuthController extends Controller
             'phone'    => $request->phone,
             'city'     => $request->city,
         ]);
+        ActivityLog::log($request, 'registered', ['meta' => ['name' => $user->name, 'email' => $user->email]]);
 
         if (Setting::bool('email_verification_required', true)) {
             // Send verification email
@@ -144,8 +149,60 @@ class AuthController extends Controller
         return back()->with('success', 'Verification link sent! Please check your inbox (and spam folder).');
     }
 
+    // ── Forgot / Reset Password ───────────────────────────────────
+
+    public function showForgotPassword()
+    {
+        return Auth::check() ? redirect()->route('account') : view('auth.forgot-password');
+    }
+
+    public function sendResetLink(Request $request)
+    {
+        $request->validate(['email' => 'required|email']);
+
+        try {
+            $status = Password::sendResetLink($request->only('email'));
+        } catch (\Throwable $e) {
+            // Mail delivery failed (misconfigured mailer, sandbox restriction, etc.)
+            // Return a generic success to avoid leaking account existence
+            return back()->with('success', 'If that email is registered, a password reset link has been sent. Please check your inbox.');
+        }
+
+        return $status === Password::RESET_LINK_SENT
+            ? back()->with('success', 'If that email is registered, a password reset link has been sent. Please check your inbox.')
+            : back()->withErrors(['email' => __($status)])->withInput();
+    }
+
+    public function showResetPassword(string $token)
+    {
+        return view('auth.reset-password', ['token' => $token]);
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'token'    => 'required',
+            'email'    => 'required|email',
+            'password' => ['required', 'confirmed', PasswordRules::min(8)],
+        ]);
+
+        $status = Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function (User $user, string $password) {
+                $user->forceFill(['password' => Hash::make($password)])
+                     ->setRememberToken(Str::random(60));
+                $user->save();
+            }
+        );
+
+        return $status === Password::PASSWORD_RESET
+            ? redirect()->route('login')->with('success', 'Password reset successfully. You can now log in.')
+            : back()->withErrors(['email' => __($status)])->withInput();
+    }
+
     public function logout(Request $request)
     {
+        ActivityLog::log($request, 'logout');
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();

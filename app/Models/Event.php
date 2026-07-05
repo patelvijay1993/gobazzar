@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\Favoritable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Storage;
@@ -9,6 +10,7 @@ use App\Models\User;
 
 class Event extends Model
 {
+    use Favoritable;
     protected $fillable = [
         'user_id', 'category_id', 'title', 'slug', 'description', 'image',
         'start_date', 'end_date', 'venue', 'city', 'province',
@@ -43,9 +45,19 @@ class Event extends Model
         return $this->start_date->isPast();
     }
 
+    public function getFormattedPriceAttribute(): ?string
+    {
+        if (!$this->price) return null;
+        $p = trim($this->price);
+        if ($p === '' || strtolower($p) === 'free' || preg_match('/^[^\d]/', $p)) return $p;
+        return '$' . $p;
+    }
+
     public function getImageUrlAttribute(): ?string
     {
         if (!$this->image) return null;
-        return str_starts_with($this->image, 'http') ? $this->image : Storage::disk('s3')->url($this->image);
+        if (str_starts_with($this->image, 'http')) return $this->image;
+        return Storage::disk(config('filesystems.default'))->url($this->image);
     }
 }
+

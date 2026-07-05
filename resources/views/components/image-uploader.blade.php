@@ -188,34 +188,39 @@ function _iu_sync(uid) {
   }
 }
 
-// On form submit: replace the hidden file input with fresh inputs carrying valid files
+// On form submit: inject valid files into the form via DataTransfer
 function _iu_injectFiles(form) {
   Object.keys(window._iuReg).forEach(function(uid) {
     var cfg   = window._iuReg[uid];
     var input = document.getElementById(uid + '_input');
-    if (!input || !input.form || input.form !== form) return;
+    if (!input || !input.closest('form') || input.closest('form') !== form) return;
 
     var validFiles = cfg.files.filter(function(e){ return e.valid; });
-    var inputName  = input.name;
 
-    // Remove the original hidden input from the form so nothing conflicts
-    input.parentNode.removeChild(input);
-
-    validFiles.forEach(function(entry) {
-      var fresh = document.createElement('input');
-      fresh.type   = 'file';
-      fresh.name   = inputName;
-      fresh.style.display = 'none';
-
-      // Attach via DataTransfer so the browser treats it as a real file input
-      try {
-        var dt = new DataTransfer();
-        dt.items.add(entry.file);
-        fresh.files = dt.files;
-      } catch(ex) {}
-
-      form.appendChild(fresh);
-    });
+    // Build a DataTransfer with all valid files and assign to the existing input
+    try {
+      var dt = new DataTransfer();
+      validFiles.forEach(function(entry) { dt.items.add(entry.file); });
+      input.files = dt.files;
+      // Make the input visible to the browser's multipart encoder
+      input.style.display = 'none';
+    } catch(ex) {
+      // DataTransfer not supported — fallback: create one input per file
+      var inputName = input.name;
+      input.parentNode.removeChild(input);
+      validFiles.forEach(function(entry) {
+        var fresh = document.createElement('input');
+        fresh.type  = 'file';
+        fresh.name  = inputName;
+        fresh.style.display = 'none';
+        try {
+          var dt2 = new DataTransfer();
+          dt2.items.add(entry.file);
+          fresh.files = dt2.files;
+        } catch(e2) {}
+        form.appendChild(fresh);
+      });
+    }
   });
 }
 
@@ -250,12 +255,12 @@ window._iuReg['{{ $uid }}'] = {
   if (!form || form._iuHooked) return;
   form._iuHooked = true;
   form.addEventListener('submit', function(e) {
-    // Block submit if any uploader on this form still has oversize files
+    // Block submit if any uploader on this form has oversize files
     var hasError = false;
-    Object.keys(window._iuReg).forEach(function(uid) {
-      var inp = document.getElementById(uid + '_input');
+    Object.keys(window._iuReg).forEach(function(u) {
+      var inp = document.getElementById(u + '_input');
       if (!inp || !inp.closest || inp.closest('form') !== form) return;
-      var oversize = window._iuReg[uid].files.filter(function(f){ return !f.valid; });
+      var oversize = window._iuReg[u].files.filter(function(f){ return !f.valid; });
       if (oversize.length > 0) hasError = true;
     });
     if (hasError) { e.preventDefault(); return; }

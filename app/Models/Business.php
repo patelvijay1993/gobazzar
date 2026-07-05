@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\Favoritable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -10,16 +11,19 @@ use App\Models\User;
 
 class Business extends Model
 {
+    use Favoritable;
     protected $fillable = [
         'user_id', 'category_id', 'name', 'slug', 'description', 'image', 'images', 'logo',
-        'address', 'city', 'province', 'phone', 'email', 'website',
-        'tags', 'rating', 'review_count', 'is_verified', 'is_featured',
+        'address', 'city', 'province', 'phone', 'email', 'website', 'map_url',
+        'tags', 'social', 'rating', 'review_count', 'is_verified', 'is_featured',
         'status', 'hours',
     ];
 
     protected $casts = [
         'tags'        => 'array',
         'images'      => 'array',
+        'social'      => 'array',
+        'hours'       => 'array',
         'is_verified' => 'boolean',
         'is_featured' => 'boolean',
         'rating'      => 'decimal:1',
@@ -49,12 +53,15 @@ class Business extends Model
     {
         $img = $this->image ?: $this->logo;
         if (!$img) return null;
-        return str_starts_with($img, 'http') ? $img : Storage::disk('s3')->url($img);
+        if (str_starts_with($img, 'http')) return $img;
+        return Storage::disk(config('filesystems.default'))->url($img);
     }
 
     public function getLogoUrlAttribute(): ?string
     {
         if (!$this->logo) return null;
-        return str_starts_with($this->logo, 'http') ? $this->logo : Storage::disk('s3')->url($this->logo);
+        if (str_starts_with($this->logo, 'http')) return $this->logo;
+        return Storage::disk(config('filesystems.default'))->url($this->logo);
     }
 }
+

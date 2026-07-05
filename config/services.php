@@ -43,6 +43,14 @@ return [
         'key' => env('GOOGLE_VISION_API_KEY'),
     ],
 
+    'gemini' => [
+        'key' => env('GEMINI_API_KEY'),
+    ],
+
+    'groq' => [
+        'key' => env('GROQ_API_KEY'),
+    ],
+
     'stripe' => [
         'key'            => env('STRIPE_KEY'),
         'secret'         => env('STRIPE_SECRET'),

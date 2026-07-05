@@ -72,7 +72,11 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
 
 <div class="show-wrap">
   <div class="biz-main">
-    @php $bizImages = $business->images ?? ($business->image ? [$business->image] : []); @endphp
+    @php
+        $rawBizImgs = is_array($business->images) ? $business->images : [];
+        if ($business->image && $business->image !== '0') $rawBizImgs[] = $business->image;
+        $bizImages = array_values(array_unique(array_filter($rawBizImgs, fn($v) => !empty($v) && $v !== '0' && $v !== false)));
+    @endphp
     <div style="position:relative">
       @if(count($bizImages))
         <x-image-slider :images="$bizImages" :alt="$business->name" height="260px" />
@@ -101,14 +105,31 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
       @endif
 
       @if($business->description)
-        <div class="biz-desc">{!! $business->description !!}</div>
+        <div class="biz-desc">{!! clean($business->description) !!}</div>
       @endif
 
       @if($business->address || $business->city)
         <div class="info-row"><span class="info-icon">📍</span><span>{{ $business->address }}{{ $business->city ? ', '.$business->city : '' }}{{ $business->province ? ', '.$business->province : '' }}</span></div>
       @endif
-      @if($business->hours)
-        <div class="info-row"><span class="info-icon">🕐</span><span>{{ $business->hours }}</span></div>
+      @if($business->hours && is_array($business->hours) && count($business->hours))
+        <div class="info-row" style="align-items:flex-start">
+          <span class="info-icon">🕐</span>
+          <div style="display:grid;grid-template-columns:max-content 1fr;gap:2px 12px;font-size:13px">
+            @if(isset($business->hours['note']))
+              {{-- Legacy plain-text hours migrated to {"note":"..."} format --}}
+              <span style="color:var(--muted);font-weight:600">Hours</span>
+              <span>{{ $business->hours['note'] }}</span>
+            @else
+              @foreach(['monday'=>'Mon','tuesday'=>'Tue','wednesday'=>'Wed','thursday'=>'Thu','friday'=>'Fri','saturday'=>'Sat','sunday'=>'Sun'] as $dkey => $dlabel)
+                @if(isset($business->hours[$dkey]))
+                  @php $h = $business->hours[$dkey]; @endphp
+                  <span style="color:var(--muted);font-weight:600">{{ $dlabel }}</span>
+                  <span>{{ !empty($h['closed']) ? 'Closed' : (($h['open'] ?? '').' – '.($h['close'] ?? '')) }}</span>
+                @endif
+              @endforeach
+            @endif
+          </div>
+        </div>
       @endif
       @if($business->website)
         <div class="info-row"><span class="info-icon">🌐</span><a href="{{ $business->website }}" target="_blank" style="color:var(--blue)">{{ $business->website }}</a></div>
@@ -116,6 +137,53 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
 
       @if($business->tags)
         <div style="margin-top:14px">@foreach($business->tags as $tag)<span class="tag">{{ $tag }}</span>@endforeach</div>
+      @endif
+
+      {{-- Google Map embed --}}
+      @if($business->map_url)
+        <div style="margin-top:20px;border-radius:10px;overflow:hidden;border:1.5px solid var(--border)">
+          @php
+            // Convert Google Maps share URL to embed URL
+            $mapUrl = $business->map_url;
+            if (str_contains($mapUrl, 'maps.google.com') || str_contains($mapUrl, 'goo.gl/maps') || str_contains($mapUrl, 'maps.app.goo.gl')) {
+                // Use embed via place search query parameter
+                preg_match('/[?&]q=([^&]+)/', $mapUrl, $qm);
+                if (!empty($qm[1])) {
+                    $embedUrl = 'https://maps.google.com/maps?q=' . $qm[1] . '&output=embed';
+                } else {
+                    // Fallback: embed address
+                    $addr = urlencode(trim(($business->address ?? '') . ' ' . ($business->city ?? '') . ' ' . ($business->province ?? '')));
+                    $embedUrl = 'https://maps.google.com/maps?q=' . $addr . '&output=embed';
+                }
+            } else {
+                $addr = urlencode(trim(($business->address ?? '') . ' ' . ($business->city ?? '') . ' ' . ($business->province ?? '')));
+                $embedUrl = 'https://maps.google.com/maps?q=' . $addr . '&output=embed';
+            }
+          @endphp
+          <iframe
+            src="{{ $embedUrl }}"
+            width="100%" height="260" style="border:0;display:block"
+            allowfullscreen loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade">
+          </iframe>
+          <a href="{{ $business->map_url }}" target="_blank"
+             style="display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:12.5px;color:var(--primary);font-weight:600;text-decoration:none;background:#f8faff;border-top:1px solid var(--border)">
+            <i class="fa-solid fa-map-location-dot"></i> Open in Google Maps →
+          </a>
+        </div>
+      @elseif($business->address || $business->city)
+        {{-- No map_url but has address — auto-embed --}}
+        @php
+          $addr = urlencode(trim(($business->address ?? '') . ' ' . ($business->city ?? '') . ' ' . ($business->province ?? '') . ' Canada'));
+          $embedUrl = 'https://maps.google.com/maps?q=' . $addr . '&output=embed';
+        @endphp
+        <div style="margin-top:20px;border-radius:10px;overflow:hidden;border:1.5px solid var(--border)">
+          <iframe src="{{ $embedUrl }}" width="100%" height="260" style="border:0;display:block" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+          <a href="https://maps.google.com/maps?q={{ $addr }}" target="_blank"
+             style="display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:12.5px;color:var(--primary);font-weight:600;text-decoration:none;background:#f8faff;border-top:1px solid var(--border)">
+            <i class="fa-solid fa-map-location-dot"></i> Open in Google Maps →
+          </a>
+        </div>
       @endif
     </div>
 
@@ -171,6 +239,46 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
         @if(!$business->phone && !$business->email && !$business->website)
           <p style="color:var(--muted);font-size:12px;text-align:center">No contact info available</p>
         @endif
+
+        {{-- Social Media --}}
+        @if(!empty($business->social) && is_array($business->social))
+          @php $socials = array_filter($business->social); @endphp
+          @if(count($socials))
+            <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+              <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Follow Us</div>
+              <div style="display:flex;flex-wrap:wrap;gap:8px">
+                @if(!empty($socials['facebook']))
+                  <a href="{{ $socials['facebook'] }}" target="_blank"
+                     style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;background:#1877f2;color:#fff;border-radius:7px;font-size:12px;font-weight:600;text-decoration:none">
+                    <i class="fa-brands fa-facebook"></i> Facebook
+                  </a>
+                @endif
+                @if(!empty($socials['instagram']))
+                  <a href="{{ $socials['instagram'] }}" target="_blank"
+                     style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);color:#fff;border-radius:7px;font-size:12px;font-weight:600;text-decoration:none">
+                    <i class="fa-brands fa-instagram"></i> Instagram
+                  </a>
+                @endif
+                @if(!empty($socials['whatsapp']))
+                  <a href="https://wa.me/{{ preg_replace('/[^0-9]/','',$socials['whatsapp']) }}" target="_blank"
+                     style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;background:#25d366;color:#fff;border-radius:7px;font-size:12px;font-weight:600;text-decoration:none">
+                    <i class="fa-brands fa-whatsapp"></i> WhatsApp
+                  </a>
+                @endif
+                @if(!empty($socials['youtube']))
+                  <a href="{{ $socials['youtube'] }}" target="_blank"
+                     style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;background:#ff0000;color:#fff;border-radius:7px;font-size:12px;font-weight:600;text-decoration:none">
+                    <i class="fa-brands fa-youtube"></i> YouTube
+                  </a>
+                @endif
+              </div>
+            </div>
+          @endif
+        @endif
+
+        <div style="margin-top:10px">
+          <x-favorite-btn type="business" :model-id="$business->id" :model-class="\App\Models\Business::class" />
+        </div>
       </div>
     </div>
 

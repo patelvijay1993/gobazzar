@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Blog — GoBazaar — Indian Community in Canada')
+@section('title', 'Blog — GoBazaar')
 
 @push('styles')
 <style>
@@ -87,6 +87,7 @@
 @endpush
 
 @section('content')
+<h1 style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0">Blog — GoBazaar</h1>
 <div class="blog-wrap">
 
   {{-- MAIN CONTENT --}}

@@ -61,6 +61,13 @@ class UserResource extends Resource
                     Forms\Components\Textarea::make('bio')
                         ->columnSpanFull()
                         ->rows(3),
+                    Forms\Components\FileUpload::make('avatar')
+                        ->label('Avatar')
+                        ->image()
+                        ->disk(config('filesystems.default'))
+                        ->directory('avatars')
+                        ->helperText('Upload or replace the user\'s profile photo.')
+                        ->columnSpanFull(),
                     Forms\Components\TextInput::make('password')
                         ->password()
                         ->dehydrateStateUsing(fn ($state) => filled($state) ? Hash::make($state) : null)
@@ -89,6 +96,19 @@ class UserResource extends Resource
                         ->placeholder('— None —'),
                     Forms\Components\DateTimePicker::make('plan_expires_at')
                         ->label('Plan Expires At'),
+                ]),
+
+            Forms\Components\Section::make('Featured Credits')
+                ->columns(2)
+                ->schema([
+                    Forms\Components\TextInput::make('featured_credits_used')
+                        ->label('Credits Used This Cycle')
+                        ->numeric()
+                        ->default(0)
+                        ->helperText('Reset to 0 to restore credits manually.'),
+                    Forms\Components\DateTimePicker::make('featured_credits_reset_at')
+                        ->label('Credits Reset At')
+                        ->helperText('Next auto-reset date. Set to past to force immediate reset.'),
                 ]),
 
             Forms\Components\Section::make('Stripe IDs')
@@ -144,6 +164,13 @@ class UserResource extends Resource
                     ->date('M d, Y')
                     ->sortable()
                     ->placeholder('—'),
+
+                Tables\Columns\TextColumn::make('featured_credits_used')
+                    ->label('⭐ Credits Used')
+                    ->numeric()
+                    ->sortable()
+                    ->placeholder('0')
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\IconColumn::make('is_active')
                     ->label('Active')
@@ -289,3 +316,4 @@ class UserResource extends Resource
         ];
     }
 }
+

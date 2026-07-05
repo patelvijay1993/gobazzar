@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Matrimonial — GoBazzar')
+@section('title', 'Matrimonial — GoBazaar')
 
 @push('styles')
 <style>
@@ -171,7 +171,7 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
           <a href="{{ route('matrimonial.show', $p->slug) }}">
             <div class="profile-card-photo">
               @if($p->photo)
-                <img src="{{ str_starts_with($p->photo,'http') ? $p->photo : \Illuminate\Support\Facades\Storage::disk('s3')->url($p->photo) }}" alt="{{ $p->name }}">
+                <img src="{{ $p->photo_url }}" alt="{{ $p->name }}">
               @else
                 {{ $p->gender === 'male' ? '👨' : '👩' }}
               @endif

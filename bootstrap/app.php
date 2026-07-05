@@ -12,6 +12,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withSchedule(function (\Illuminate\Console\Scheduling\Schedule $schedule): void {
+        // Mark expired records every hour so admin panel reflects accurate status
+        $schedule->command('listings:mark-expired')->hourly();
         // Run every night at midnight to purge expired free posts
         $schedule->command('posts:purge-expired')->dailyAt('00:00');
     })
@@ -19,6 +21,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             'stripe/webhook',
         ]);
+        $middleware->alias([
+            'email.verified' => \App\Http\Middleware\EnsureEmailVerified::class,
+        ]);
+        $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

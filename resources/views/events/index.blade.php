@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Events — Indian Community in Canada')
+@section('title', 'Events')
 
 @push('styles')
 <style>
@@ -92,6 +92,7 @@
 @endpush
 
 @section('content')
+<h1 style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0">Events — Indian Community in Canada</h1>
 <div class="ev-wrap">
 
   {{-- Mobile toggle --}}
@@ -259,7 +260,7 @@
                 @if($isFree)
                   <span class="ev-price-badge price-free"><i class="fa-solid fa-ticket"></i> Free</span>
                 @else
-                  <span class="ev-price-badge price-paid"><i class="fa-solid fa-ticket"></i> {{ $event->price }}</span>
+                  <span class="ev-price-badge price-paid"><i class="fa-solid fa-ticket"></i> {{ $event->formatted_price }}</span>
                 @endif
                 @if($event->tags)
                   @foreach(array_slice($event->tags, 0, 2) as $tag)

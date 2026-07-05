@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Community Feed — GoBazzar')
+@section('title', 'Community Feed — GoBazaar')
 
 @push('styles')
 <style>
@@ -51,7 +51,7 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
 @section('content')
 <div class="feed-hero">
   <h1>Community Feed</h1>
-  <p>Latest posts from the GoBazzar Indian community in Canada</p>
+  <p>Latest posts from the GoBazaar Indian community in Canada</p>
 </div>
 
 <div class="feed-wrap">

@@ -76,7 +76,7 @@
 
     <div class="auth-card">
       <div class="auth-card-head">
-        <h2>Create Free Account 🇮🇳</h2>
+        <h1 style="font-family:var(--fh);font-size:20px;font-weight:800;color:#fff;margin-bottom:3px">Create Free Account 🇮🇳</h1>
         <p>Post ads, find jobs, connect with your community</p>
       </div>
 

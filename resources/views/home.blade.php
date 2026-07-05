@@ -354,6 +354,11 @@ $heroLocLabel = request('city') ?: request('province');
         </div>
         <button class="hs-btn" onclick="heroSubmit()"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
       </div>
+      <div style="margin-top:8px">
+        <button type="button" id="hero-loc-btn" onclick="heroDetectLocation(this)" style="background:none;border:1px solid rgba(255,255,255,.5);color:#fff;border-radius:20px;padding:4px 13px;font-size:12px;cursor:pointer;font-weight:600;display:inline-flex;align-items:center;gap:5px">
+          <i class="fa-solid fa-location-crosshairs"></i> Use my location
+        </button>
+      </div>
 
       <div class="popular-tags">
         <span class="popular-label">Popular:</span>
@@ -458,18 +463,6 @@ $heroLocLabel = request('city') ?: request('province');
   </div>
 
   {{-- FEATURED CLASSIFIEDS --}}
-  @php
-  $clImgs = [
-    'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&h=260&fit=crop',
-    'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400&h=260&fit=crop',
-    'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=400&h=260&fit=crop',
-    'https://images.unsplash.com/photo-1556656793-08538906a9f8?w=400&h=260&fit=crop',
-    'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=400&h=260&fit=crop',
-    'https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=400&h=260&fit=crop',
-    'https://images.unsplash.com/photo-1605901309584-818e25960a8f?w=400&h=260&fit=crop',
-    'https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=400&h=260&fit=crop',
-  ];
-  @endphp
   <div class="sh">
     <div class="sh-title"><i class="fa-solid fa-star"></i> Featured Classifieds</div>
     <a href="{{ route('classifieds.index') }}" class="sh-link">View All <i class="fa-solid fa-arrow-right" style="font-size:10px"></i></a>
@@ -506,10 +499,10 @@ $heroLocLabel = request('city') ?: request('province');
           @if($listing->is_featured)<div class="cl-feat">Featured</div>@endif
           <div class="cl-fav"><i class="fa-regular fa-heart"></i></div>
           @if($listing->image_url)<img src="{{ $listing->image_url }}" alt="{{ $listing->title }}">
-          @else<img src="{{ $clImgs[$i % count($clImgs)] }}" alt="{{ $listing->title }}">@endif
+          @else<span style="font-size:38px">{{ $listing->category->icon ?? '📦' }}</span>@endif
         </div>
         <div class="cl-body">
-          @if($listing->price)<div class="cl-price">{{ $listing->price }}<small>{{ $listing->price_unit }}</small></div>@endif
+          @if($listing->price)<div class="cl-price">{{ $listing->formatted_price }}<small>{{ $listing->price_unit }}</small></div>@endif
           <div class="cl-title">{{ $listing->title }}</div>
           <div class="cl-cat">{{ $listing->category->name ?? 'Classifieds' }}</div>
           <div class="cl-foot"><span><i class="fa-solid fa-location-dot"></i>{{ $listing->location }}</span><span>{{ $listing->created_at->diffForHumans() }}</span></div>
@@ -567,7 +560,7 @@ $heroLocLabel = request('city') ?: request('province');
           <div class="ev-meta"><i class="fa-solid fa-location-dot"></i> {{ $event->city }}@if($event->venue) · {{ $event->venue }}@endif</div>
           @if($event->price)
             @php $isFree = strtolower($event->price)==='free'||$event->price==='0'; @endphp
-            <span class="ev-badge {{ $isFree?'badge-free':'badge-paid' }}">{{ $isFree?'Free':$event->price }}</span>
+            <span class="ev-badge {{ $isFree?'badge-free':'badge-paid' }}">{{ $isFree?'Free':$event->formatted_price }}</span>
           @endif
         </div>
       </a>
@@ -609,9 +602,6 @@ $heroLocLabel = request('city') ?: request('province');
   </div>
 
   {{-- JOBS --}}
-  @php
-  $jobImgs=['https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=80&h=80&fit=crop','https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=80&h=80&fit=crop','https://images.unsplash.com/photo-1538108149393-fbbd81895907?w=80&h=80&fit=crop','https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=80&h=80&fit=crop','https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=80&h=80&fit=crop','https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=80&h=80&fit=crop'];
-  @endphp
   <div class="sh">
     <div class="sh-title"><i class="fa-solid fa-briefcase"></i> Jobs & IT Training</div>
     <a href="{{ route('jobs.index') }}" class="sh-link">View All <i class="fa-solid fa-arrow-right" style="font-size:10px"></i></a>
@@ -632,7 +622,7 @@ $heroLocLabel = request('city') ?: request('province');
         ['📚','Math & Science Tutor — Grade 9 to 12','BrightMinds Tutoring · Part Time · Toronto',['Tutoring','Education'],'$20–$30/hr'],
       ] as $i=>$ph)
       <div class="job-card" style="pointer-events:none">
-        <div class="job-logo" style="padding:0;overflow:hidden"><img src="{{ $jobImgs[$i%count($jobImgs)] }}" alt="{{ $ph[1] }}" style="width:100%;height:100%;object-fit:cover;border-radius:9px"></div>
+        <div class="job-logo" style="font-size:32px;display:flex;align-items:center;justify-content:center">💼</div>
         <div class="job-info"><div class="job-title">{{ $ph[1] }}</div><div class="job-co">{{ $ph[2] }}</div><div class="job-tags">@foreach($ph[3] as $t)<span class="job-tag">{{ $t }}</span>@endforeach</div></div>
         <div class="job-sal">{{ $ph[4] }}</div>
       </div>
@@ -640,13 +630,19 @@ $heroLocLabel = request('city') ?: request('province');
     @else
       @foreach($latestJobs as $i=>$job)
       <a href="{{ route('jobs.show', $job->slug) }}" class="job-card">
-        <div class="job-logo" style="padding:0;overflow:hidden"><img src="{{ $jobImgs[$i%count($jobImgs)] }}" alt="{{ $job->title }}" style="width:100%;height:100%;object-fit:cover;border-radius:9px"></div>
+        <div class="job-logo" style="padding:0;overflow:hidden">
+          @if($job->company_logo_url ?? false)
+            <img src="{{ $job->company_logo_url }}" alt="{{ $job->company }}" style="width:100%;height:100%;object-fit:cover;border-radius:9px">
+          @else
+            <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:28px;background:#f0f4ff;border-radius:9px">💼</div>
+          @endif
+        </div>
         <div class="job-info">
           <div class="job-title">{{ $job->title }}@if($job->company) — {{ $job->company }}@endif</div>
           <div class="job-co">{{ $job->job_type_label }}@if($job->city) · {{ $job->city }}@endif</div>
           <div class="job-tags">@if($job->category)<span class="job-tag">{{ $job->category->name }}</span>@endif<span class="job-tag">{{ $job->job_type_label }}</span></div>
         </div>
-        @if($job->salary)<div class="job-sal">{{ $job->salary }}</div>@endif
+        @if($job->salary)<div class="job-sal">{{ $job->formatted_salary }}</div>@endif
       </a>
       @endforeach
     @endif
@@ -660,7 +656,6 @@ $heroLocLabel = request('city') ?: request('province');
 
   {{-- BUSINESS DIRECTORY --}}
   @php
-  $bizImgs=['https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=300&h=160&fit=crop','https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=300&h=160&fit=crop','https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=300&h=160&fit=crop','https://images.unsplash.com/photo-1604719312566-8912e9667d9f?w=300&h=160&fit=crop'];
   @endphp
   <div class="sh">
     <div class="sh-title"><i class="fa-solid fa-building-columns"></i> Business Directory</div>
@@ -677,7 +672,7 @@ $heroLocLabel = request('city') ?: request('province');
     @if($latestBusinesses->isEmpty())
       @foreach([['🍛','Taste of India Restaurant','Restaurant · Brampton',4.5],['⚖️','Canada Immigration Experts','Immigration · Mississauga',4.0],['🏠','Patel Realty Group','Real Estate · Toronto',5.0],['🛒','Spice Garden Indian Grocery','Grocery · Brampton',3.7]] as $i=>$ph)
       <div class="biz-card" style="pointer-events:none">
-        <div class="biz-img"><img src="{{ $bizImgs[$i%count($bizImgs)] }}" alt="{{ $ph[1] }}"></div>
+        <div class="biz-img" style="display:flex;align-items:center;justify-content:center;font-size:40px;background:#f5f0ec">{{ $ph[0] }}</div>
         <div class="biz-body"><div class="biz-name">{{ $ph[1] }}</div><div class="biz-cat">{{ $ph[2] }}</div><div class="biz-stars"><i class="fa-solid fa-star"></i> {{ $ph[3] }}</div></div>
       </div>
       @endforeach
@@ -686,7 +681,7 @@ $heroLocLabel = request('city') ?: request('province');
       <a href="{{ route('directory.show', $biz->slug) }}" class="biz-card">
         <div class="biz-img">
           @if($biz->image_url)<img src="{{ $biz->image_url }}" alt="{{ $biz->name }}">
-          @else<img src="{{ $bizImgs[$i%count($bizImgs)] }}" alt="{{ $biz->name }}">@endif
+          @else<span style="font-size:40px">{{ $biz->category->icon ?? '🏢' }}</span>@endif
         </div>
         <div class="biz-body">
           <div class="biz-name">{{ Str::limit($biz->name,22) }}</div>
@@ -701,7 +696,6 @@ $heroLocLabel = request('city') ?: request('province');
 
   {{-- ALL LISTINGS — only show when there's data OR no location filter --}}
   @php
-  $allImgs=['https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=140&h=128&fit=crop','https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=140&h=128&fit=crop','https://images.unsplash.com/photo-1605901309584-818e25960a8f?w=140&h=128&fit=crop','https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=140&h=128&fit=crop'];
   $hideAllListings = $latestListings->isEmpty() && (request('province') || request('city'));
   @endphp
   @unless($hideAllListings)
@@ -715,11 +709,11 @@ $heroLocLabel = request('city') ?: request('province');
       <a href="{{ route('classifieds.show', $listing->slug) }}" class="al-item">
         <div class="al-thumb">
           @if($listing->image_url)<img src="{{ $listing->image_url }}" alt="{{ $listing->title }}">
-          @else<img src="{{ $allImgs[$i%count($allImgs)] }}" alt="{{ $listing->title }}">@endif
+          @else<span style="font-size:32px">{{ $listing->category->icon ?? '📦' }}</span>@endif
         </div>
         <div class="al-info">
           <div class="al-title">{{ $listing->title }}</div>
-          @if($listing->price)<div class="al-price">{{ $listing->price }}<small>{{ $listing->price_unit }}</small></div>@endif
+          @if($listing->price)<div class="al-price">{{ $listing->formatted_price }}<small>{{ $listing->price_unit }}</small></div>@endif
           <div class="al-meta"><span><i class="fa-solid fa-location-dot"></i>{{ $listing->location }}</span><span><i class="fa-regular fa-clock"></i>{{ $listing->created_at->diffForHumans() }}</span></div>
         </div>
         <div style="color:#ddd;align-self:flex-start;margin-top:2px"><i class="fa-regular fa-heart" style="font-size:16px"></i></div>
@@ -727,13 +721,13 @@ $heroLocLabel = request('city') ?: request('province');
       @endforeach
     @else
       @foreach([
-        ['https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=140&h=128&fit=crop','Mountain Bike — barely used, great condition','$250','Brampton, ON','1h ago','Buy & Sell'],
-        ['https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=140&h=128&fit=crop','1 Bed Apartment — near university, utilities included','$1,100','Brampton, ON','2h ago','Rentals','/mo'],
-        ['https://images.unsplash.com/photo-1605901309584-818e25960a8f?w=140&h=128&fit=crop','PlayStation 5 — disc edition, 2 controllers','$800','Mississauga, ON','3h ago','Electronics'],
-        ['https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=140&h=128&fit=crop','Indian tiffin service — GTA area, veg & jain options','$200','Mississauga, ON','4h ago','Services','/mo'],
+        ['🚲','Mountain Bike — barely used, great condition','$250','Brampton, ON','1h ago','Buy & Sell'],
+        ['🛏️','1 Bed Apartment — near university, utilities included','$1,100','Brampton, ON','2h ago','Rentals','/mo'],
+        ['🎮','PlayStation 5 — disc edition, 2 controllers','$800','Mississauga, ON','3h ago','Electronics'],
+        ['🍱','Indian tiffin service — GTA area, veg & jain options','$200','Mississauga, ON','4h ago','Services','/mo'],
       ] as $ph)
       <div class="al-item" style="pointer-events:none">
-        <div class="al-thumb"><img src="{{ $ph[0] }}" alt="{{ $ph[1] }}"></div>
+        <div class="al-thumb" style="font-size:32px;display:flex;align-items:center;justify-content:center;background:#f5f0ec">{{ $ph[0] }}</div>
         <div class="al-info">
           <div class="al-title">{{ $ph[1] }}</div>
           <div class="al-price">{{ $ph[2] }}@isset($ph[6])<small>{{ $ph[6] }}</small>@endisset</div>
@@ -843,21 +837,20 @@ $heroLocLabel = request('city') ?: request('province');
       <a href="{{ route('classifieds.index') }}" style="font-size:11px;color:var(--primary);font-weight:600;text-decoration:none">View all</a>
     </div>
     @php
-    $laImgs=['https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=96&h=96&fit=crop','https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=96&h=96&fit=crop','https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=96&h=96&fit=crop','https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=96&h=96&fit=crop'];
     @endphp
     <div class="la-list">
       @if($latestListings->isNotEmpty())
         @foreach($latestListings->take(4) as $i=>$listing)
         <a href="{{ route('classifieds.show', $listing->slug) }}" class="la-item">
-          <div class="la-thumb">@if($listing->image_url)<img src="{{ $listing->image_url }}" alt="{{ $listing->title }}">@else<img src="{{ $laImgs[$i%count($laImgs)] }}" alt="{{ $listing->title }}">@endif</div>
-          <div class="la-info"><div class="la-name">{{ Str::limit($listing->title,28) }}</div>@if($listing->price)<div class="la-price">{{ $listing->price }}<small>{{ $listing->price_unit }}</small></div>@endif<div class="la-loc"><i class="fa-solid fa-location-dot" style="font-size:10px"></i> {{ $listing->location }}</div></div>
+          <div class="la-thumb">@if($listing->image_url)<img src="{{ $listing->image_url }}" alt="{{ $listing->title }}">@else<span style="font-size:26px">{{ $listing->category->icon ?? '📦' }}</span>@endif</div>
+          <div class="la-info"><div class="la-name">{{ Str::limit($listing->title,28) }}</div>@if($listing->price)<div class="la-price">{{ $listing->formatted_price }}<small>{{ $listing->price_unit }}</small></div>@endif<div class="la-loc"><i class="fa-solid fa-location-dot" style="font-size:10px"></i> {{ $listing->location }}</div></div>
           <div class="la-side"><div class="la-fav"><i class="fa-regular fa-heart"></i></div><div class="la-time">{{ $listing->created_at->diffForHumans(null,true) }}</div></div>
         </a>
         @endforeach
       @else
         @foreach([['🪑','Wooden Dining Table Set','$350','Brampton, ON','10 min'],['💼','Part-time Cashier','$16','Brampton, ON','25 min'],['🛏️','Room for Rent near U of T','$650','Toronto, ON','1h ago'],['🚗','2020 Toyota Corolla — 45K km','$18,500','Mississauga, ON','2h ago']] as $i=>$ph)
         <div class="la-item">
-          <div class="la-thumb"><img src="{{ $laImgs[$i%count($laImgs)] }}" alt="{{ $ph[1] }}"></div>
+          <div class="la-thumb" style="font-size:26px;display:flex;align-items:center;justify-content:center">{{ ['🪑','💼','🛏️','🚗'][$i] ?? '📦' }}</div>
           <div class="la-info"><div class="la-name">{{ $ph[1] }}</div><div class="la-price">{{ $ph[2] }}</div><div class="la-loc"><i class="fa-solid fa-location-dot" style="font-size:10px"></i> {{ $ph[3] }}</div></div>
           <div class="la-side"><div class="la-fav"><i class="fa-regular fa-heart"></i></div><div class="la-time">{{ $ph[4] }}</div></div>
         </div>
@@ -1019,14 +1012,128 @@ function heroSubmit() {
 }
 document.getElementById('hero-q')?.addEventListener('keydown', e => { if (e.key === 'Enter') heroSubmit(); });
 
-// Sync hero selects from localStorage (single source of truth)
+function heroDetectLocation(btn) {
+  if (!navigator.geolocation) { alert('Geolocation not supported by your browser.'); return; }
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Detecting…';
+
+  navigator.geolocation.getCurrentPosition(function(pos) {
+    fetch('https://nominatim.openstreetmap.org/reverse?lat=' + pos.coords.latitude + '&lon=' + pos.coords.longitude + '&format=json', {
+      headers: { 'Accept-Language': 'en' }
+    })
+    .then(r => r.json())
+    .then(function(data) {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i> Use my location';
+
+      var addr = data.address || {};
+      var detectedProvince = addr.state || addr.region || addr.county || '';
+      var detectedCity     = addr.city || addr.town || addr.village || addr.suburb || '';
+
+      var provSel = document.getElementById('hero-prov');
+      var matched = '';
+      Array.from(provSel.options).forEach(function(opt) {
+        if (!opt.value) return;
+        var ov = opt.value.toLowerCase(), dv = detectedProvince.toLowerCase();
+        if (dv.includes(ov) || ov.includes(dv)) matched = opt.value;
+      });
+
+      if (matched) {
+        provSel.value = matched;
+        localStorage.setItem('gobazaar_province', matched);
+        fetch('{{ route("locations.cities") }}?province=' + encodeURIComponent(matched))
+          .then(r => r.json())
+          .then(function(cities) {
+            var citySel = document.getElementById('hero-city');
+            citySel.innerHTML = '<option value="">All Cities</option>';
+            var cityMatched = '';
+            cities.forEach(function(c) {
+              var o = document.createElement('option');
+              o.value = c; o.textContent = c;
+              citySel.appendChild(o);
+              var cv = c.toLowerCase(), dv = detectedCity.toLowerCase();
+              if (!cityMatched && (dv.includes(cv) || cv.includes(dv))) cityMatched = c;
+            });
+            if (cityMatched) {
+              citySel.value = cityMatched;
+              localStorage.setItem('gobazaar_city', cityMatched);
+            }
+          });
+      } else {
+        alert('Could not match your location to a known province. Please select manually.');
+      }
+    })
+    .catch(function() {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i> Use my location';
+      alert('Could not fetch location. Please select manually.');
+    });
+  }, function() {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i> Use my location';
+    alert('Location access denied. Please allow location and try again.');
+  });
+}
+
+// Sync hero selects from localStorage or auto-detect on first visit
 (function() {
   var prov = localStorage.getItem('gobazaar_province') || '';
   var city = localStorage.getItem('gobazaar_city') || '';
   var provSel = document.getElementById('hero-prov');
-  if (provSel && prov) {
-    provSel.value = prov;
+
+  if (prov) {
+    // Already known — restore from localStorage
+    if (provSel) provSel.value = prov;
     heroLoadCities(prov, city);
+  } else if (navigator.geolocation) {
+    // First visit — auto-detect silently
+    var btn = document.getElementById('hero-loc-btn');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Detecting…'; }
+    navigator.geolocation.getCurrentPosition(function(pos) {
+      fetch('https://nominatim.openstreetmap.org/reverse?lat=' + pos.coords.latitude + '&lon=' + pos.coords.longitude + '&format=json', {
+        headers: { 'Accept-Language': 'en' }
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i> Use my location'; }
+        var addr = data.address || {};
+        var detectedProvince = addr.state || addr.region || addr.county || '';
+        var detectedCity     = addr.city || addr.town || addr.village || addr.suburb || '';
+        var matched = '';
+        if (provSel) {
+          Array.from(provSel.options).forEach(function(opt) {
+            if (!opt.value) return;
+            var ov = opt.value.toLowerCase(), dv = detectedProvince.toLowerCase();
+            if (dv.includes(ov) || ov.includes(dv)) matched = opt.value;
+          });
+        }
+        if (matched) {
+          provSel.value = matched;
+          localStorage.setItem('gobazaar_province', matched);
+          fetch('{{ route("locations.cities") }}?province=' + encodeURIComponent(matched))
+            .then(function(r) { return r.json(); })
+            .then(function(cities) {
+              var citySel = document.getElementById('hero-city');
+              citySel.innerHTML = '<option value="">All Cities</option>';
+              var cityMatched = '';
+              cities.forEach(function(c) {
+                var o = document.createElement('option');
+                o.value = c; o.textContent = c;
+                citySel.appendChild(o);
+                var cv = c.toLowerCase(), dv = detectedCity.toLowerCase();
+                if (!cityMatched && (dv.includes(cv) || cv.includes(dv))) cityMatched = c;
+              });
+              if (cityMatched) { citySel.value = cityMatched; localStorage.setItem('gobazaar_city', cityMatched); }
+            });
+        }
+      })
+      .catch(function() {
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i> Use my location'; }
+      });
+    }, function() {
+      // User denied — silently ignore, show button normally
+      if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i> Use my location'; }
+    }, { timeout: 8000 });
   }
 })();
 // ── POLL VOTING ──────────────────────────────────────────────────

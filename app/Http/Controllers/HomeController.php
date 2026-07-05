@@ -201,7 +201,7 @@ class HomeController extends Controller
                 ->whereNotNull('city_image')
                 ->first();
             if ($loc && $loc->city_image) {
-                $heroBg = \Storage::disk('public')->url($loc->city_image);
+                $heroBg = \Storage::disk(config('filesystems.default'))->url($loc->city_image);
             }
         }
 
@@ -241,3 +241,4 @@ class HomeController extends Controller
         ));
     }
 }
+

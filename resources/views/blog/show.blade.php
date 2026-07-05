@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', $post->title.' — GoBazzar Blog')
+@section('title', $post->title.' — GoBazaar Blog')
 @section('description', $post->excerpt ?? Str::limit(strip_tags($post->body), 160))
 
 @push('styles')
@@ -95,7 +95,7 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
     @endif
 
     <div class="post-body">
-      {!! $post->body !!}
+      {!! clean($post->body) !!}
     </div>
 
     @if($post->tags && count($post->tags))
@@ -112,7 +112,7 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
     <div class="author-card" style="margin-top:28px">
       <div class="author-avatar">
         @if($post->author->avatar)
-          <img src="{{ asset('storage/'.$post->author->avatar) }}" alt="{{ $post->author->name }}">
+          <img src="{{ str_starts_with($post->author->avatar,'http') ? $post->author->avatar : \Illuminate\Support\Facades\Storage::disk('s3')->url($post->author->avatar) }}" alt="{{ $post->author->name }}">
         @else
           {{ strtoupper(substr($post->author->name,0,1)) }}
         @endif
@@ -137,7 +137,7 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
         @foreach($related as $rp)
         <div class="related-card">
           @if($rp->image)
-            <img src="{{ str_starts_with($rp->image,'http') ? $rp->image : asset('storage/'.$rp->image) }}" alt="{{ $rp->title }}">
+            <img src="{{ str_starts_with($rp->image,'http') ? $rp->image : \Illuminate\Support\Facades\Storage::disk('s3')->url($rp->image) }}" alt="{{ $rp->title }}">
           @else
             <div style="height:120px;background:var(--red-pale);display:grid;place-items:center;font-size:30px">📰</div>
           @endif
@@ -163,7 +163,7 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
       @foreach($latest as $lp)
       <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border)">
         @if($lp->image)
-          <img src="{{ asset('storage/'.$lp->image) }}" style="width:44px;height:44px;border-radius:6px;object-fit:cover;flex-shrink:0">
+          <img src="{{ str_starts_with($lp->image,'http') ? $lp->image : \Illuminate\Support\Facades\Storage::disk('s3')->url($lp->image) }}" style="width:44px;height:44px;border-radius:6px;object-fit:cover;flex-shrink:0">
         @else
           <div style="width:44px;height:44px;border-radius:6px;background:var(--red-pale);display:grid;place-items:center;font-size:18px;flex-shrink:0">📰</div>
         @endif

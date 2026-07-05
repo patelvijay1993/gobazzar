@@ -16,7 +16,7 @@ class BusinessCategoryResource extends Resource
 {
     protected static ?string $model = Category::class;
     protected static ?string $navigationIcon = 'heroicon-o-building-storefront';
-    protected static ?string $navigationGroup = 'Business Directory';
+    protected static ?string $navigationGroup = 'Directory';
     protected static ?string $navigationLabel = 'Categories';
     protected static ?string $modelLabel = 'Business Category';
     protected static ?string $pluralModelLabel = 'Business Categories';

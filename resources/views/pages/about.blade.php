@@ -37,7 +37,7 @@
 
   <div class="team-section">
     <h2>Our Story</h2>
-    <p>GoBazaar was born from a simple idea: every Indian who arrives in Canada deserves a trusted, one-stop platform to buy, sell, find jobs, discover events, connect with local businesses, and feel at home. What started as a small classifieds board has grown into Canada's largest Indian community portal — spanning Classifieds, Yellow Pages, Events, Jobs, Matrimonial, Blog, and more.</p>
+    <p>GoBazaar was born from a simple idea: every Indian who arrives in Canada deserves a trusted, one-stop platform to buy, sell, find jobs, discover events, connect with local businesses, and feel at home. What started as a small classifieds board has grown into Canada's largest Indian community portal — spanning Classifieds, Yellow Pages, Events, Jobs, Blog, and more.</p>
     <p>We are built by the community, for the community. Our team is passionate about making the Indian-Canadian experience richer, easier, and more connected — whether you're searching for a room to rent, a reliable immigration consultant, the best biryani in Brampton, or your life partner.</p>
   </div>
 
@@ -80,7 +80,6 @@
         ['fa-building','Business Directory','Find Indian-owned restaurants, salons, doctors, lawyers, immigration consultants, grocery stores, and more.'],
         ['fa-calendar','Events','Discover Diwali celebrations, Navratri garba, cultural festivals, and community gatherings near you.'],
         ['fa-briefcase','Jobs','Post and find jobs in IT, healthcare, hospitality, and more within the Indian-Canadian community.'],
-        ['fa-heart','Matrimonial','Find your life partner through our community matrimonial platform.'],
         ['fa-newspaper','Blog & News','Stay informed with community news, immigration updates, and lifestyle articles.'],
       ] as [$icon,$title,$desc])
       <li style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;display:flex;gap:14px;align-items:flex-start">

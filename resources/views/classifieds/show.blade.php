@@ -70,7 +70,11 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
 
 <div class="show-wrap">
   <div class="listing-main">
-    @php $allImages = $listing->images ?? ($listing->image ? [$listing->image] : []); @endphp
+    @php
+        $rawImages = is_array($listing->images) ? $listing->images : [];
+        if ($listing->image && $listing->image !== '0') $rawImages[] = $listing->image;
+        $allImages = array_values(array_unique(array_filter($rawImages, fn($v) => !empty($v) && $v !== '0' && $v !== false)));
+    @endphp
     @if(count($allImages))
       <x-image-slider :images="$allImages" :alt="$listing->title" height="380px" />
     @else
@@ -95,10 +99,10 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
         <span>📅 {{ $listing->created_at->diffForHumans() }}</span>
       </div>
       @if($listing->price)
-        <div class="listing-price">{{ $listing->price }}<span style="font-size:14px;font-weight:400;color:var(--muted);font-family:var(--fb)">{{ $listing->price_unit }}</span></div>
+        <div class="listing-price">{{ $listing->formatted_price }}<span style="font-size:14px;font-weight:400;color:var(--muted);font-family:var(--fb)">{{ $listing->price_unit }}</span></div>
       @endif
       @if($listing->description)
-        <div class="listing-desc">{!! $listing->description !!}</div>
+        <div class="listing-desc">{!! clean($listing->description) !!}</div>
       @endif
       @if($listing->tags)
         <div style="margin-top:14px">
@@ -151,6 +155,10 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
       </div>
     </div>
 
+    <div style="margin-bottom:12px">
+      <x-favorite-btn type="listing" :model-id="$listing->id" :model-class="\App\Models\Listing::class" />
+    </div>
+
     @auth
     <div style="text-align:center;margin-bottom:12px">
       <button onclick="openReportModal('listing', {{ $listing->id }})" style="background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border-radius:6px;transition:color .15s" onmouseover="this.style.color='#e74c3c'" onmouseout="this.style.color='var(--muted)'">
@@ -174,7 +182,7 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
               </div>
               <div class="rel-body">
                 <div class="rel-title">{{ $rel->title }}</div>
-                @if($rel->price)<div class="rel-price">{{ $rel->price }}</div>@endif
+                @if($rel->price)<div class="rel-price">{{ $rel->formatted_price }}</div>@endif
               </div>
             </a>
           @endforeach

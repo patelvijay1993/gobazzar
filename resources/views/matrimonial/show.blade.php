@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', $profile->name.' — Matrimonial — GoBazzar')
+@section('title', $profile->name.' — Matrimonial — GoBazaar')
 
 @push('styles')
 <style>
@@ -62,7 +62,7 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
     <div class="profile-main">
       <div class="profile-banner">
         @if($profile->photo)
-          <img src="{{ str_starts_with($profile->photo,'http') ? $profile->photo : \Illuminate\Support\Facades\Storage::disk('s3')->url($profile->photo) }}" alt="{{ $profile->name }}" class="profile-avatar">
+          <img src="{{ $profile->photo_url }}" alt="{{ $profile->name }}" class="profile-avatar">
         @else
           <div class="profile-avatar-placeholder">{{ $profile->gender === 'male' ? '👨' : '👩' }}</div>
         @endif
@@ -105,6 +105,24 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
           <p>{{ $profile->partner_preference }}</p>
         </div>
         @endif
+
+        @php
+          $gallery = array_values(array_filter((array)($profile->photos ?? [])));
+        @endphp
+        @if(!empty($gallery))
+        <div class="section-block">
+          <h3>Photos</h3>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-top:8px">
+            @foreach($gallery as $photo)
+              @php
+                $photoUrl = str_starts_with($photo, 'http') ? $photo : \Illuminate\Support\Facades\Storage::disk('s3')->url($photo);
+              @endphp
+              <img src="{{ $photoUrl }}" alt="Photo of {{ $profile->name }}"
+                style="width:100%;height:110px;object-fit:cover;border-radius:8px;border:1px solid var(--border)">
+            @endforeach
+          </div>
+        </div>
+        @endif
       </div>
     </div>
 
@@ -117,7 +135,7 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
         <a href="{{ route('matrimonial.show', $r->slug) }}" class="related-card" style="text-decoration:none;color:inherit">
           <div class="related-avatar">
             @if($r->photo)
-              <img src="{{ str_starts_with($r->photo,'http') ? $r->photo : \Illuminate\Support\Facades\Storage::disk('s3')->url($r->photo) }}" alt="{{ $r->name }}">
+              <img src="{{ $r->photo_url }}" alt="{{ $r->name }}">
             @else
               {{ $r->gender === 'male' ? '👨' : '👩' }}
             @endif

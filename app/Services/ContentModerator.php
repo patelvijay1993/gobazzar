@@ -93,8 +93,8 @@ class ContentModerator
 
         // Try S3 first, fall back to local disk for backward compatibility
         try {
-            $fileContents = Storage::disk('s3')->exists($storagePath)
-                ? Storage::disk('s3')->get($storagePath)
+            $fileContents = Storage::disk(config('filesystems.default'))->exists($storagePath)
+                ? Storage::disk(config('filesystems.default'))->get($storagePath)
                 : (file_exists(storage_path('app/public/'.$storagePath))
                     ? file_get_contents(storage_path('app/public/'.$storagePath))
                     : null);
@@ -292,16 +292,25 @@ class ContentModerator
 
     /**
      * Validate title + description together. Throws ValidationException on first problem.
+     * Saves a FlaggedPost record whenever content is blocked.
      *
-     * @param  array  $fields  ['title' => [text, label, minLen], ...] keyed by request key
+     * @param  array       $fields    ['title' => [text, label, minLen], ...] keyed by request key
+     * @param  array|null  $context   ['post_type', 'user_id', 'ip', 'raw_data']
      */
-    public function validateOrFail(array $fields): void
+    public function validateOrFail(array $fields, ?array $context = null): void
     {
         $errors = [];
+        $flaggedField  = null;
+        $flaggedReason = null;
+
         foreach ($fields as $key => [$text, $label, $minLen]) {
             $error = $this->check($text, $label, $minLen);
             if ($error) {
                 $errors[$key] = $error;
+                if (!$flaggedField) {
+                    $flaggedField  = $key;
+                    $flaggedReason = $this->detectReason($text);
+                }
             }
         }
 
@@ -311,10 +320,13 @@ class ContentModerator
             $d = mb_strtolower(trim(strip_tags($fields['description'][0])));
             if ($t !== '' && $t === $d) {
                 $errors['description'] = 'Description must be different from the title — add real details.';
+                $flaggedField  = $flaggedField ?? 'description';
+                $flaggedReason = $flaggedReason ?? 'duplicate_title_desc';
             }
         }
 
         if ($errors) {
+            $this->saveFlagged($fields, $errors, $flaggedField, $flaggedReason, $context);
             throw \Illuminate\Validation\ValidationException::withMessages($errors);
         }
 
@@ -322,7 +334,59 @@ class ContentModerator
         $combined = implode("\n", array_map(fn($f) => strip_tags((string)($f[0] ?? '')), $fields));
         $aiError  = $this->aiCheckText($combined);
         if ($aiError) {
+            $this->saveFlagged($fields, ['title' => $aiError], 'title', 'ai_flagged', $context);
             throw \Illuminate\Validation\ValidationException::withMessages(['title' => $aiError]);
         }
     }
+
+    private function detectReason(string $text): string
+    {
+        $cfg   = config('moderation');
+        $lower = mb_strtolower(strip_tags($text));
+
+        foreach ($cfg['banned_words'] ?? [] as $word) {
+            if (preg_match('/\b' . preg_quote($word, '/') . '\b/iu', $lower)) {
+                return 'banned_word';
+            }
+        }
+        foreach ($cfg['junk_phrases'] ?? [] as $junk) {
+            if (str_contains($lower, mb_strtolower($junk))) {
+                return 'junk_phrase';
+            }
+        }
+        if (preg_match('/(.)\1{' . (($cfg['max_repeat_run'] ?? 4) - 1) . ',}/u', $text)) {
+            return 'repeated_chars';
+        }
+        if (preg_match('/(.{2,4})\1{' . (($cfg['max_pattern_repeat'] ?? 3) - 1) . ',}/u', preg_replace('/\s+/', '', $lower))) {
+            return 'gibberish_pattern';
+        }
+        if (preg_match_all('/https?:\/\/|www\./i', $text) > ($cfg['max_links'] ?? 2)) {
+            return 'too_many_links';
+        }
+        if (preg_match_all('/\+?\d[\d\s\-().]{7,}\d/', $text) > ($cfg['max_phones'] ?? 2)) {
+            return 'too_many_phones';
+        }
+        return 'content_policy';
+    }
+
+    private function saveFlagged(array $fields, array $errors, ?string $flaggedField, ?string $flaggedReason, ?array $context): void
+    {
+        try {
+            \App\Models\FlaggedPost::create([
+                'user_id'      => $context['user_id'] ?? null,
+                'post_type'    => $context['post_type'] ?? 'unknown',
+                'title'        => strip_tags((string) ($fields['title'][0] ?? $fields['name'][0] ?? '')),
+                'description'  => mb_substr(strip_tags((string) ($fields['description'][0] ?? '')), 0, 500),
+                'flag_reason'  => $flaggedReason ?? 'content_policy',
+                'flag_field'   => $flaggedField,
+                'flag_message' => implode(' | ', array_values($errors)),
+                'raw_data'     => $context['raw_data'] ?? null,
+                'ip'           => $context['ip'] ?? null,
+                'status'       => 'pending',
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('FlaggedPost save failed: ' . $e->getMessage());
+        }
+    }
 }
+

@@ -6,6 +6,7 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Navigation\NavigationGroup;
 use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
@@ -27,9 +28,50 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
+
+            // ── Branding ─────────────────────────────────────────────
+            ->brandName('GoBazaar Admin')
+            ->brandLogo(fn () => view('filament.brand'))
+            ->favicon(asset('favicon.ico'))
+
+            // ── Colors — GoBazaar teal/green primary ─────────────────
             ->colors([
-                'primary' => Color::Amber,
+                'primary'   => Color::hex('#00897b'),   // teal-700
+                'gray'      => Color::Slate,
+                'info'      => Color::Sky,
+                'success'   => Color::Emerald,
+                'warning'   => Color::Amber,
+                'danger'    => Color::Rose,
             ])
+
+            // ── Layout ────────────────────────────────────────────────
+            ->sidebarCollapsibleOnDesktop()
+            ->maxContentWidth('full')
+            ->darkMode(true)
+
+            // ── Navigation groups (controls ordering and icons) ───────
+            ->navigationGroups([
+                NavigationGroup::make('Content')
+                    ->icon('heroicon-o-document-text')
+                    ->collapsed(false),
+                NavigationGroup::make('Directory')
+                    ->icon('heroicon-o-building-storefront')
+                    ->collapsed(false),
+                NavigationGroup::make('Finance')
+                    ->icon('heroicon-o-banknotes')
+                    ->collapsed(false),
+                NavigationGroup::make('Advertising')
+                    ->icon('heroicon-o-megaphone')
+                    ->collapsed(true),
+                NavigationGroup::make('Moderation')
+                    ->icon('heroicon-o-shield-check')
+                    ->collapsed(true),
+                NavigationGroup::make('System')
+                    ->icon('heroicon-o-cog-6-tooth')
+                    ->collapsed(true),
+            ])
+
+            // ── Resources / Pages / Widgets ───────────────────────────
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
@@ -37,9 +79,11 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
-                Widgets\AccountWidget::class,
-                Widgets\FilamentInfoWidget::class,
+                \App\Filament\Widgets\StatsOverviewWidget::class,
+                \App\Filament\Widgets\RecentActivityWidget::class,
             ])
+
+            // ── Middleware ────────────────────────────────────────────
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,

@@ -15,6 +15,8 @@ return [
     |
     */
 
+    'require_email_verification' => env('REQUIRE_EMAIL_VERIFICATION', true),
+
     'defaults' => [
         'guard' => env('AUTH_GUARD', 'web'),
         'passwords' => env('AUTH_PASSWORD_BROKER', 'users'),

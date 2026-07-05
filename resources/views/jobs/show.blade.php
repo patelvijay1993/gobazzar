@@ -76,7 +76,13 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
       @if($job->salary)
       <div class="meta-item">
         <span class="meta-label">Salary</span>
-        <span class="meta-val" style="color:var(--green);font-family:var(--fh);font-size:15px;font-weight:700">{{ $job->salary }}</span>
+        <span class="meta-val" style="color:var(--green);font-family:var(--fh);font-size:15px;font-weight:700">{{ $job->formatted_salary }}</span>
+      </div>
+      @endif
+      @if($job->job_type)
+      <div class="meta-item">
+        <span class="meta-label">Job Type</span>
+        <span class="meta-val">💼 {{ $job->job_type_label }}</span>
       </div>
       @endif
       @if($job->city)
@@ -111,14 +117,14 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
       @if($job->description)
       <div class="job-section">
         <h3>Job Description</h3>
-        <div class="content">{!! $job->description !!}</div>
+        <div class="content">{!! clean($job->description) !!}</div>
       </div>
       @endif
 
       @if($job->requirements)
       <div class="job-section">
         <h3>Requirements</h3>
-        <div class="content">{!! $job->requirements !!}</div>
+        <div class="content">{!! clean($job->requirements) !!}</div>
       </div>
       @endif
 
@@ -163,6 +169,10 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
       </div>
     </div>
     @endif
+    <div style="margin-top:4px;margin-bottom:8px">
+      <x-favorite-btn type="job" :model-id="$job->id" :model-class="\App\Models\Job::class" />
+    </div>
+
     @auth
     <div style="text-align:center;margin-top:4px">
       <button onclick="openReportModal('job', {{ $job->id }})" style="background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border-radius:6px;transition:color .15s" onmouseover="this.style.color='#e74c3c'" onmouseout="this.style.color='var(--muted)'">

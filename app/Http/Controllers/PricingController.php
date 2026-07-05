@@ -35,13 +35,10 @@ class PricingController extends Controller
             'message' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        // Log the upgrade request (email sending can be wired up later)
-        \Log::info('Upgrade request', [
+        // Log the upgrade request without PII (contact details stored in advertise_requests)
+        \Log::info('Upgrade request submitted', [
             'user_id' => auth()->id(),
             'plan'    => $data['plan'],
-            'name'    => $data['name'],
-            'email'   => $data['email'],
-            'phone'   => $data['phone'] ?? '',
         ]);
 
         $planName = Plan::where('slug', $data['plan'])->value('name') ?? ucfirst($data['plan']);

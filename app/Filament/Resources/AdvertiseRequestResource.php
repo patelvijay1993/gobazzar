@@ -17,8 +17,8 @@ class AdvertiseRequestResource extends Resource
     protected static ?string $navigationLabel = 'Ad Enquiries';
     protected static ?string $modelLabel      = 'Ad Enquiry';
     protected static ?string $pluralModelLabel = 'Ad Enquiries';
-    protected static ?string $navigationGroup = 'Content';
-    protected static ?int    $navigationSort  = 10;
+    protected static ?string $navigationGroup = 'Advertising';
+    protected static ?int    $navigationSort  = 2;
 
     public static function getNavigationBadge(): ?string
     {

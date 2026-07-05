@@ -12,6 +12,7 @@
         "laravel/reverb": "^1.10",
         "laravel/tinker": "^2.10.1",
         "league/flysystem-aws-s3-v3": "^3.35",
+        "mews/purifier": "*",
         "openai-php/client": "^0.20.0",
         "stripe/stripe-php": "*"
     },

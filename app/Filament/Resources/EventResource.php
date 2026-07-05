@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\EventResource\Pages;
 use App\Models\Category;
 use App\Models\Event;
+use App\Models\Location;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -34,17 +35,34 @@ class EventResource extends Resource
                     ->options(Category::where('type', 'events')->where('is_active', true)->pluck('name', 'id'))
                     ->searchable(),
                 Forms\Components\Select::make('status')
-                    ->options(['draft' => 'Draft', 'active' => 'Active', 'cancelled' => 'Cancelled', 'completed' => 'Completed'])
+                    ->options(['draft' => 'Draft', 'active' => 'Active', 'cancelled' => 'Cancelled', 'completed' => 'Completed', 'flagged' => 'Flagged'])
                     ->default('draft')->required(),
-                Forms\Components\Textarea::make('description')->rows(4)->columnSpanFull(),
+                Forms\Components\RichEditor::make('description')
+                    ->columnSpanFull()
+                    ->toolbarButtons([
+                        'bold', 'italic', 'underline', 'strike',
+                        'bulletList', 'orderedList',
+                        'h2', 'h3',
+                        'link', 'blockquote',
+                        'undo', 'redo',
+                    ]),
             ])->columns(2),
 
             Forms\Components\Section::make('Date & Location')->schema([
                 Forms\Components\DateTimePicker::make('start_date')->required(),
                 Forms\Components\DateTimePicker::make('end_date'),
                 Forms\Components\TextInput::make('venue')->columnSpanFull(),
-                Forms\Components\TextInput::make('city'),
-                Forms\Components\TextInput::make('province'),
+                Forms\Components\Select::make('province')
+                    ->options(fn () => Location::distinct()->orderBy('province')->pluck('province', 'province')->filter()->toArray())
+                    ->searchable()
+                    ->live()
+                    ->placeholder('— Select Province —')
+                    ->afterStateUpdated(fn (Forms\Set $set) => $set('city', null)),
+                Forms\Components\Select::make('city')
+                    ->options(fn (Forms\Get $get) => Location::where('province', $get('province'))->orderBy('city')->pluck('city', 'city')->filter()->toArray())
+                    ->searchable()
+                    ->placeholder('— Select City —')
+                    ->live(),
                 Forms\Components\TextInput::make('price')->default('Free'),
             ])->columns(2),
 
@@ -56,7 +74,7 @@ class EventResource extends Resource
             ])->columns(2),
 
             Forms\Components\Section::make('Media & Tags')->schema([
-                Forms\Components\FileUpload::make('image')->image()->directory('events')->columnSpanFull(),
+                Forms\Components\FileUpload::make('image')->image()->disk(config('filesystems.default'))->directory('events')->columnSpanFull(),
                 Forms\Components\TagsInput::make('tags')->columnSpanFull(),
                 Forms\Components\Toggle::make('is_featured'),
             ]),
@@ -80,7 +98,7 @@ class EventResource extends Resource
             ->defaultSort('start_date')
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
-                    ->options(['draft' => 'Draft', 'active' => 'Active', 'cancelled' => 'Cancelled', 'completed' => 'Completed']),
+                    ->options(['draft' => 'Draft', 'active' => 'Active', 'cancelled' => 'Cancelled', 'completed' => 'Completed', 'flagged' => 'Flagged']),
                 Tables\Filters\SelectFilter::make('category')->relationship('category', 'name'),
             ])
             ->actions([
@@ -105,3 +123,4 @@ class EventResource extends Resource
         ];
     }
 }
+

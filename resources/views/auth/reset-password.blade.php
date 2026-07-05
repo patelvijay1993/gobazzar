@@ -1,0 +1,109 @@
+@extends('layouts.app')
+@section('title', 'Reset Password — GoBazaar')
+
+@push('styles')
+<style>
+.auth-page{min-height:calc(100vh - 120px);background:#f5f7fb;display:flex;align-items:center;justify-content:center;padding:30px 16px}
+.auth-box{width:100%;max-width:420px}
+.auth-brand{text-align:center;margin-bottom:24px}
+.auth-brand-logo{display:inline-flex;align-items:center;gap:10px;text-decoration:none;margin-bottom:8px}
+.auth-brand-icon{width:44px;height:44px;background:var(--primary-light);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px}
+.auth-brand-name{font-family:var(--fh);font-size:26px;font-weight:800;color:var(--primary);line-height:1}
+.auth-brand-name span{color:var(--accent)}
+.auth-brand p{font-size:13px;color:var(--muted)}
+.auth-card{background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.auth-card-head{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);padding:22px 28px;text-align:center;border-bottom:1px solid rgba(255,255,255,.1)}
+.auth-card-head h2{font-family:var(--fh);font-size:20px;font-weight:800;color:#fff;margin-bottom:3px}
+.auth-card-head p{font-size:12.5px;color:rgba(255,255,255,.65)}
+.auth-body{padding:28px}
+.form-group{margin-bottom:18px}
+.form-label{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#374151;margin-bottom:7px;letter-spacing:.3px}
+.form-label i{color:var(--primary);font-size:13px}
+.input-wrap{position:relative}
+.input-wrap i{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:#9ca3af;font-size:14px;pointer-events:none}
+.form-input{width:100%;border:1.5px solid #e5e7eb;border-radius:9px;padding:11px 14px 11px 38px;font-size:14px;transition:border .15s,box-shadow .15s;background:#f9fafb;color:#111;font-family:var(--fb)}
+.form-input:focus{border-color:var(--primary);outline:none;background:#fff;box-shadow:0 0 0 3px rgba(26,58,143,.1)}
+.form-input.is-error{border-color:#ef4444;background:#fef2f2}
+.error-msg{font-size:11.5px;color:#ef4444;margin-top:5px;display:flex;align-items:center;gap:4px}
+.btn-submit{width:100%;padding:13px;background:var(--primary);color:#fff;border-radius:9px;font-size:15px;font-weight:700;font-family:var(--fh);cursor:pointer;transition:background .2s;border:none;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-submit:hover{background:var(--primary-dark)}
+.auth-footer{text-align:center;padding:16px 28px 20px;font-size:13.5px;color:#6b7280;border-top:1px solid #f3f4f6}
+.auth-footer a{color:var(--primary);font-weight:700;text-decoration:none}
+.auth-footer a:hover{text-decoration:underline}
+@media(max-width:480px){.auth-body{padding:20px}.auth-card-head{padding:18px 20px}.auth-footer{padding:14px 20px 18px}.auth-page{padding:20px 12px;align-items:flex-start;padding-top:30px}}
+</style>
+@endpush
+
+@section('content')
+<div class="auth-page">
+  <div class="auth-box">
+
+    <div class="auth-brand">
+      <a href="{{ route('home') }}" class="auth-brand-logo">
+        <div class="auth-brand-icon">🛍️</div>
+        <div class="auth-brand-name">Go<span>Bazaar</span></div>
+      </a>
+      <p>Canada's #1 Indian Community Portal</p>
+    </div>
+
+    <div class="auth-card">
+      <div class="auth-card-head">
+        <h2>Set New Password</h2>
+        <p>Choose a strong password for your account</p>
+      </div>
+
+      <div class="auth-body">
+        <form method="POST" action="{{ route('password.update') }}">
+          @csrf
+          <input type="hidden" name="token" value="{{ $token }}">
+
+          <div class="form-group">
+            <label class="form-label"><i class="fa-solid fa-envelope"></i> Email Address</label>
+            <div class="input-wrap">
+              <i class="fa-regular fa-envelope"></i>
+              <input type="email" name="email" value="{{ old('email', request('email')) }}"
+                class="form-input {{ $errors->has('email') ? 'is-error' : '' }}"
+                placeholder="you@example.com" required autocomplete="email">
+            </div>
+            @error('email')
+              <div class="error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ $message }}</div>
+            @enderror
+          </div>
+
+          <div class="form-group">
+            <label class="form-label"><i class="fa-solid fa-lock"></i> New Password</label>
+            <div class="input-wrap">
+              <i class="fa-solid fa-lock"></i>
+              <input type="password" name="password"
+                class="form-input {{ $errors->has('password') ? 'is-error' : '' }}"
+                placeholder="Min 8 characters" required autocomplete="new-password">
+            </div>
+            @error('password')
+              <div class="error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ $message }}</div>
+            @enderror
+          </div>
+
+          <div class="form-group">
+            <label class="form-label"><i class="fa-solid fa-lock"></i> Confirm New Password</label>
+            <div class="input-wrap">
+              <i class="fa-solid fa-lock"></i>
+              <input type="password" name="password_confirmation"
+                class="form-input"
+                placeholder="Repeat new password" required autocomplete="new-password">
+            </div>
+          </div>
+
+          <button type="submit" class="btn-submit">
+            <i class="fa-solid fa-key"></i> Reset Password
+          </button>
+        </form>
+      </div>
+
+      <div class="auth-footer">
+        Remembered your password? <a href="{{ route('login') }}">Back to Login →</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+@endsection

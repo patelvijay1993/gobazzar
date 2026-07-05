@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Post Something — GoBazzar')
+@section('title', 'Post Something — GoBazaar')
 
 @push('styles')
 <style>
@@ -192,6 +192,9 @@ textarea.form-input{resize:vertical;min-height:100px}
               </div>
             </div>
             <div class="form-row" style="margin-top:14px">
+              <div class="form-group" style="grid-column:1/-1;margin-bottom:-6px">
+                <button type="button" onclick="detectLocation('cl-province','cl-city',this)" style="background:none;border:1px solid var(--primary);color:var(--primary);border-radius:20px;padding:4px 12px;font-size:12px;cursor:pointer;font-weight:600">📍 Use my location</button>
+              </div>
               <div class="form-group">
                 <label class="form-label">Province <span>*</span></label>
                 <select name="province" id="cl-province" class="form-input" required onchange="loadCities('cl-city',this.value)">
@@ -316,6 +319,9 @@ textarea.form-input{resize:vertical;min-height:100px}
               </div>
             </div>
             <div class="form-row">
+              <div class="form-group" style="grid-column:1/-1;margin-bottom:-6px">
+                <button type="button" onclick="detectLocation('job-province','job-city',this)" style="background:none;border:1px solid var(--primary);color:var(--primary);border-radius:20px;padding:4px 12px;font-size:12px;cursor:pointer;font-weight:600">📍 Use my location</button>
+              </div>
               <div class="form-group">
                 <label class="form-label">Province <span>*</span></label>
                 <select name="province" id="job-province" class="form-input" required onchange="loadCities('job-city',this.value)">
@@ -425,6 +431,9 @@ textarea.form-input{resize:vertical;min-height:100px}
               <input type="text" name="venue" class="form-input" value="{{ old('venue') }}" placeholder="Hall name or address">
             </div>
             <div class="form-row">
+              <div class="form-group" style="grid-column:1/-1;margin-bottom:-6px">
+                <button type="button" onclick="detectLocation('ev-province','ev-city',this)" style="background:none;border:1px solid var(--primary);color:var(--primary);border-radius:20px;padding:4px 12px;font-size:12px;cursor:pointer;font-weight:600">📍 Use my location</button>
+              </div>
               <div class="form-group">
                 <label class="form-label">Province <span>*</span></label>
                 <select name="province" id="ev-province" class="form-input" required onchange="loadCities('ev-city',this.value)">
@@ -512,93 +521,284 @@ textarea.form-input{resize:vertical;min-height:100px}
         </div>
       </div>
     @else
-    <form method="POST" action="{{ route('post.business') }}" enctype="multipart/form-data">
+    <form method="POST" action="{{ route('post.business') }}" enctype="multipart/form-data" id="biz-form">
       @csrf
-      <div class="form-card">
-        <div class="form-card-head">🏢 List Your Business</div>
-        <div class="form-card-body">
-          <div class="form-section">
-            <div class="form-section-title">Business Details</div>
-            <div class="form-group" style="margin-bottom:14px">
-              <label class="form-label">Business Name <span>*</span></label>
-              <input type="text" name="name" class="form-input" value="{{ old('name') }}" required placeholder="e.g. Spice Garden Restaurant">
-            </div>
-            <div class="form-row" style="margin-bottom:14px">
-              <div class="form-group">
-                <label class="form-label">Category</label>
-                <select name="category_id" id="biz-category" class="form-input" onchange="loadSubCats('biz-subcategory', this.value)">
-                  <option value="">Select category</option>
-                  @foreach($directoryParents as $cat)
-                    <option value="{{ $cat->id }}" {{ old('category_id')==$cat->id ? 'selected' : '' }}>{{ $cat->icon }} {{ $cat->name }}</option>
-                  @endforeach
-                </select>
-              </div>
-              <div class="form-group">
-                <label class="form-label">Sub-Category</label>
-                <select name="subcategory_id" id="biz-subcategory" class="form-input">
-                  <option value="">Select sub-category (optional)</option>
-                </select>
-              </div>
-            </div>
-            <div class="form-group" style="margin-bottom:14px">
-              <label class="form-label">Phone</label>
-              <input type="text" name="phone" class="form-input" value="{{ old('phone', Auth::user()->phone) }}">
-            </div>
-            <div class="form-group" style="margin-bottom:14px">
-              <label class="form-label">Description</label>
-              <textarea name="description" id="biz-description" style="display:none">{{ old('description') }}</textarea>
-              <div id="biz-description-editor" class="ql-editor-wrap"></div>
-            </div>
-          </div>
+      @php
+        $days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+        $oldHours = old('hours', []);
+      @endphp
 
-          <div class="form-section">
-            <div class="form-section-title">Location & Contact</div>
-            <div class="form-group" style="margin-bottom:14px">
-              <label class="form-label">Street Address</label>
-              <input type="text" name="address" class="form-input" value="{{ old('address') }}" placeholder="123 Main St">
-            </div>
-            <div class="form-row" style="margin-bottom:14px">
-              <div class="form-group">
-                <label class="form-label">Province <span>*</span></label>
-                <select name="province" id="biz-province" class="form-input" required onchange="loadCities('biz-city',this.value)">
-                  <option value="">Select province</option>
-                  @foreach($provinces as $prov)
-                    <option value="{{ $prov }}" {{ old('province', Auth::user()->province) === $prov ? 'selected' : '' }}>{{ $prov }}</option>
-                  @endforeach
-                </select>
-              </div>
-              <div class="form-group">
-                <label class="form-label">City <span>*</span></label>
-                <select name="city" id="biz-city" class="form-input" required>
-                  <option value="">Select city</option>
-                  @foreach($cities as $city)
-                    <option value="{{ $city }}" {{ old('city', Auth::user()->city) === $city ? 'selected' : '' }}>{{ $city }}</option>
-                  @endforeach
-                </select>
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label class="form-label">Email</label>
-                <input type="email" name="email" class="form-input" value="{{ old('email', Auth::user()->email) }}">
-              </div>
-              <div class="form-group">
-                <label class="form-label">Website</label>
-                <input type="url" name="website" class="form-input" value="{{ old('website') }}" placeholder="https://…">
-              </div>
-            </div>
-          </div>
-
-          <div class="form-section">
-            <div class="form-section-title">Photos</div>
-            <div style="margin-bottom:16px">
-              <x-image-uploader name="images" :multiple="true" :max="$maxImages" :label="'Business Photos (up to '.$maxImages.')'" :hint="'First photo will be the main banner · '.$user->planName().' plan: '.$maxImages.' photos'" />
-            </div>
-            <x-image-uploader name="logo" :multiple="false" :max="1" label="Logo" hint="Square image preferred (e.g. 200×200)" />
-          </div>
-
-          <button type="submit" class="btn-submit">Submit Business →</button>
+      {{-- ── STEP 1: Basic Info ──────────────────────────────────── --}}
+      <div class="form-card" style="margin-bottom:16px">
+        <div class="form-card-head">
+          <span style="background:rgba(255,255,255,.2);border-radius:50%;width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0">1</span>
+          Business Identity
         </div>
+        <div class="form-card-body">
+          <div class="form-row" style="margin-bottom:14px">
+            <div class="form-group" style="grid-column:1/-1">
+              <label class="form-label">Business Name <span>*</span></label>
+              <input type="text" name="name" id="biz-name" class="form-input" value="{{ old('name') }}" required placeholder="e.g. Spice Garden Restaurant">
+              <div class="form-hint">This is how customers will find you on GoBazaar</div>
+            </div>
+          </div>
+          <div class="form-row" style="margin-bottom:14px">
+            <div class="form-group">
+              <label class="form-label">Category <span>*</span></label>
+              <select name="category_id" id="biz-category" class="form-input" onchange="loadSubCats('biz-subcategory', this.value)" required>
+                <option value="">Select category</option>
+                @foreach($directoryParents as $cat)
+                  <option value="{{ $cat->id }}" {{ old('category_id')==$cat->id ? 'selected' : '' }}>{{ $cat->icon }} {{ $cat->name }}</option>
+                @endforeach
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Sub-Category</label>
+              <select name="subcategory_id" id="biz-subcategory" class="form-input">
+                <option value="">Select sub-category (optional)</option>
+              </select>
+            </div>
+          </div>
+
+          {{-- ✨ AI Content Generator Panel --}}
+          <div id="ai-gen-panel" style="background:linear-gradient(135deg,#f0f4ff,#faf5ff);border:1.5px solid #c7d4f0;border-radius:12px;padding:18px 20px;margin-bottom:18px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+              <div style="display:flex;align-items:center;gap:10px">
+                <div style="background:var(--primary);color:#fff;border-radius:8px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">✨</div>
+                <div>
+                  <div style="font-size:13px;font-weight:700;color:var(--primary)">AI Content Generator</div>
+                  <div style="font-size:11px;color:#6b7280">Describe your business in a few words — AI will write the full description & tags</div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <label style="font-size:11.5px;font-weight:600;color:var(--muted);white-space:nowrap">Language:</label>
+                <select id="ai-lang" style="border:1.5px solid #c7d4f0;border-radius:6px;padding:5px 10px;font-size:12px;background:#fff;color:var(--text)">
+                  <option value="en">English</option>
+                  <option value="gu">ગુજરાતી</option>
+                  <option value="hi">हिंदी</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="margin-bottom:12px">
+              <label style="display:block;font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px">
+                What does your business do? <span style="color:var(--primary)">*</span>
+              </label>
+              <textarea id="ai-keywords" rows="3" style="width:100%;border:1.5px solid #c7d4f0;border-radius:8px;padding:10px 14px;font-size:13px;font-family:var(--fb);resize:vertical;background:#fff;color:var(--text)" placeholder="e.g. We serve authentic Gujarati food — thali, dhokla, snacks. Vegetarian only. Family-run since 2015. Catering available for events. Located in Brampton near Mandir."></textarea>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+              <button type="button" id="ai-gen-btn" onclick="runAIGenerate()" style="background:var(--primary);color:#fff;border:none;border-radius:8px;padding:10px 22px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .15s">
+                <span id="ai-btn-icon">✨</span>
+                <span id="ai-btn-text">Generate Content</span>
+              </button>
+              <div id="ai-status" style="font-size:12px;color:var(--muted)"></div>
+            </div>
+
+            {{-- Preview area --}}
+            <div id="ai-preview" style="display:none;margin-top:16px;border-top:1px solid #dde3f5;padding-top:16px">
+              <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px">✨ Generated Content — Review and Apply</div>
+
+              <div style="background:#fff;border:1.5px solid #dde3f5;border-radius:8px;padding:14px 16px;margin-bottom:10px;font-size:13px;line-height:1.7;color:var(--text)" id="ai-desc-preview"></div>
+
+              <div style="margin-bottom:12px">
+                <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:6px">SUGGESTED TAGLINE</div>
+                <div id="ai-tagline-preview" style="font-size:13px;font-style:italic;color:var(--primary);background:#f0f4ff;padding:8px 12px;border-radius:6px"></div>
+              </div>
+
+              <div style="margin-bottom:14px">
+                <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:6px">SUGGESTED TAGS</div>
+                <div id="ai-tags-preview" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+              </div>
+
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <button type="button" onclick="applyAIContent()" style="background:var(--primary);color:#fff;border:none;border-radius:7px;padding:9px 20px;font-size:13px;font-weight:700;cursor:pointer">✅ Apply to Form</button>
+                <button type="button" onclick="runAIGenerate()" style="background:#fff;color:var(--primary);border:1.5px solid var(--primary);border-radius:7px;padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer">🔄 Regenerate</button>
+                <button type="button" onclick="document.getElementById('ai-preview').style.display='none'" style="background:#fff;color:var(--muted);border:1.5px solid var(--border);border-radius:7px;padding:9px 16px;font-size:12px;cursor:pointer">Dismiss</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom:14px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+              <label class="form-label" style="margin-bottom:0">About Your Business</label>
+              <span style="font-size:11px;color:var(--muted)">Use AI above to auto-fill ↑</span>
+            </div>
+            <textarea name="description" id="biz-description" style="display:none">{{ old('description') }}</textarea>
+            <div id="biz-description-editor" class="ql-editor-wrap"></div>
+            <div class="form-hint">Describe your services, specialties, and what makes you unique. Minimum 50 words recommended.</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tags / Keywords</label>
+            <input type="text" name="tags_input" id="biz-tags-input" class="form-input" value="{{ old('tags_input', is_array(old('tags')) ? implode(', ', old('tags')) : '') }}" placeholder="e.g. vegetarian, Indian food, catering, halal, delivery">
+            <input type="hidden" name="tags" id="biz-tags-hidden" value="{{ old('tags', is_array(old('tags')) ? implode(',', old('tags')) : '') }}">
+            <div class="form-hint">Comma-separated keywords — helps customers find you in search</div>
+            <div id="biz-tag-pills" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"></div>
+          </div>
+        </div>
+      </div>
+
+      {{-- ── STEP 2: Location & Contact ──────────────────────────── --}}
+      <div class="form-card" style="margin-bottom:16px">
+        <div class="form-card-head">
+          <span style="background:rgba(255,255,255,.2);border-radius:50%;width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0">2</span>
+          Location & Contact
+        </div>
+        <div class="form-card-body">
+          <div class="form-group" style="margin-bottom:14px">
+            <label class="form-label">Street Address</label>
+            <input type="text" name="address" class="form-input" value="{{ old('address') }}" placeholder="123 Main St, Unit 4">
+          </div>
+          <div class="form-row" style="margin-bottom:14px">
+            <div class="form-group" style="grid-column:1/-1;margin-bottom:-6px">
+              <button type="button" onclick="detectLocation('biz-province','biz-city',this)" style="background:none;border:1px solid var(--primary);color:var(--primary);border-radius:20px;padding:4px 12px;font-size:12px;cursor:pointer;font-weight:600">📍 Use my location</button>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Province <span>*</span></label>
+              <select name="province" id="biz-province" class="form-input" required onchange="loadCities('biz-city',this.value)">
+                <option value="">Select province</option>
+                @foreach($provinces as $prov)
+                  <option value="{{ $prov }}" {{ old('province', Auth::user()->province) === $prov ? 'selected' : '' }}>{{ $prov }}</option>
+                @endforeach
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">City <span>*</span></label>
+              <select name="city" id="biz-city" class="form-input" required>
+                <option value="">Select city</option>
+                @foreach($cities as $city)
+                  <option value="{{ $city }}" {{ old('city', Auth::user()->city) === $city ? 'selected' : '' }}>{{ $city }}</option>
+                @endforeach
+              </select>
+            </div>
+          </div>
+          <div class="form-row" style="margin-bottom:14px">
+            <div class="form-group">
+              <label class="form-label">Phone Number</label>
+              <input type="text" name="phone" class="form-input" value="{{ old('phone', Auth::user()->phone) }}" placeholder="+1 647 xxx xxxx">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Business Email</label>
+              <input type="email" name="email" class="form-input" value="{{ old('email', Auth::user()->email) }}">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Website</label>
+              <input type="url" name="website" class="form-input" value="{{ old('website') }}" placeholder="https://yourbusiness.com">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Google Maps Link</label>
+              <input type="url" name="map_url" class="form-input" value="{{ old('map_url') }}" placeholder="https://maps.google.com/…">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {{-- ── STEP 3: Business Hours ──────────────────────────────── --}}
+      <div class="form-card" style="margin-bottom:16px">
+        <div class="form-card-head">
+          <span style="background:rgba(255,255,255,.2);border-radius:50%;width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0">3</span>
+          Business Hours
+          <span style="margin-left:auto;font-size:11px;font-weight:400;opacity:.7">Optional — leave blank if hours vary</span>
+        </div>
+        <div class="form-card-body">
+          <div style="display:grid;gap:10px">
+            @foreach($days as $day)
+            @php $dkey = strtolower($day); @endphp
+            <div style="display:grid;grid-template-columns:110px 1fr 1fr 120px;gap:10px;align-items:center">
+              <label style="font-size:13px;font-weight:600;color:var(--text)">{{ $day }}</label>
+              <input type="time" name="hours[{{ $dkey }}][open]" class="form-input" value="{{ $oldHours[$dkey]['open'] ?? '' }}" placeholder="09:00" style="font-size:13px;padding:8px 10px">
+              <input type="time" name="hours[{{ $dkey }}][close]" class="form-input" value="{{ $oldHours[$dkey]['close'] ?? '' }}" placeholder="18:00" style="font-size:13px;padding:8px 10px">
+              <label style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);cursor:pointer">
+                <input type="checkbox" name="hours[{{ $dkey }}][closed]" value="1" {{ !empty($oldHours[$dkey]['closed']) ? 'checked' : '' }} style="width:16px;height:16px"> Closed
+              </label>
+            </div>
+            @endforeach
+          </div>
+          <div class="form-hint" style="margin-top:12px">Enter opening and closing times for each day. Check "Closed" for days you're not open.</div>
+        </div>
+      </div>
+
+      {{-- ── STEP 4: Social Media ────────────────────────────────── --}}
+      <div class="form-card" style="margin-bottom:16px">
+        <div class="form-card-head">
+          <span style="background:rgba(255,255,255,.2);border-radius:50%;width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0">4</span>
+          Social Media
+          <span style="margin-left:auto;font-size:11px;font-weight:400;opacity:.7">Optional</span>
+        </div>
+        <div class="form-card-body">
+          <div class="form-row" style="margin-bottom:14px">
+            <div class="form-group">
+              <label class="form-label">
+                <i class="fa-brands fa-facebook" style="color:#1877f2;margin-right:5px"></i>Facebook Page
+              </label>
+              <input type="url" name="social[facebook]" class="form-input" value="{{ old('social.facebook') }}" placeholder="https://facebook.com/yourbusiness">
+            </div>
+            <div class="form-group">
+              <label class="form-label">
+                <i class="fa-brands fa-instagram" style="color:#e1306c;margin-right:5px"></i>Instagram
+              </label>
+              <input type="url" name="social[instagram]" class="form-input" value="{{ old('social.instagram') }}" placeholder="https://instagram.com/yourbusiness">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">
+                <i class="fa-brands fa-whatsapp" style="color:#25d366;margin-right:5px"></i>WhatsApp Number
+              </label>
+              <input type="text" name="social[whatsapp]" class="form-input" value="{{ old('social.whatsapp') }}" placeholder="+1 647 xxx xxxx">
+            </div>
+            <div class="form-group">
+              <label class="form-label">
+                <i class="fa-brands fa-youtube" style="color:#ff0000;margin-right:5px"></i>YouTube Channel
+              </label>
+              <input type="url" name="social[youtube]" class="form-input" value="{{ old('social.youtube') }}" placeholder="https://youtube.com/@yourbusiness">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">
+                <i class="fa-brands fa-x-twitter" style="margin-right:5px"></i>Twitter / X
+              </label>
+              <input type="url" name="social[twitter]" class="form-input" value="{{ old('social.twitter') }}" placeholder="https://twitter.com/yourbusiness">
+            </div>
+            <div class="form-group">
+              <label class="form-label">
+                <i class="fa-brands fa-linkedin" style="color:#0077b5;margin-right:5px"></i>LinkedIn
+              </label>
+              <input type="url" name="social[linkedin]" class="form-input" value="{{ old('social.linkedin') }}" placeholder="https://linkedin.com/company/yourbusiness">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {{-- ── STEP 5: Photos & Logo ───────────────────────────────── --}}
+      <div class="form-card" style="margin-bottom:20px">
+        <div class="form-card-head">
+          <span style="background:rgba(255,255,255,.2);border-radius:50%;width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0">5</span>
+          Photos & Logo
+        </div>
+        <div class="form-card-body">
+          <div style="background:var(--primary-light);border-radius:var(--r);padding:12px 16px;margin-bottom:20px;font-size:12.5px;color:var(--primary);display:flex;gap:10px;align-items:flex-start">
+            <i class="fa-solid fa-circle-info" style="flex-shrink:0;margin-top:2px"></i>
+            <span>The <strong>first photo</strong> you upload becomes your main banner on the directory listing. Use a high-quality landscape image (1200×628 recommended).</span>
+          </div>
+          <div style="margin-bottom:20px">
+            <x-image-uploader name="images" :multiple="true" :max="$maxImages" :label="'Business Photos (up to '.$maxImages.')'" :hint="'First photo = main banner · '.$user->planName().' plan allows '.$maxImages.' photos'" />
+          </div>
+          <x-image-uploader name="logo" :multiple="false" :max="1" label="Business Logo" hint="Square image preferred (200×200 minimum). Shows in search results and listings." />
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+        <div style="font-size:12px;color:var(--muted)">
+          <i class="fa-solid fa-shield-halved" style="color:var(--primary);margin-right:5px"></i>
+          Your listing goes live after a quick admin review (usually within 24 hours).
+        </div>
+        <button type="button" id="biz-submit-btn" onclick="submitBizForm()" class="btn-submit" style="font-size:15px;padding:14px 40px">
+          🏢 Submit Business Listing →
+        </button>
       </div>
     </form>
     @endif
@@ -806,6 +1006,9 @@ textarea.form-input{resize:vertical;min-height:100px}
           <div class="form-section">
             <div class="form-section-title">Location</div>
             <div class="form-row">
+              <div class="form-group" style="grid-column:1/-1;margin-bottom:-6px">
+                <button type="button" onclick="detectLocation('mat-province','mat-city',this)" style="background:none;border:1px solid var(--primary);color:var(--primary);border-radius:20px;padding:4px 12px;font-size:12px;cursor:pointer;font-weight:600">📍 Use my location</button>
+              </div>
               <div class="form-group">
                 <label class="form-label">Province <span>*</span></label>
                 <select name="province" id="mat-province" class="form-input" required onchange="loadCities('mat-city',this.value)">
@@ -862,6 +1065,9 @@ textarea.form-input{resize:vertical;min-height:100px}
               </div>
             </div>
             <x-image-uploader name="photo" :multiple="false" :max="1" label="Profile Photo" hint="Square photo preferred (e.g. 400×400)" />
+            <div style="margin-top:16px">
+              <x-image-uploader name="photos" :multiple="true" :max="$maxImages" label="Additional Photos (Gallery)" hint="Upload up to {{ $maxImages }} additional photos to showcase your profile" />
+            </div>
           </div>
 
           <button type="submit" class="btn-submit">Submit Profile →</button>
@@ -1001,27 +1207,248 @@ function _qlImageHandler(quill) {
 }
 
 function _qlInit(editorId, textareaId, withImage) {
+  _qlInitReturn(editorId, textareaId, withImage);
+}
+
+function _qlInitReturn(editorId, textareaId, withImage) {
   var ta  = document.getElementById(textareaId);
   var el  = document.getElementById(editorId);
-  if (!ta || !el) return;
+  if (!ta || !el) return null;
   var modules = { toolbar: withImage ? _qlToolbarImg : _qlToolbar };
   var q = new Quill(el, { theme:'snow', modules: modules });
   if (withImage) {
     q.getModule('toolbar').addHandler('image', _qlImageHandler(q));
   }
   if (ta.value) q.clipboard.dangerouslyPasteHTML(ta.value);
-  // sync to hidden textarea before form submit
   el.closest('form').addEventListener('submit', function() {
     ta.value = q.root.innerHTML;
   });
+  return q;
 }
 
 _qlInit('cl-description-editor',   'cl-description');
 _qlInit('job-description-editor',  'job-description');
 _qlInit('job-requirements-editor', 'job-requirements');
 _qlInit('ev-description-editor',   'ev-description');
-_qlInit('biz-description-editor',  'biz-description', true);
+_bizQuill = _qlInitReturn('biz-description-editor', 'biz-description', true);
 _qlInit('bp-description-editor',   'bp-description', true);
+
+// ── Business form submit — builds FormData manually so images are included ──
+function submitBizForm() {
+  var form = document.getElementById('biz-form');
+  if (!form) return;
+
+  // Validate required Quill fields — sync to hidden textareas first
+  // (already handled by Quill submit listener, but we need to trigger it manually)
+  form.querySelectorAll('textarea[style*="display:none"]').forEach(function(ta) {
+    // already synced by Quill's submit listener on the form — skip
+  });
+
+  // Trigger Quill sync by dispatching a 'submit' event on form
+  // BUT we need the raw FormData AFTER sync, so we manually sync the biz description
+  if (_bizQuill) {
+    document.getElementById('biz-description').value = _bizQuill.root.innerHTML;
+  }
+
+  // Check for oversize images
+  function _getParentForm(el) {
+    while (el) { if (el.tagName === 'FORM') return el; el = el.parentElement; }
+    return null;
+  }
+  var hasError = false;
+  Object.keys(window._iuReg || {}).forEach(function(uid) {
+    var inp = document.getElementById(uid + '_input');
+    if (!inp || _getParentForm(inp) !== form) return;
+    var oversize = window._iuReg[uid].files.filter(function(f){ return !f.valid; });
+    if (oversize.length) hasError = true;
+  });
+  if (hasError) {
+    alert('Please remove oversized images (over 1 MB) before submitting.');
+    return;
+  }
+
+  var btn = document.getElementById('biz-submit-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Submitting…';
+
+  // Inject files from custom image uploaders into hidden <input type="file"> elements
+  // so the native form submit carries them to the server correctly.
+  var injected = [];
+  Object.keys(window._iuReg || {}).forEach(function(uid) {
+    var inp = document.getElementById(uid + '_input');
+    if (!inp || _getParentForm(inp) !== form) return;
+    var cfg = window._iuReg[uid];
+    var validFiles = cfg.files.filter(function(e){ return e.valid; });
+    if (!validFiles.length) return;
+
+    var dt = new DataTransfer();
+    validFiles.forEach(function(e){ dt.items.add(e.file); });
+    inp.files = dt.files;
+    injected.push(inp);
+  });
+
+  form.submit();
+}
+
+// ── AI Business Content Generator ───────────────────────────────
+var _aiGenResult = null;
+var _bizQuill    = null; // filled in when Quill inits
+
+function runAIGenerate() {
+  var name     = (document.getElementById('biz-name')?.value || '').trim();
+  var catSel   = document.getElementById('biz-category');
+  var catText  = catSel?.options[catSel.selectedIndex]?.text?.replace(/^[^\w]+/, '').trim() || '';
+  var keywords = (document.getElementById('ai-keywords')?.value || '').trim();
+  var lang     = document.getElementById('ai-lang')?.value || 'en';
+
+  if (!name) { alert('Please enter your Business Name first (Step 1).'); return; }
+  if (!keywords) { alert('Please describe your business briefly in the text area above.'); return; }
+
+  var btn     = document.getElementById('ai-gen-btn');
+  var icon    = document.getElementById('ai-btn-icon');
+  var txt     = document.getElementById('ai-btn-text');
+  var status  = document.getElementById('ai-status');
+  var preview = document.getElementById('ai-preview');
+
+  btn.disabled = true;
+  icon.textContent = '⏳';
+  txt.textContent  = 'Generating…';
+  status.textContent = 'Asking AI — usually takes 5–10 seconds…';
+  preview.style.display = 'none';
+
+  var csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+  fetch('{{ route("business.generate-content") }}', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf },
+    body: JSON.stringify({ business_name: name, category: catText, keywords: keywords, language: lang })
+  })
+  .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+  .then(function(res) {
+    btn.disabled = false;
+    icon.textContent = '✨';
+    txt.textContent  = 'Generate Content';
+
+    if (!res.ok || res.data.error) {
+      status.textContent = '⚠️ ' + (res.data.error || 'Generation failed.');
+      return;
+    }
+
+    _aiGenResult = res.data;
+    status.textContent = '✅ Done! Review below.';
+
+    // Show description preview
+    document.getElementById('ai-desc-preview').innerHTML = res.data.description || '';
+    document.getElementById('ai-tagline-preview').textContent = res.data.tagline || '';
+
+    // Show tag pills in preview
+    var tagWrap = document.getElementById('ai-tags-preview');
+    tagWrap.innerHTML = '';
+    (res.data.tags || []).forEach(function(tag) {
+      var span = document.createElement('span');
+      span.style.cssText = 'background:#f0f4ff;color:var(--primary);border:1px solid #c7d4f0;border-radius:20px;padding:3px 10px;font-size:12px;font-weight:600;cursor:pointer';
+      span.title = 'Click to toggle';
+      span.textContent = tag;
+      span.dataset.selected = '1';
+      span.addEventListener('click', function() {
+        var sel = span.dataset.selected === '1';
+        span.dataset.selected = sel ? '0' : '1';
+        span.style.opacity = sel ? '0.4' : '1';
+      });
+      tagWrap.appendChild(span);
+    });
+
+    preview.style.display = 'block';
+    preview.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  })
+  .catch(function(err) {
+    btn.disabled = false;
+    icon.textContent = '✨';
+    txt.textContent  = 'Generate Content';
+    status.textContent = '⚠️ Network error. Please try again.';
+  });
+}
+
+function applyAIContent() {
+  if (!_aiGenResult) return;
+
+  // Apply description to Quill editor
+  if (_bizQuill) {
+    _bizQuill.clipboard.dangerouslyPasteHTML(_aiGenResult.description || '');
+    document.getElementById('biz-description').value = _aiGenResult.description || '';
+  }
+
+  // Apply selected tags
+  var tagSpans = document.querySelectorAll('#ai-tags-preview span');
+  var selected = [];
+  tagSpans.forEach(function(s) {
+    if (s.dataset.selected !== '0') selected.push(s.textContent.trim());
+  });
+
+  var tagInput = document.getElementById('biz-tags-input');
+  if (tagInput) {
+    var existing = tagInput.value.split(',').map(function(t){ return t.trim(); }).filter(Boolean);
+    var merged   = [...new Set([...existing, ...selected])];
+    tagInput.value = merged.join(', ');
+    // Trigger pill render
+    tagInput.dispatchEvent(new Event('blur'));
+  }
+
+  document.getElementById('ai-preview').style.display = 'none';
+  document.getElementById('ai-status').textContent = '✅ Content applied to form!';
+
+  // Scroll to description
+  document.getElementById('biz-description-editor').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+// ── Business tag pills ──────────────────────────────────────────
+(function() {
+  var input  = document.getElementById('biz-tags-input');
+  var hidden = document.getElementById('biz-tags-hidden');
+  var pills  = document.getElementById('biz-tag-pills');
+  if (!input) return;
+
+  function renderPills(tags) {
+    pills.innerHTML = '';
+    tags.forEach(function(tag, i) {
+      if (!tag) return;
+      var pill = document.createElement('span');
+      pill.style.cssText = 'display:inline-flex;align-items:center;gap:5px;background:var(--primary-light);color:var(--primary);border:1px solid #c7d4f0;border-radius:20px;padding:3px 10px;font-size:12px;font-weight:600';
+      pill.innerHTML = tag + ' <button type="button" onclick="removeBizTag('+i+')" style="background:none;border:none;cursor:pointer;font-size:14px;color:var(--primary);line-height:1;padding:0">×</button>';
+      pills.appendChild(pill);
+    });
+    hidden.value = tags.filter(Boolean).join(',');
+  }
+
+  window.removeBizTag = function(i) {
+    var tags = hidden.value.split(',').filter(Boolean);
+    tags.splice(i, 1);
+    input.value = tags.join(', ');
+    renderPills(tags);
+  };
+
+  function syncTags() {
+    var tags = input.value.split(',').map(function(t){ return t.trim(); }).filter(Boolean);
+    renderPills(tags);
+  }
+
+  input.addEventListener('blur', syncTags);
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); syncTags(); }
+  });
+
+  // Init from old() value
+  if (input.value) syncTags();
+
+  // Sync on business hours: auto-uncheck open/close when "Closed" is checked
+  document.querySelectorAll('#biz-form input[type=checkbox]').forEach(function(cb) {
+    cb.addEventListener('change', function() {
+      var row = cb.closest('div');
+      var inputs = row.querySelectorAll('input[type=time]');
+      inputs.forEach(function(t) { t.disabled = cb.checked; if(cb.checked) t.value=''; });
+    });
+  });
+})();
 </script>
 @endpush
 @endsection

@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\MatrimonialResource\Pages;
+use App\Models\Location;
 use App\Models\Matrimonial;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -26,7 +27,7 @@ class MatrimonialResource extends Resource
                 Forms\Components\TextInput::make('name')
                     ->required()
                     ->live(onBlur: true)
-                    ->afterStateUpdated(fn ($state, Forms\Set $set) => $set('slug', Str::slug($state.'-'.rand(100,999))))
+                    ->afterStateUpdated(fn ($state, Forms\Set $set) => $set('slug', Str::slug($state)))
                     ->columnSpanFull(),
                 Forms\Components\TextInput::make('slug')->required()->unique(ignoreRecord: true)->columnSpanFull(),
                 Forms\Components\Select::make('profile_for')
@@ -54,8 +55,18 @@ class MatrimonialResource extends Resource
             ])->columns(3),
 
             Forms\Components\Section::make('Location')->schema([
-                Forms\Components\TextInput::make('city')->required(),
-                Forms\Components\TextInput::make('province'),
+                Forms\Components\Select::make('province')
+                    ->options(fn () => Location::distinct()->orderBy('province')->pluck('province', 'province')->filter()->toArray())
+                    ->searchable()
+                    ->live()
+                    ->placeholder('— Select Province —')
+                    ->afterStateUpdated(fn (Forms\Set $set) => $set('city', null)),
+                Forms\Components\Select::make('city')
+                    ->options(fn (Forms\Get $get) => Location::where('province', $get('province'))->orderBy('city')->pluck('city', 'city')->filter()->toArray())
+                    ->searchable()
+                    ->placeholder('— Select City —')
+                    ->live()
+                    ->required(),
                 Forms\Components\TextInput::make('country')->default('Canada'),
             ])->columns(3),
 
@@ -65,7 +76,16 @@ class MatrimonialResource extends Resource
             ]),
 
             Forms\Components\Section::make('Photos & Contact')->schema([
-                Forms\Components\FileUpload::make('photo')->image()->directory('matrimonials')->label('Profile Photo'),
+                Forms\Components\FileUpload::make('photo')->image()->disk(config('filesystems.default'))->directory('matrimonials')->label('Profile Photo'),
+                Forms\Components\FileUpload::make('photos')
+                    ->label('Gallery Photos')
+                    ->image()
+                    ->disk(config('filesystems.default'))
+                    ->directory('matrimonials')
+                    ->multiple()
+                    ->reorderable()
+                    ->helperText('Additional photos shown in profile gallery.')
+                    ->columnSpanFull(),
                 Forms\Components\TextInput::make('contact_name'),
                 Forms\Components\TextInput::make('contact_phone'),
                 Forms\Components\TextInput::make('contact_email')->email(),
@@ -124,3 +144,4 @@ class MatrimonialResource extends Resource
         ];
     }
 }
+

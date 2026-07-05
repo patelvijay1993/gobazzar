@@ -14,11 +14,11 @@ class LocationResource extends Resource
 {
     protected static ?string $model = Location::class;
     protected static ?string $navigationIcon = 'heroicon-o-map-pin';
-    protected static ?string $navigationGroup = 'Settings';
+    protected static ?string $navigationGroup = 'System';
     protected static ?string $navigationLabel = 'Cities & Provinces';
     protected static ?string $modelLabel = 'Location';
     protected static ?string $pluralModelLabel = 'Cities & Provinces';
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
     {
@@ -60,6 +60,7 @@ class LocationResource extends Resource
                 Forms\Components\FileUpload::make('city_image')
                     ->label('City Image')
                     ->image()
+                    ->disk(config('filesystems.default'))
                     ->directory('locations/cities')
                     ->imagePreviewHeight('80')
                     ->columnSpanFull(),
@@ -153,3 +154,4 @@ class LocationResource extends Resource
         ];
     }
 }
+

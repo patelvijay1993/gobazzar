@@ -3,8 +3,10 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\BusinessResource\Pages;
+use App\Filament\Forms\Components\BusinessHoursInput;
 use App\Models\Business;
 use App\Models\Category;
+use App\Models\Location;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -16,8 +18,8 @@ class BusinessResource extends Resource
 {
     protected static ?string $model = Business::class;
     protected static ?string $navigationIcon = 'heroicon-o-building-storefront';
-    protected static ?string $navigationGroup = 'Content';
-    protected static ?int $navigationSort = 3;
+    protected static ?string $navigationGroup = 'Directory';
+    protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
     {
@@ -31,33 +33,73 @@ class BusinessResource extends Resource
                 Forms\Components\TextInput::make('slug')->required()->unique(ignoreRecord: true)->columnSpanFull(),
                 Forms\Components\Select::make('category_id')
                     ->label('Category')
-                    ->options(Category::where('type', 'directory')->where('is_active', true)->pluck('name', 'id'))
-                    ->searchable(),
+                    ->options(Category::where('type', 'directory')->whereNull('parent_id')->where('is_active', true)->pluck('name', 'id'))
+                    ->searchable()
+                    ->live()
+                    ->afterStateUpdated(fn (Forms\Set $set) => $set('subcategory_id', null)),
+                Forms\Components\Select::make('subcategory_id')
+                    ->label('Sub-Category')
+                    ->options(fn (Forms\Get $get) => Category::where('parent_id', $get('category_id'))->where('is_active', true)->pluck('name', 'id')->toArray())
+                    ->searchable()
+                    ->placeholder('— Select Sub-Category —'),
                 Forms\Components\Select::make('status')
-                    ->options(['pending' => 'Pending', 'active' => 'Active', 'inactive' => 'Inactive'])
+                    ->options(['pending' => 'Pending', 'active' => 'Active', 'inactive' => 'Inactive', 'flagged' => 'Flagged'])
                     ->default('pending')->required(),
-                Forms\Components\Textarea::make('description')->rows(4)->columnSpanFull(),
+                Forms\Components\RichEditor::make('description')
+                    ->columnSpanFull()
+                    ->toolbarButtons(['attachFiles','bold','italic','underline','strike','bulletList','orderedList','h2','h3','link','blockquote','undo','redo']),
             ])->columns(2),
 
             Forms\Components\Section::make('Location & Contact')->schema([
                 Forms\Components\TextInput::make('address'),
-                Forms\Components\TextInput::make('city'),
-                Forms\Components\TextInput::make('province'),
+                Forms\Components\Select::make('province')
+                    ->options(fn () => Location::distinct()->orderBy('province')->pluck('province', 'province')->filter()->toArray())
+                    ->searchable()
+                    ->live()
+                    ->placeholder('— Select Province —')
+                    ->afterStateUpdated(fn (Forms\Set $set) => $set('city', null)),
+                Forms\Components\Select::make('city')
+                    ->options(fn (Forms\Get $get) => Location::where('province', $get('province'))->orderBy('city')->pluck('city', 'city')->filter()->toArray())
+                    ->searchable()
+                    ->placeholder('— Select City —')
+                    ->live(),
                 Forms\Components\TextInput::make('phone'),
                 Forms\Components\TextInput::make('email')->email(),
                 Forms\Components\TextInput::make('website')->url(),
-                Forms\Components\TextInput::make('hours')->placeholder('Mon-Fri 9am-6pm')->columnSpanFull(),
+                BusinessHoursInput::make('hours')
+                    ->label('Business Hours')
+                    ->columnSpanFull(),
+                Forms\Components\TextInput::make('map_url')->label('Map Embed URL')->url()->columnSpanFull()->placeholder('https://maps.google.com/embed?...'),
             ])->columns(3),
 
             Forms\Components\Section::make('Media & Tags')->schema([
-                Forms\Components\FileUpload::make('image')->image()->directory('businesses')->columnSpanFull(),
-                Forms\Components\FileUpload::make('logo')->image()->directory('businesses/logos'),
-                Forms\Components\TagsInput::make('tags'),
+                Forms\Components\FileUpload::make('image')->image()->disk(config('filesystems.default'))->directory('businesses')->columnSpanFull(),
+                Forms\Components\FileUpload::make('logo')->image()->disk(config('filesystems.default'))->directory('businesses/logos'),
+                Forms\Components\FileUpload::make('images')
+                    ->label('Gallery Images')
+                    ->image()
+                    ->disk(config('filesystems.default'))
+                    ->directory('businesses')
+                    ->multiple()
+                    ->reorderable()
+                    ->helperText('Additional photos for the business gallery.'),
+                Forms\Components\TagsInput::make('tags')->columnSpanFull(),
             ])->columns(2),
 
+            Forms\Components\Section::make('Social Links')->schema([
+                Forms\Components\TextInput::make('social.facebook')->label('Facebook')->url()->placeholder('https://facebook.com/...'),
+                Forms\Components\TextInput::make('social.instagram')->label('Instagram')->url()->placeholder('https://instagram.com/...'),
+                Forms\Components\TextInput::make('social.twitter')->label('Twitter / X')->url()->placeholder('https://x.com/...'),
+                Forms\Components\TextInput::make('social.youtube')->label('YouTube')->url()->placeholder('https://youtube.com/...'),
+                Forms\Components\TextInput::make('social.linkedin')->label('LinkedIn')->url()->placeholder('https://linkedin.com/...'),
+                Forms\Components\TextInput::make('social.whatsapp')->label('WhatsApp')->placeholder('+1 416 555 0000'),
+            ])->columns(3),
+
             Forms\Components\Section::make('Ratings & Settings')->schema([
-                Forms\Components\TextInput::make('rating')->numeric()->step(0.1)->minValue(0)->maxValue(5)->default(0),
-                Forms\Components\TextInput::make('review_count')->numeric()->default(0),
+                Forms\Components\TextInput::make('rating')->numeric()->step(0.1)->minValue(0)->maxValue(5)->default(0)
+                    ->helperText('Auto-calculated from reviews. Edit only to override.'),
+                Forms\Components\TextInput::make('review_count')->numeric()->default(0)
+                    ->helperText('Auto-calculated. Edit only to override.'),
                 Forms\Components\Toggle::make('is_verified'),
                 Forms\Components\Toggle::make('is_featured'),
             ])->columns(4),
@@ -83,7 +125,7 @@ class BusinessResource extends Resource
             ->defaultSort('created_at', 'desc')
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
-                    ->options(['pending' => 'Pending', 'active' => 'Active', 'inactive' => 'Inactive']),
+                    ->options(['pending' => 'Pending', 'active' => 'Active', 'inactive' => 'Inactive', 'flagged' => 'Flagged']),
                 Tables\Filters\SelectFilter::make('category')->relationship('category', 'name'),
                 Tables\Filters\TernaryFilter::make('is_featured')->label('Featured'),
                 Tables\Filters\TernaryFilter::make('is_verified')->label('Verified'),
@@ -110,3 +152,4 @@ class BusinessResource extends Resource
         ];
     }
 }
+

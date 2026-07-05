@@ -6,6 +6,7 @@ use App\Models\Business;
 use App\Models\Event;
 use App\Models\Job;
 use App\Models\Listing;
+use App\Models\ListingView;
 use App\Models\Matrimonial;
 use App\Models\PaymentHistory;
 use Illuminate\Http\Request;
@@ -30,6 +31,60 @@ class UserController extends Controller
         return view('user.account', compact('user', 'listings', 'jobs', 'events', 'businesses', 'matrimonials', 'businessPosts', 'paymentHistory'));
     }
 
+    public function analytics(Listing $listing)
+    {
+        $user = Auth::user();
+
+        abort_if($listing->user_id !== $user->id, 403);
+        abort_unless($user->hasAnalytics(), 403);
+
+        // Daily views for last 30 days
+        $daily = ListingView::where('listing_id', $listing->id)
+            ->where('viewed_at', '>=', now()->subDays(29)->startOfDay())
+            ->selectRaw('DATE(viewed_at) as date, COUNT(*) as total, COUNT(DISTINCT ip) as unique_views')
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get()
+            ->keyBy('date');
+
+        // Fill in missing days with zeros
+        $labels = [];
+        $totals = [];
+        $uniques = [];
+        for ($i = 29; $i >= 0; $i--) {
+            $date = now()->subDays($i)->format('Y-m-d');
+            $labels[]  = now()->subDays($i)->format('d M');
+            $row = $daily->get($date);
+            $totals[]  = $row?->total ?? 0;
+            $uniques[] = $row?->unique_views ?? 0;
+        }
+
+        // Device breakdown
+        $devices = ListingView::where('listing_id', $listing->id)
+            ->selectRaw('device, COUNT(*) as cnt')
+            ->groupBy('device')
+            ->pluck('cnt', 'device');
+
+        // Referrers
+        $referrers = ListingView::where('listing_id', $listing->id)
+            ->whereNotNull('referrer')
+            ->selectRaw('referrer, COUNT(*) as cnt')
+            ->groupBy('referrer')
+            ->orderByDesc('cnt')
+            ->limit(10)
+            ->get();
+
+        $totalViews  = ListingView::where('listing_id', $listing->id)->count();
+        $uniqueViews = ListingView::where('listing_id', $listing->id)->distinct('ip')->count('ip');
+        $todayViews  = ListingView::where('listing_id', $listing->id)->where('viewed_at', '>=', now()->startOfDay())->count();
+        $last7Views  = ListingView::where('listing_id', $listing->id)->where('viewed_at', '>=', now()->subDays(7))->count();
+
+        return view('user.analytics', compact(
+            'listing', 'labels', 'totals', 'uniques',
+            'devices', 'referrers', 'totalViews', 'uniqueViews', 'todayViews', 'last7Views'
+        ));
+    }
+
     public function updateProfile(Request $request)
     {
         $user = Auth::user();
@@ -44,7 +99,7 @@ class UserController extends Controller
         $data = $request->only('name', 'phone', 'city', 'province', 'bio');
 
         if ($request->hasFile('avatar')) {
-            $data['avatar'] = $request->file('avatar')->store('avatars', 'public');
+            $data['avatar'] = $request->file('avatar')->store('avatars', config('filesystems.default'));
         }
 
         $user->update($data);
@@ -66,3 +121,4 @@ class UserController extends Controller
         return back()->with('success', 'Password changed successfully!');
     }
 }
+

@@ -108,26 +108,44 @@ class CategoryResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('icon'),
-                Tables\Columns\TextColumn::make('name')->searchable()->sortable()
-                    ->formatStateUsing(fn ($state, Category $r) => $r->parent_id ? '↳ '.$state : $state),
-                Tables\Columns\TextColumn::make('parent.name')->label('Parent')->placeholder('—')->toggleable(),
-                Tables\Columns\TextColumn::make('type')->badge()
-                    ->color(fn ($state) => match($state) {
+                Tables\Columns\TextColumn::make('icon')
+                    ->label('')
+                    ->width('40px'),
+                Tables\Columns\TextColumn::make('name')
+                    ->searchable()
+                    ->sortable()
+                    ->formatStateUsing(fn ($state, Category $r) => ($r->parent_id ? '↳ ' : '') . $state),
+                Tables\Columns\TextColumn::make('parent.name')
+                    ->label('Parent')
+                    ->placeholder('—')
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('type')
+                    ->badge()
+                    ->color(fn (string $state): string => match($state) {
                         'classifieds' => 'info',
                         'jobs'        => 'success',
                         'events'      => 'warning',
                         'directory'   => 'danger',
                         default       => 'gray',
-                    }),
-                Tables\Columns\TextColumn::make('listings_count')->counts('listings')->label('Listings'),
-                Tables\Columns\ToggleColumn::make('is_active'),
-                Tables\Columns\TextColumn::make('sort_order')->sortable(),
+                    })
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\ToggleColumn::make('is_active')
+                    ->label('Active'),
+                Tables\Columns\TextColumn::make('sort_order')
+                    ->label('Sort')
+                    ->sortable(),
             ])
             ->defaultSort('sort_order')
             ->filters([
                 Tables\Filters\SelectFilter::make('type')
-                    ->options(['classifieds'=>'Classifieds','jobs'=>'Jobs','events'=>'Events','directory'=>'Directory']),
+                    ->label('Type')
+                    ->options([
+                        'classifieds' => '🏷️ Classifieds',
+                        'jobs'        => '💼 Jobs',
+                        'events'      => '🎉 Events',
+                        'directory'   => '🏢 Business Directory',
+                    ])
+                    ->placeholder('All Types'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

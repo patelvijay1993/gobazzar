@@ -5,11 +5,13 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\ListingResource\Pages;
 use App\Models\Category;
 use App\Models\Listing;
+use App\Models\Location;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class ListingResource extends Resource
@@ -35,7 +37,7 @@ class ListingResource extends Resource
                     ->searchable()
                     ->required(),
                 Forms\Components\Select::make('status')
-                    ->options(['pending'=>'Pending','active'=>'Active','rejected'=>'Rejected','expired'=>'Expired'])
+                    ->options(['pending'=>'Pending','active'=>'Active','rejected'=>'Rejected','expired'=>'Expired','flagged'=>'Flagged'])
                     ->default('pending')
                     ->required(),
                 Forms\Components\RichEditor::make('description')
@@ -51,8 +53,21 @@ class ListingResource extends Resource
 
             Forms\Components\Section::make('Pricing & Location')->schema([
                 Forms\Components\TextInput::make('price')->placeholder('$1,200'),
-                Forms\Components\TextInput::make('price_unit')->placeholder('/mo'),
+                Forms\Components\Select::make('price_unit')
+                    ->options(['' => 'One-time', '/mo' => '/month', '/wk' => '/week', '/hr' => '/hour', '/yr' => '/year'])
+                    ->placeholder('One-time'),
                 Forms\Components\TextInput::make('location')->columnSpanFull(),
+                Forms\Components\Select::make('province')
+                    ->options(fn () => Location::distinct()->orderBy('province')->pluck('province', 'province')->filter()->toArray())
+                    ->searchable()
+                    ->live()
+                    ->placeholder('— Select Province —')
+                    ->afterStateUpdated(fn (Forms\Set $set) => $set('city', null)),
+                Forms\Components\Select::make('city')
+                    ->options(fn (Forms\Get $get) => Location::where('province', $get('province'))->orderBy('city')->pluck('city', 'city')->filter()->toArray())
+                    ->searchable()
+                    ->placeholder('— Select City —')
+                    ->live(),
             ])->columns(2),
 
             Forms\Components\Section::make('Media & Tags')->schema([
@@ -72,7 +87,7 @@ class ListingResource extends Resource
                         $token = csrf_token();
                         $html = '<div id="current-photos-wrap" style="display:flex;flex-wrap:wrap;gap:10px;margin-top:4px">';
                         foreach ($all as $img) {
-                            $url = str_starts_with($img, 'http') ? $img : asset('storage/'.$img);
+                            $url = str_starts_with($img, 'http') ? $img : Storage::disk(config('filesystems.default'))->url($img);
                             $enc = base64_encode($img);
                             $html .= '
                             <div style="position:relative;display:inline-block" id="wrap-'.$enc.'">
@@ -110,6 +125,7 @@ class ListingResource extends Resource
                     ->multiple()
                     ->maxFiles(5)
                     ->reorderable()
+                    ->disk(config('filesystems.default'))
                     ->directory('listings')
                     ->imagePreviewHeight('100')
                     ->panelLayout('grid')
@@ -161,7 +177,7 @@ class ListingResource extends Resource
             ->defaultSort('created_at', 'desc')
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
-                    ->options(['pending'=>'Pending','active'=>'Active','rejected'=>'Rejected','expired'=>'Expired']),
+                    ->options(['pending'=>'Pending','active'=>'Active','rejected'=>'Rejected','expired'=>'Expired','flagged'=>'Flagged']),
                 Tables\Filters\SelectFilter::make('category')->relationship('category', 'name'),
                 Tables\Filters\TernaryFilter::make('is_featured')->label('Featured'),
             ])
@@ -176,6 +192,11 @@ class ListingResource extends Resource
                     ->color('danger')
                     ->visible(fn (Listing $record) => $record->status === 'pending')
                     ->action(fn (Listing $record) => $record->update(['status' => 'rejected'])),
+                Tables\Actions\Action::make('analytics')
+                    ->label('Analytics')
+                    ->icon('heroicon-o-chart-bar')
+                    ->color('info')
+                    ->url(fn (Listing $record) => Pages\ViewListingAnalytics::getUrl(['record' => $record])),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])
@@ -189,9 +210,11 @@ class ListingResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListListings::route('/'),
-            'create' => Pages\CreateListing::route('/create'),
-            'edit'   => Pages\EditListing::route('/{record}/edit'),
+            'index'     => Pages\ListListings::route('/'),
+            'create'    => Pages\CreateListing::route('/create'),
+            'edit'      => Pages\EditListing::route('/{record}/edit'),
+            'analytics' => Pages\ViewListingAnalytics::route('/{record}/analytics'),
         ];
     }
 }
+

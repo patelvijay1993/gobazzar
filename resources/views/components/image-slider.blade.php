@@ -15,7 +15,11 @@
 
 @php
   $total = count($images);
-  $resolveImg = fn($p) => str_starts_with($p, 'http') ? $p : \Illuminate\Support\Facades\Storage::disk('s3')->url($p);
+  $resolveImg = function($p) {
+      if (!$p || $p === '0' || $p === false) return '';
+      if (str_starts_with($p, 'http')) return $p;
+      return \Illuminate\Support\Facades\Storage::disk(config('filesystems.default', 'public'))->url($p);
+  };
 @endphp
 
 @if($total === 0)

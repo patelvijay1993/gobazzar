@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\Favoritable;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -9,6 +10,7 @@ use Illuminate\Support\Facades\Storage;
 
 class Job extends Model
 {
+    use Favoritable;
     protected $table = 'job_listings';
 
     protected $fillable = [
@@ -32,6 +34,14 @@ class Job extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function getFormattedSalaryAttribute(): ?string
+    {
+        if (!$this->salary) return null;
+        $s = trim($this->salary);
+        if ($s === '' || preg_match('/^[^\d]/', $s)) return $s;
+        return '$' . $s;
     }
 
     public function getJobTypeLabelAttribute(): string
@@ -71,6 +81,8 @@ class Job extends Model
     public function getLogoUrlAttribute(): ?string
     {
         if (!$this->company_logo) return null;
-        return str_starts_with($this->company_logo, 'http') ? $this->company_logo : Storage::disk('s3')->url($this->company_logo);
+        if (str_starts_with($this->company_logo, 'http')) return $this->company_logo;
+        return Storage::disk(config('filesystems.default'))->url($this->company_logo);
     }
 }
+

@@ -39,7 +39,8 @@ class BusinessPost extends Model
     public function getImageUrlAttribute(): ?string
     {
         if (!$this->image) return null;
-        return str_starts_with($this->image, 'http') ? $this->image : Storage::disk('s3')->url($this->image);
+        if (str_starts_with($this->image, 'http')) return $this->image;
+        return Storage::disk(config('filesystems.default'))->url($this->image);
     }
 
     /** Active and not past expiry. */
@@ -54,3 +55,4 @@ class BusinessPost extends Model
         return $this->expires_at && $this->expires_at->isPast();
     }
 }
+

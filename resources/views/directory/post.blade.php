@@ -75,7 +75,11 @@
 
   {{-- MAIN --}}
   <div class="pp-main">
-    @php $ppImages = $post->images ?? ($post->image ? [$post->image] : []); @endphp
+    @php
+        $rawPpImgs = is_array($post->images) ? $post->images : [];
+        if ($post->image && $post->image !== '0') $rawPpImgs[] = $post->image;
+        $ppImages = array_values(array_unique(array_filter($rawPpImgs, fn($v) => !empty($v) && $v !== '0' && $v !== false)));
+    @endphp
     @if(count($ppImages))
       <x-image-slider :images="$ppImages" :alt="$post->title" height="320px" />
     @else
@@ -87,7 +91,7 @@
         <div class="pp-price">{{ $post->price }}<small>{{ $post->price_unit }}</small></div>
       @endif
       @if($post->description)
-        <div class="pp-desc">{!! $post->description !!}</div>
+        <div class="pp-desc">{!! clean($post->description) !!}</div>
       @endif
 
       @if(!empty($post->custom_fields))

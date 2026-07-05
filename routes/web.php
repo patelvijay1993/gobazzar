@@ -14,7 +14,10 @@ use App\Http\Controllers\EventController;
 use App\Http\Controllers\JobController;
 use App\Http\Controllers\ListingController;
 use App\Http\Controllers\PricingController;
+use App\Http\Controllers\FavoriteController;
+use App\Http\Controllers\FeaturedCreditController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\BusinessContentController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -118,15 +121,23 @@ Route::post('/pricing/request', [PricingController::class, 'request'])->name('pr
 // Advertise enquiry (public)
 Route::post('/advertise/enquiry', [\App\Http\Controllers\AdvertiseController::class, 'store'])->name('advertise.store');
 
+// Ad tracking
+Route::post('/ads/{ad}/impression', [\App\Http\Controllers\AdTrackingController::class, 'impression'])->name('ads.impression');
+Route::get('/ads/{ad}/click', [\App\Http\Controllers\AdTrackingController::class, 'click'])->name('ads.click');
+
 // Content reporting (auth required)
 Route::post('/report', [ReportController::class, 'store'])->name('report.store')->middleware('auth');
 
 // Auth routes
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
     Route::post('/register', [AuthController::class, 'register']);
+    Route::get('/forgot-password', [AuthController::class, 'showForgotPassword'])->name('password.request');
+    Route::post('/forgot-password', [AuthController::class, 'sendResetLink'])->name('password.email')->middleware('throttle:5,1');
+    Route::get('/password/reset/{token}', [AuthController::class, 'showResetPassword'])->name('password.reset');
+    Route::post('/password/reset', [AuthController::class, 'resetPassword'])->name('password.update');
 });
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
@@ -153,13 +164,20 @@ Route::middleware('auth')->prefix('chat')->name('chat.')->group(function () {
     Route::get('/unread-count', [ChatController::class, 'unreadCount'])->name('unread');
 });
 
-// Account routes (auth required)
+// Account routes (auth required, no email verification needed)
 Route::middleware('auth')->group(function () {
     Route::get('/account', [UserController::class, 'account'])->name('account');
     Route::patch('/account/profile', [UserController::class, 'updateProfile'])->name('account.profile');
     Route::patch('/account/password', [UserController::class, 'updatePassword'])->name('account.password');
+    Route::get('/account/analytics/{listing}', [UserController::class, 'analytics'])->name('account.analytics');
+    Route::get('/account/favorites', [FavoriteController::class, 'index'])->name('account.favorites');
+    Route::post('/favorites/toggle', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
+    Route::post('/featured-credits/toggle', [FeaturedCreditController::class, 'toggle'])->name('featured.toggle');
+    Route::post('/business/generate-content', [BusinessContentController::class, 'generate'])->name('business.generate-content');
+});
 
-    // Post submission
+// Post submission + edit (auth required; email verification controlled by REQUIRE_EMAIL_VERIFICATION in .env)
+Route::middleware(['auth', 'email.verified'])->group(function () {
     Route::get('/post/create', [PostController::class, 'create'])->name('post.create');
     Route::post('/post/classified', [PostController::class, 'storeClassified'])->name('post.classified');
     Route::post('/post/job', [PostController::class, 'storeJob'])->name('post.job');
@@ -218,7 +236,7 @@ Route::delete('/admin/listing/{id}/remove-image', function (\Illuminate\Http\Req
         (array) ($listing->images ?? [])
     )));
     $all = array_values(array_filter($all, fn($i) => $i !== $img));
-    if (!str_starts_with($img, 'http') && \Illuminate\Support\Facades\Storage::disk('s3')->exists($img)) {
+    if (!str_starts_with($img, 'http')) {
         \Illuminate\Support\Facades\Storage::disk('s3')->delete($img);
     }
     $listing->image  = $all[0] ?? null;
@@ -227,6 +245,7 @@ Route::delete('/admin/listing/{id}/remove-image', function (\Illuminate\Http\Req
     return response()->json(['ok' => true]);
 })->name('admin.listing.remove-image')->middleware('auth');
 
+// Matrimonial hidden until v2 — routes kept for named-route references, redirect to home
 Route::prefix('matrimonial')->name('matrimonial.')->group(function () {
     Route::get('/', fn() => redirect()->route('home'))->name('index');
     Route::get('/{profile:slug}', fn() => redirect()->route('home'))->name('show');
