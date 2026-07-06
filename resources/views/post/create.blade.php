@@ -179,7 +179,7 @@ textarea.form-input{resize:vertical;min-height:100px}
             <div class="form-row">
               <div class="form-group">
                 <label class="form-label">Category <span>*</span></label>
-                <select name="category_id" class="form-input" required>
+                <select name="category_id" class="form-input" required onchange="clLoadFields(this.value)">
                   <option value="">Select category</option>
                   @foreach($categories->get('classifieds', collect()) as $cat)
                     <option value="{{ $cat->id }}" {{ old('category_id')==$cat->id ? 'selected' : '' }}>{{ $cat->icon }} {{ $cat->name }}</option>
@@ -239,6 +239,12 @@ textarea.form-input{resize:vertical;min-height:100px}
                 </select>
               </div>
             </div>
+          </div>
+
+          {{-- Dynamic custom fields per classified category --}}
+          <div class="form-section hidden" id="cl-custom-section">
+            <div class="form-section-title" id="cl-custom-title">Additional Details</div>
+            <div id="cl-custom-fields"></div>
           </div>
 
           <div class="form-section">
@@ -1136,6 +1142,28 @@ function bpFieldHtml(f) {
   }
   return '<div class="form-group" style="margin-bottom:14px"><label class="form-label">' + f.label + req + '</label>' + inner + '</div>';
 }
+
+// ── Classified: category change → load custom fields ─────────────
+function clLoadFields(catId) {
+  var section = document.getElementById('cl-custom-section');
+  var wrap    = document.getElementById('cl-custom-fields');
+  if (!catId) { section.classList.add('hidden'); wrap.innerHTML = ''; return; }
+
+  fetch('/categories/' + catId + '/fields')
+    .then(r => r.json())
+    .then(fields => {
+      if (!fields.length) { section.classList.add('hidden'); wrap.innerHTML = ''; return; }
+      wrap.innerHTML = fields.map(bpFieldHtml).join('');
+      section.classList.remove('hidden');
+    })
+    .catch(() => { section.classList.add('hidden'); wrap.innerHTML = ''; });
+}
+
+// Init on page load if old() category selected
+(function() {
+  var sel = document.querySelector('#form-classified select[name="category_id"]');
+  if (sel && sel.value) clLoadFields(sel.value);
+})();
 
 // ── Sub-category cascade (parent → children) ──────────────────────
 function loadSubCats(selectId, parentId) {
