@@ -329,21 +329,27 @@ class SiteSettings extends Page implements HasForms
     private function updateEnv(array $values): void
     {
         $envPath = base_path('.env');
+
+        if (!is_writable($envPath)) {
+            Notification::make()
+                ->title('Cannot write .env file')
+                ->body('The .env file is not writable. Please update mail credentials manually in the .env file on your server.')
+                ->warning()
+                ->persistent()
+                ->send();
+            return;
+        }
+
         $content = file_get_contents($envPath);
 
         foreach ($values as $key => $value) {
-            // Escape special chars in value
-            $escaped = addslashes($value);
-
             if (preg_match("/^{$key}=.*/m", $content)) {
-                // Key exists — replace it
                 $content = preg_replace(
                     "/^{$key}=.*/m",
                     "{$key}={$value}",
                     $content
                 );
             } else {
-                // Key missing — append it
                 $content .= "\n{$key}={$value}";
             }
         }
