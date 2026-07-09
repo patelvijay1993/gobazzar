@@ -43,7 +43,7 @@
         <div class="auth-brand-icon">🛍️</div>
         <div class="auth-brand-name">Go<span>Bazaar</span></div>
       </a>
-      <p>Canada's #1 Indian Community Portal</p>
+      <p>Canada's #1 Community Marketplace</p>
     </div>
 
     <div class="auth-card">

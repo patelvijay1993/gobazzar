@@ -16,7 +16,7 @@ class BlogPostResource extends Resource
 {
     protected static ?string $model = BlogPost::class;
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
-    protected static ?string $navigationGroup = 'Content';
+    protected static ?string $navigationGroup = 'Classified';
     protected static ?int $navigationSort = 6;
 
     public static function form(Form $form): Form
@@ -28,7 +28,7 @@ class BlogPostResource extends Resource
                     ->options(User::orderBy('name')->pluck('name', 'id'))
                     ->searchable()
                     ->nullable()
-                    ->placeholder('— Select Author —')
+                    ->placeholder('â€” Select Author â€”')
                     ->columnSpanFull(),
                 Forms\Components\TextInput::make('title')
                     ->required()
@@ -39,7 +39,7 @@ class BlogPostResource extends Resource
                     ->required()
                     ->unique(ignoreRecord: true)
                     ->columnSpanFull(),
-                Forms\Components\TextInput::make('category')->placeholder('Technology, Culture, Food…'),
+                Forms\Components\TextInput::make('category')->placeholder('Technology, Culture, Foodâ€¦'),
                 Forms\Components\Select::make('status')
                     ->options(['draft' => 'Draft', 'published' => 'Published'])
                     ->default('draft')
@@ -110,4 +110,5 @@ class BlogPostResource extends Resource
         ];
     }
 }
+
 

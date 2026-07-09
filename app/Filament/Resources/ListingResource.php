@@ -18,7 +18,7 @@ class ListingResource extends Resource
 {
     protected static ?string $model = Listing::class;
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
-    protected static ?string $navigationGroup = 'Content';
+    protected static ?string $navigationGroup = 'Classified';
     protected static ?int $navigationSort = 1;
 
     public static function form(Form $form): Form
@@ -33,9 +33,17 @@ class ListingResource extends Resource
                 Forms\Components\TextInput::make('slug')->required()->unique(ignoreRecord: true)->columnSpanFull(),
                 Forms\Components\Select::make('category_id')
                     ->label('Category')
-                    ->options(Category::where('is_active', true)->pluck('name', 'id'))
+                    ->options(
+                        Category::where('is_active', true)
+                            ->where('type', 'classifieds')
+                            ->whereNull('parent_id')
+                            ->orderBy('sort_order')
+                            ->pluck('name', 'id')
+                    )
                     ->searchable()
-                    ->required(),
+                    ->required()
+                    ->live()
+                    ->afterStateUpdated(fn (Forms\Set $set) => $set('custom_fields', [])),
                 Forms\Components\Select::make('status')
                     ->options(['pending'=>'Pending','active'=>'Active','rejected'=>'Rejected','expired'=>'Expired','flagged'=>'Flagged'])
                     ->default('pending')
@@ -50,6 +58,55 @@ class ListingResource extends Resource
                         'undo', 'redo',
                     ]),
             ])->columns(2),
+
+            Forms\Components\Section::make('Additional Details')
+                ->schema(function (Forms\Get $get) {
+                    $catId = $get('category_id');
+                    if (!$catId) return [
+                        Forms\Components\Placeholder::make('_no_cat')
+                            ->label('')
+                            ->content('Select a category above to see additional fields.')
+                            ->columnSpanFull(),
+                    ];
+                    $fields = \App\Models\CategoryField::where('category_id', $catId)
+                        ->orderBy('sort_order')
+                        ->get();
+                    if ($fields->isEmpty()) return [
+                        Forms\Components\Placeholder::make('_no_fields')
+                            ->label('')
+                            ->content('No custom fields defined for this category.')
+                            ->columnSpanFull(),
+                    ];
+                    return $fields->map(function ($f) {
+                        $name = 'custom_fields.' . $f->key;
+                        return match ($f->type) {
+                            'select' => Forms\Components\Select::make($name)
+                                ->label($f->label)
+                                ->options(collect(json_decode($f->options ?? '[]', true))->mapWithKeys(fn ($v) => [$v => $v]))
+                                ->placeholder($f->placeholder)
+                                ->required((bool) $f->is_required),
+                            'textarea' => Forms\Components\Textarea::make($name)
+                                ->label($f->label)
+                                ->placeholder($f->placeholder)
+                                ->required((bool) $f->is_required),
+                            'number' => Forms\Components\TextInput::make($name)
+                                ->label($f->label)
+                                ->numeric()
+                                ->placeholder($f->placeholder)
+                                ->required((bool) $f->is_required),
+                            'checkbox' => Forms\Components\Toggle::make($name)
+                                ->label($f->label)
+                                ->required((bool) $f->is_required),
+                            default => Forms\Components\TextInput::make($name)
+                                ->label($f->label)
+                                ->placeholder($f->placeholder)
+                                ->required((bool) $f->is_required),
+                        };
+                    })->toArray();
+                })
+                ->columns(2)
+                ->live()
+                ->visible(fn (Forms\Get $get) => (bool) $get('category_id')),
 
             Forms\Components\Section::make('Pricing & Location')->schema([
                 Forms\Components\TextInput::make('price')->placeholder('$1,200'),
@@ -217,4 +274,5 @@ class ListingResource extends Resource
         ];
     }
 }
+
 

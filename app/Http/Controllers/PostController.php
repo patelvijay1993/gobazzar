@@ -241,7 +241,7 @@ class PostController extends Controller
             'title'         => 'required|string|max:150',
             'category_id'   => 'required|exists:categories,id',
             'description'   => 'nullable|string',
-            'price'         => 'nullable|string|max:50',
+            'price'         => 'nullable|numeric|min:0|max:99999999',
             'price_unit'    => 'nullable|string|max:20',
             'location'      => 'nullable|string|max:150',
             'city'          => 'required|string|max:100',
@@ -263,6 +263,12 @@ class PostController extends Controller
         $this->moderate($request, 'title', 'classified');
 
         unset($data['images']); // handle separately
+
+        // Collect custom fields submitted for this category
+        $category = \App\Models\Category::find($data['category_id']);
+        if ($category) {
+            $data['custom_fields'] = $this->validateCustomFields($request, $category);
+        }
 
         $data['user_id']     = Auth::id();
         $data['slug']        = $this->uniqueSlug($data['title'], 'listings');
@@ -368,7 +374,7 @@ class PostController extends Controller
             'venue'           => 'nullable|string|max:200',
             'city'            => 'required|string|max:100',
             'province'        => 'required|string|max:100',
-            'price'           => 'nullable|string|max:50',
+            'price'         => 'nullable|numeric|min:0|max:99999999',
             'organizer'       => 'nullable|string|max:150',
             'organizer_phone' => 'nullable|string|max:30',
             'organizer_email' => 'nullable|email|max:150',
@@ -493,7 +499,7 @@ class PostController extends Controller
             default        => 'Your business listing is now live!',
         };
 
-        return redirect()->route('account')->with('success', $msg);
+        return redirect()->route('account', ['panel' => 'business'])->with('success', $msg);
     }
 
     public function storeBusinessPost(Request $request)
@@ -514,7 +520,7 @@ class PostController extends Controller
             'subcategory_id' => 'nullable|exists:categories,id',
             'title'          => 'required|string|max:150',
             'description'    => 'nullable|string',
-            'price'          => 'nullable|string|max:50',
+            'price'         => 'nullable|numeric|min:0|max:99999999',
             'price_unit'     => 'nullable|string|max:20',
             'images'         => "nullable|array|max:{$maxImg}",
             'images.*'       => self::imgRules(),
@@ -554,7 +560,7 @@ class PostController extends Controller
 
         $days = $user->postDays();
         $expiry = $days ? " Active for {$days} days." : ' It will auto-renew (never expires).';
-        return redirect()->route('account')
+        return redirect()->route('account', ['panel' => 'business'])
             ->with('success', 'Your post has been added to "' . $business->name . '"!' . $expiry);
     }
 
@@ -650,7 +656,7 @@ class PostController extends Controller
             'title'         => 'required|string|max:150',
             'category_id'   => 'required|exists:categories,id',
             'description'   => 'nullable|string',
-            'price'         => 'nullable|string|max:50',
+            'price'         => 'nullable|numeric|min:0|max:99999999',
             'price_unit'    => 'nullable|string|max:20',
             'location'      => 'nullable|string|max:150',
             'city'          => 'required|string|max:100',
@@ -717,7 +723,7 @@ class PostController extends Controller
             'venue'           => 'nullable|string|max:200',
             'city'            => 'required|string|max:100',
             'province'        => 'required|string|max:100',
-            'price'           => 'nullable|string|max:50',
+            'price'         => 'nullable|numeric|min:0|max:99999999',
             'organizer'       => 'nullable|string|max:150',
             'organizer_phone' => 'nullable|string|max:30',
             'organizer_email' => 'nullable|email|max:150',
@@ -829,7 +835,7 @@ class PostController extends Controller
         $data = $request->validate([
             'title'       => 'required|string|max:150',
             'description' => 'nullable|string',
-            'price'       => 'nullable|string|max:50',
+            'price'         => 'nullable|numeric|min:0|max:99999999',
             'price_unit'  => 'nullable|string|max:20',
             'images'      => "nullable|array|max:{$maxImg}",
             'images.*'    => self::imgRules(),

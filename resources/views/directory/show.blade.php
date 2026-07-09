@@ -1,5 +1,37 @@
 @extends('layouts.app')
-@section('title', $business->name)
+@section('title', $business->name . ' — ' . ($business->category->name ?? 'Business') . ' in ' . $business->city . ' | GoBazaar')
+@section('description', Str::limit(strip_tags($business->description ?? $business->name . ' — ' . ($business->category->name ?? '') . ' in ' . $business->city . ', Canada. Contact, hours, reviews on GoBazaar.'), 160))
+@section('canonical', route('directory.show', $business))
+@section('og_type', 'business.business')
+@section('og_title', $business->name . ' — ' . $business->city)
+@section('og_description', Str::limit(strip_tags($business->description ?? ''), 200))
+@section('og_image', $business->image_url ?? asset('images/og-default.jpg'))
+@push('schema')
+<script type="application/ld+json">
+{!! json_encode(array_filter([
+  '@context'    => 'https://schema.org',
+  '@type'       => 'LocalBusiness',
+  'name'        => $business->name,
+  'description' => Str::limit(strip_tags($business->description ?? ''), 500),
+  'url'         => route('directory.show', $business),
+  'image'       => $business->image_url ?? null,
+  'telephone'   => $business->phone ?? null,
+  'sameAs'      => $business->website ?? null,
+  'aggregateRating' => $business->rating ? [
+    '@type'       => 'AggregateRating',
+    'ratingValue' => (string)$business->rating,
+    'bestRating'  => '5',
+  ] : null,
+  'address' => array_filter([
+    '@type'           => 'PostalAddress',
+    'streetAddress'   => $business->address ?? null,
+    'addressLocality' => $business->city ?? null,
+    'addressRegion'   => $business->province ?? null,
+    'addressCountry'  => 'CA',
+  ]),
+]), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT) !!}
+</script>
+@endpush
 
 @push('styles')
 <style>

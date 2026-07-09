@@ -88,6 +88,9 @@ class ChatController extends Controller
     public function send(Request $request, Conversation $conversation)
     {
         $userId = Auth::id();
+        if (!$userId) {
+            return response()->json(['error' => 'unauthenticated'], 401);
+        }
         abort_unless(
             $conversation->buyer_id === $userId || $conversation->seller_id === $userId,
             403
@@ -103,7 +106,7 @@ class ChatController extends Controller
         $message->load('sender');
         $conversation->markReadFor($userId);
 
-        broadcast(new MessageSent($message))->toOthers();
+        try { broadcast(new MessageSent($message))->toOthers(); } catch (\Throwable $e) { /* Reverb not running — polling fallback handles delivery */ }
 
         return response()->json([
             'id'          => $message->id,
@@ -117,6 +120,9 @@ class ChatController extends Controller
     public function poll(Request $request, Conversation $conversation)
     {
         $userId = Auth::id();
+        if (!$userId) {
+            return response()->json(['error' => 'unauthenticated'], 401);
+        }
         abort_unless(
             $conversation->buyer_id === $userId || $conversation->seller_id === $userId,
             403

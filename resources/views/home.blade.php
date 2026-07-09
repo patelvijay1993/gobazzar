@@ -1,6 +1,6 @@
 @extends('layouts.app')
-@section('title', "GoBazaar — Canada's #1 Indian Community Portal")
-@section('description', "Canada's #1 Indian community portal — Classifieds, Yellow Pages, Events, Jobs, Blog and more for Indians in Canada.")
+@section('title', "GoBazaar — Canada's #1 Community Marketplace")
+@section('description', "Canada's #1 Community Marketplace — Classifieds, Yellow Pages, Events, Jobs, Blog and more for your community in Canada.")
 
 @push('styles')
 <style>
@@ -323,13 +323,13 @@ $heroLocLabel = request('city') ?: request('province');
   @if($heroBg)<div class="hero-overlay"></div>@endif
   <div class="hero-inner">
     <div class="hero-left">
-      <div class="hero-eyebrow"><i class="fa-solid fa-star"></i> Canada's #1 Indian Community Portal</div>
+      <div class="hero-eyebrow"><i class="fa-solid fa-star"></i> Canada's #1 Community Marketplace</div>
       @if($heroLocLabel)
-        <h1 class="hero-title">Indian Community in<br><span>{{ $heroLocLabel }}</span></h1>
-        <p class="hero-sub">Classifieds · Yellow Pages · Events · Jobs · Blog — everything the Indian-Canadian community in {{ $heroLocLabel }} needs, in one place.</p>
+        <h1 class="hero-title">Community Marketplace<br><span>in {{ $heroLocLabel }}</span></h1>
+        <p class="hero-sub">Classifieds · Yellow Pages · Events · Jobs · Blog — everything your community in {{ $heroLocLabel }} needs, in one place.</p>
       @else
-        <h1 class="hero-title">Canada's #1 Indian<br>Community <span>Portal</span></h1>
-        <p class="hero-sub">Classifieds · Yellow Pages · Events · Jobs · Blog — everything the Indian-Canadian community needs, in one place.</p>
+        <h1 class="hero-title">Canada's #1 Community<br><span>Marketplace</span></h1>
+        <p class="hero-sub">Classifieds · Yellow Pages · Events · Jobs · Blog — everything your community needs, in one place.</p>
       @endif
 
       <div class="hero-search">
@@ -504,7 +504,12 @@ $heroLocLabel = request('city') ?: request('province');
         <div class="cl-body">
           @if($listing->price)<div class="cl-price">{{ $listing->formatted_price }}<small>{{ $listing->price_unit }}</small></div>@endif
           <div class="cl-title">{{ $listing->title }}</div>
-          <div class="cl-cat">{{ $listing->category->name ?? 'Classifieds' }}</div>
+          <div style="display:flex;align-items:center;gap:5px;margin-bottom:4px;flex-wrap:wrap">
+            <div class="cl-cat" style="margin-bottom:0">{{ $listing->category->name ?? 'Classifieds' }}</div>
+            @if($listing->is_verified)
+              <span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;background:#dcfce7;color:#15803d;padding:2px 7px;border-radius:20px;white-space:nowrap"><i class="fa-solid fa-circle-check" style="font-size:9px"></i> Verified</span>
+            @endif
+          </div>
           <div class="cl-foot"><span><i class="fa-solid fa-location-dot"></i>{{ $listing->location }}</span><span>{{ $listing->created_at->diffForHumans() }}</span></div>
         </div>
       </a>
@@ -712,9 +717,9 @@ $heroLocLabel = request('city') ?: request('province');
           @else<span style="font-size:32px">{{ $listing->category->icon ?? '📦' }}</span>@endif
         </div>
         <div class="al-info">
-          <div class="al-title">{{ $listing->title }}</div>
+          <div class="al-title">{{ $listing->title }}@if($listing->is_verified)<span style="display:inline-flex;align-items:center;gap:2px;font-size:9px;font-weight:700;background:#dcfce7;color:#15803d;padding:1px 6px;border-radius:20px;margin-left:5px;vertical-align:middle"><i class="fa-solid fa-circle-check" style="font-size:8px"></i> Verified</span>@endif</div>
           @if($listing->price)<div class="al-price">{{ $listing->formatted_price }}<small>{{ $listing->price_unit }}</small></div>@endif
-          <div class="al-meta"><span><i class="fa-solid fa-location-dot"></i>{{ $listing->location }}</span><span><i class="fa-regular fa-clock"></i>{{ $listing->created_at->diffForHumans() }}</span></div>
+          <div class="al-meta"><span>{{ $listing->category->name ?? '' }}</span><span><i class="fa-solid fa-location-dot"></i>{{ $listing->location }}</span><span><i class="fa-regular fa-clock"></i>{{ $listing->created_at->diffForHumans() }}</span></div>
         </div>
         <div style="color:#ddd;align-self:flex-start;margin-top:2px"><i class="fa-regular fa-heart" style="font-size:16px"></i></div>
       </a>
@@ -1075,14 +1080,17 @@ function heroDetectLocation(btn) {
   });
 }
 
-// Sync hero selects from localStorage or auto-detect on first visit
+// Sync hero selects from URL params (priority) or localStorage or auto-detect
 (function() {
-  var prov = localStorage.getItem('gobazaar_province') || '';
-  var city = localStorage.getItem('gobazaar_city') || '';
+  var urlParams = new URLSearchParams(window.location.search);
+  var urlProv = urlParams.get('province') || '';
+  var urlCity = urlParams.get('city') || '';
+  var prov = urlProv || localStorage.getItem('gobazaar_province') || '';
+  var city = urlCity || localStorage.getItem('gobazaar_city') || '';
   var provSel = document.getElementById('hero-prov');
 
   if (prov) {
-    // Already known — restore from localStorage
+    // Already known — restore from URL/localStorage
     if (provSel) provSel.value = prov;
     heroLoadCities(prov, city);
   } else if (navigator.geolocation) {

@@ -19,7 +19,7 @@ class PollResource extends Resource
     protected static ?string $navigationLabel = 'GoBazaar Poll';
     protected static ?string $modelLabel = 'Poll';
     protected static ?string $pluralModelLabel = 'GoBazaar Polls';
-    protected static ?string $navigationGroup = 'Content';
+    protected static ?string $navigationGroup = 'Classified';
     protected static ?int $navigationSort = 8;
 
     public static function form(Form $form): Form
@@ -171,3 +171,4 @@ class PollResource extends Resource
         ];
     }
 }
+

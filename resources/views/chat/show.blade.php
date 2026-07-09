@@ -119,16 +119,18 @@ function escHtml(str) {
 }
 
 function appendMessage(msg, isMine) {
+  if (!msg || !msg.body) return;
   const wrap = document.getElementById('chat-messages');
   const div = document.createElement('div');
   div.className = 'msg ' + (isMine ? 'msg-me' : 'msg-other');
   div.dataset.id = msg.id;
-  const timeStr = new Date(msg.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', hour12:true});
-  div.innerHTML = (isMine ? '' : `<div class="msg-sender">${escHtml(msg.sender_name)}</div>`)
+  const ts = msg.created_at ? new Date(msg.created_at) : new Date();
+  const timeStr = ts.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', hour12:true});
+  div.innerHTML = (isMine ? '' : `<div class="msg-sender">${escHtml(msg.sender_name || '')}</div>`)
     + `<div class="msg-bubble">${escHtml(msg.body)}</div>`
     + `<div class="msg-time">${timeStr}</div>`;
   wrap.appendChild(div);
-  if (msg.id > lastMsgId) lastMsgId = msg.id;
+  if (msg.id && msg.id > lastMsgId) lastMsgId = msg.id;
   scrollBottom(isMine);
 }
 
@@ -147,8 +149,10 @@ async function sendMessage() {
       headers: {'Content-Type':'application/json', 'X-CSRF-TOKEN': CSRF, 'Accept':'application/json'},
       body: JSON.stringify({body})
     });
+    if (res.status === 401) { window.location.href = '{{ route('login') }}'; return; }
+    if (!res.ok) { input.value = body; btn.disabled = false; input.focus(); return; }
     const msg = await res.json();
-    appendMessage(msg, true);
+    if (msg && msg.body) appendMessage(msg, true);
   } catch(e) {
     input.value = body;
   }
@@ -197,17 +201,22 @@ function showBrowserNotif(senderName, body) {
 
 // Polling — fetch new messages every 3 seconds
 let polling = true;
+let pollErrors = 0;
 async function pollMessages() {
   if (!polling) return;
   try {
     const res = await fetch(POLL_URL + '?after=' + lastMsgId, {
       headers: {'Accept':'application/json', 'X-CSRF-TOKEN': CSRF}
     });
+    if (res.status === 401) { window.location.href = '{{ route('login') }}'; return; }
+    if (!res.ok) { pollErrors++; if (pollErrors > 5) return; setTimeout(pollMessages, 5000); return; }
+    pollErrors = 0;
     const msgs = await res.json();
+    if (!Array.isArray(msgs)) { setTimeout(pollMessages, 3000); return; }
     msgs.forEach(msg => {
-      if (msg.sender_id !== MY_ID) {
+      if (msg.sender_id !== MY_ID && msg.body) {
         appendMessage(msg, false);
-        showBrowserNotif(msg.sender_name, msg.body);
+        showBrowserNotif(msg.sender_name || '', msg.body);
       }
     });
   } catch(e) {}

@@ -1,5 +1,34 @@
 @extends('layouts.app')
-@section('title', $listing->title)
+@section('title', $listing->title . ' — ' . ($listing->location ?: $listing->city) . ' | GoBazaar')
+@section('description', Str::limit(strip_tags($listing->description ?? $listing->title . ' for sale in ' . ($listing->location ?: 'Canada') . '. Find the best deals on GoBazaar.'), 160))
+@section('canonical', route('classifieds.show', $listing))
+@section('og_type', 'product')
+@section('og_title', $listing->title . ' — ' . ($listing->location ?: $listing->city))
+@section('og_description', Str::limit(strip_tags($listing->description ?? $listing->title), 200))
+@section('og_image', $listing->image_url ?? asset('images/og-default.jpg'))
+@push('schema')
+<script type="application/ld+json">
+{!! json_encode(array_filter([
+  '@context' => 'https://schema.org',
+  '@type'    => 'Product',
+  'name'     => $listing->title,
+  'description' => Str::limit(strip_tags($listing->description ?? ''), 500),
+  'url'      => route('classifieds.show', $listing),
+  'image'    => $listing->image_url ?: null,
+  'offers'   => ($listing->price && (float)$listing->price > 0) ? [
+    '@type'        => 'Offer',
+    'price'        => (string)$listing->price,
+    'priceCurrency'=> 'CAD',
+    'availability' => 'https://schema.org/InStock',
+    'url'          => route('classifieds.show', $listing),
+  ] : null,
+  'seller' => [
+    '@type' => 'Person',
+    'name'  => $listing->user->name ?? 'Seller',
+  ],
+]), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT) !!}
+</script>
+@endpush
 
 @push('styles')
 <style>
@@ -104,6 +133,35 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
       @if($listing->description)
         <div class="listing-desc">{!! clean($listing->description) !!}</div>
       @endif
+      @if($listing->custom_fields && count(array_filter((array)$listing->custom_fields)))
+        @php
+          $categoryFields = $listing->category?->applicableFields() ?? collect();
+          $fieldMap = $categoryFields->keyBy('key');
+        @endphp
+        <div style="margin-top:20px;border-top:1.5px solid var(--border);padding-top:16px">
+          <div style="font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:12px">Additional Details</div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px">
+            @foreach((array)$listing->custom_fields as $key => $value)
+              @if($value !== null && $value !== '')
+                @php $field = $fieldMap->get($key); @endphp
+                <div style="background:var(--bg-alt,#f8fafc);border:1px solid var(--border);border-radius:8px;padding:10px 14px">
+                  <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px">
+                    {{ $field?->label ?? ucwords(str_replace('_',' ',$key)) }}
+                  </div>
+                  <div style="font-size:14px;font-weight:600;color:var(--text)">
+                    @if(is_bool($value) || $value === '1' || $value === '0')
+                      {{ $value ? 'Yes' : 'No' }}
+                    @else
+                      {{ $value }}
+                    @endif
+                  </div>
+                </div>
+              @endif
+            @endforeach
+          </div>
+        </div>
+      @endif
+
       @if($listing->tags)
         <div style="margin-top:14px">
           @foreach($listing->tags as $tag)
@@ -115,6 +173,48 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
   </div>
 
   <div>
+    {{-- ── Seller Profile Card ── --}}
+    @if($listing->user)
+    <div class="sidebar-card" style="margin-bottom:16px">
+      <div class="sidebar-head">About the Seller</div>
+      <div class="sidebar-body">
+        <a href="{{ route('seller.profile', $listing->user) }}" style="text-decoration:none;color:inherit">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+            {{-- Avatar --}}
+            @if($listing->user->avatar_url)
+              <img src="{{ $listing->user->avatar_url }}" alt="{{ $listing->user->name }}"
+                   style="width:52px;height:52px;border-radius:50%;object-fit:cover;border:2px solid var(--border);flex-shrink:0">
+            @else
+              <div style="width:52px;height:52px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;flex-shrink:0">
+                {{ strtoupper(substr($listing->user->name,0,1)) }}
+              </div>
+            @endif
+            <div>
+              <div style="font-weight:700;font-size:15px;color:var(--text)">{{ $listing->user->name }}</div>
+              @if($listing->user->is_verified || $listing->is_verified)
+                <div style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:#15803d;background:#dcfce7;padding:2px 8px;border-radius:20px;margin-top:3px">
+                  <i class="fa-solid fa-circle-check" style="font-size:10px"></i> Verified
+                </div>
+              @endif
+            </div>
+          </div>
+          {{-- Post count --}}
+          @php $postCount = \App\Models\Listing::where('user_id',$listing->user_id)->where('status','active')->count(); @endphp
+          <div style="font-size:12px;color:var(--muted);margin-bottom:10px">
+            <i class="fa-solid fa-list" style="margin-right:4px"></i>
+            {{ $postCount }} active {{ Str::plural('listing', $postCount) }}
+            &nbsp;·&nbsp;
+            <i class="fa-regular fa-calendar" style="margin-right:4px"></i>
+            Member since {{ $listing->user->created_at->format('M Y') }}
+          </div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:6px;width:100%;background:var(--primary-light,#e8f4fd);color:var(--primary);border-radius:8px;padding:8px;font-size:13px;font-weight:600">
+            <i class="fa-solid fa-store"></i> View All Listings
+          </div>
+        </a>
+      </div>
+    </div>
+    @endif
+
     <div class="sidebar-card">
       <div class="sidebar-head">Contact Seller</div>
       <div class="sidebar-body">
@@ -155,17 +255,42 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
       </div>
     </div>
 
-    <div style="margin-bottom:12px">
-      <x-favorite-btn type="listing" :model-id="$listing->id" :model-class="\App\Models\Listing::class" />
+    <div class="sidebar-card">
+      <div class="sidebar-body" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px">
+        <x-favorite-btn type="listing" :model-id="$listing->id" :model-class="\App\Models\Listing::class" />
+        @auth
+        <button onclick="openReportModal('listing', {{ $listing->id }})" style="background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border-radius:6px;transition:color .15s" onmouseover="this.style.color='#e74c3c'" onmouseout="this.style.color='var(--muted)'">
+          <i class="fa-solid fa-flag"></i> Report this listing
+        </button>
+        @endauth
+      </div>
     </div>
 
-    @auth
-    <div style="text-align:center;margin-bottom:12px">
-      <button onclick="openReportModal('listing', {{ $listing->id }})" style="background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border-radius:6px;transition:color .15s" onmouseover="this.style.color='#e74c3c'" onmouseout="this.style.color='var(--muted)'">
-        <i class="fa-solid fa-flag"></i> Report this listing
-      </button>
-    </div>
-    @endauth
+    @if($sellerListings->count())
+      <div class="sidebar-card">
+        <div class="sidebar-head" style="display:flex;justify-content:space-between;align-items:center">
+          <span>More from Seller</span>
+          <a href="{{ route('seller.profile', $listing->user) }}" style="font-size:11px;color:var(--primary);font-weight:600;text-decoration:none">View All →</a>
+        </div>
+        <div class="related-grid">
+          @foreach($sellerListings->take(4) as $rel)
+            <a href="{{ route('classifieds.show', $rel) }}" class="rel-card">
+              <div class="rel-thumb">
+                @if($rel->image_url)
+                  <img src="{{ $rel->image_url }}" alt="{{ $rel->title }}">
+                @else
+                  {{ $rel->category->icon ?? '📦' }}
+                @endif
+              </div>
+              <div class="rel-body">
+                <div class="rel-title">{{ $rel->title }}</div>
+                @if($rel->price)<div class="rel-price">{{ $rel->formatted_price }}</div>@endif
+              </div>
+            </a>
+          @endforeach
+        </div>
+      </div>
+    @endif
 
     @if($related->count())
       <div class="sidebar-card">

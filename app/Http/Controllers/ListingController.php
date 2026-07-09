@@ -68,10 +68,27 @@ class ListingController extends Controller
             'subject_id'    => $listing->id,
             'subject_label' => $listing->title,
         ]);
+        $listing->load('user', 'category');
         $related = Listing::where('category_id', $listing->category_id)
             ->where('id', '!=', $listing->id)
             ->where('status', 'active')
             ->limit(4)->get();
-        return view('classifieds.show', compact('listing', 'related'));
+        $sellerListings = Listing::where('user_id', $listing->user_id)
+            ->where('id', '!=', $listing->id)
+            ->where('status', 'active')
+            ->latest()
+            ->limit(6)
+            ->get();
+        return view('classifieds.show', compact('listing', 'related', 'sellerListings'));
+    }
+
+    public function sellerProfile(Request $request, \App\Models\User $user)
+    {
+        $listings = Listing::where('user_id', $user->id)
+            ->where('status', 'active')
+            ->with('category')
+            ->latest()
+            ->paginate(12);
+        return view('classifieds.seller', compact('user', 'listings'));
     }
 }

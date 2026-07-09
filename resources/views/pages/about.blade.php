@@ -1,6 +1,6 @@
 @extends('layouts.app')
-@section('title', 'About GoBazaar — Canada\'s #1 Indian Community Portal')
-@section('description', 'Learn about GoBazaar — our mission, story, and commitment to connecting the Indian-Canadian community.')
+@section('title', 'About GoBazaar — Canada\'s #1 Community Marketplace')
+@section('description', 'Learn about GoBazaar — our mission, story, and commitment to connecting communities across Canada.')
 
 @push('styles')
 <style>
@@ -30,15 +30,15 @@
 @section('content')
 <div class="page-hero">
   <h1>About <span style="color:var(--accent)">GoBazaar</span></h1>
-  <p>Canada's #1 Indian Community Portal — connecting millions of Indians across Canada since 2020.</p>
+  <p>Canada's #1 Community Marketplace — connecting communities across Canada since 2020.</p>
 </div>
 
 <div class="page-wrap">
 
   <div class="team-section">
     <h2>Our Story</h2>
-    <p>GoBazaar was born from a simple idea: every Indian who arrives in Canada deserves a trusted, one-stop platform to buy, sell, find jobs, discover events, connect with local businesses, and feel at home. What started as a small classifieds board has grown into Canada's largest Indian community portal — spanning Classifieds, Yellow Pages, Events, Jobs, Blog, and more.</p>
-    <p>We are built by the community, for the community. Our team is passionate about making the Indian-Canadian experience richer, easier, and more connected — whether you're searching for a room to rent, a reliable immigration consultant, the best biryani in Brampton, or your life partner.</p>
+    <p>GoBazaar was born from a simple idea: everyone in Canada deserves a trusted, one-stop platform to buy, sell, find jobs, discover events, connect with local businesses, and feel at home. What started as a small classifieds board has grown into Canada's #1 Community Marketplace — spanning Classifieds, Yellow Pages, Events, Jobs, Blog, and more.</p>
+    <p>We are built by the community, for the community. Our team is passionate about making the Canadian community experience richer, easier, and more connected — whether you're searching for a room to rent, a reliable consultant, the best restaurant in your city, or your next job.</p>
   </div>
 
   <div class="stat-row">
@@ -52,7 +52,7 @@
     <div class="about-card">
       <div class="about-card-icon"><i class="fa-solid fa-bullseye"></i></div>
       <h3>Our Mission</h3>
-      <p>To empower the Indian-Canadian community with a trusted platform where every member can buy, sell, find work, celebrate culture, and connect with each other — all in one place.</p>
+      <p>To empower communities across Canada with a trusted marketplace where every member can buy, sell, find work, celebrate culture, and connect with each other — all in one place.</p>
     </div>
     <div class="about-card">
       <div class="about-card-icon"><i class="fa-solid fa-eye"></i></div>

@@ -65,6 +65,13 @@ textarea.form-input{resize:vertical;min-height:100px}
 
 @section('content')
 <div class="post-wrap">
+  @if(in_array($type, ['business', 'business-post']))
+  {{-- Business flow: back link instead of tabs --}}
+  <div class="post-hero">
+    <h1>{{ $type === 'business' ? 'Register Your Business' : 'Add a Business Post' }}</h1>
+    <p><a href="{{ route('account') }}#business" onclick="history.back();return false;" style="color:var(--primary);font-weight:600;text-decoration:none"><i class="fa-solid fa-arrow-left" style="font-size:11px;margin-right:5px"></i>Back to My Business</a></p>
+  </div>
+  @else
   <div class="post-hero">
     <h1>Post Something</h1>
     <p>Choose a category and fill in the details. Your post goes live after admin review.</p>
@@ -84,28 +91,8 @@ textarea.form-input{resize:vertical;min-height:100px}
       <div class="tab-icon">🎉</div>
       <div class="tab-label">Event</div>
     </div>
-    @if($canBusiness)
-      <div class="type-tab {{ $type==='business' ? 'active' : '' }}" onclick="switchType('business',this)">
-        <div class="tab-icon">🏢</div>
-        <div class="tab-label">Register Business</div>
-      </div>
-      <div class="type-tab {{ $type==='business-post' ? 'active' : '' }}" onclick="switchType('business-post',this)">
-        <div class="tab-icon">📦</div>
-        <div class="tab-label">Business Post</div>
-      </div>
-    @else
-      <a href="{{ route('pricing') }}" class="type-tab" style="opacity:.55;cursor:pointer;text-decoration:none" title="Upgrade to Verified or Power Seller to register a business">
-        <div class="tab-icon">🏢</div>
-        <div class="tab-label">Register Business</div>
-        <div style="font-size:9px;color:var(--red);font-weight:700;margin-top:2px">🔒 Verified+</div>
-      </a>
-      <a href="{{ route('pricing') }}" class="type-tab" style="opacity:.55;cursor:pointer;text-decoration:none" title="Upgrade to Verified or Power Seller to post business products">
-        <div class="tab-icon">📦</div>
-        <div class="tab-label">Business Post</div>
-        <div style="font-size:9px;color:var(--red);font-weight:700;margin-top:2px">🔒 Verified+</div>
-      </a>
-    @endif
   </div>
+  @endif
 
   @if($errors->any())
   <div class="flash flash-error" style="margin-bottom:20px">
@@ -125,7 +112,8 @@ textarea.form-input{resize:vertical;min-height:100px}
     $usedListings= $authUser->activeListingCount();
   @endphp
 
-  {{-- Plan Status Bar --}}
+  {{-- Plan Status Bar (hidden for business flows) --}}
+  @if(!in_array($type, ['business', 'business-post']))
   <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
     <div style="font-size:13px;display:flex;flex-wrap:wrap;gap:12px;align-items:center">
       <span>
@@ -148,6 +136,7 @@ textarea.form-input{resize:vertical;min-height:100px}
       <a href="{{ route('pricing') }}" style="font-size:12px;font-weight:600;color:var(--red);white-space:nowrap">⬆ Upgrade Plan →</a>
     @endif
   </div>
+  @endif {{-- end plan status bar --}}
 
   {{-- ── CLASSIFIED ─────────────────────────────────────────────── --}}
   <div id="form-classified" class="{{ $type!=='classified' ? 'hidden' : '' }}">
@@ -226,7 +215,7 @@ textarea.form-input{resize:vertical;min-height:100px}
             <div class="form-row">
               <div class="form-group">
                 <label class="form-label">Price</label>
-                <input type="text" name="price" class="form-input" value="{{ old('price') }}" placeholder="$500">
+                <input type="number" name="price" class="form-input" value="{{ old('price') }}" placeholder="500" min="0" max="99999999" step="any">
               </div>
               <div class="form-group">
                 <label class="form-label">Price Unit</label>

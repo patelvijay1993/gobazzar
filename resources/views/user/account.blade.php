@@ -11,7 +11,32 @@
   --blue:#1d4ed8;--green:#16a34a;--green-bg:#dcfce7;
 }
 .acct-wrap{max-width:1100px;margin:24px auto;padding:0 20px;display:grid;grid-template-columns:260px 1fr;gap:20px;align-items:start}
-@media(max-width:768px){.acct-wrap{grid-template-columns:1fr;padding:0 14px}.form-row{grid-template-columns:1fr}.acct-sidebar{position:static}}
+@media(max-width:768px){
+  .acct-wrap{grid-template-columns:1fr;padding:0 14px;margin:12px auto}
+  .form-row{grid-template-columns:1fr}
+  .acct-sidebar{position:static}
+  /* Panel open: hide entire sidebar, show only acct-main fullscreen */
+  .acct-wrap.panel-open .acct-sidebar{display:none}
+  .acct-wrap.panel-open .acct-main{display:flex}
+  /* Back button — hidden by default, shown when panel-open */
+  .mobile-back-btn{display:none}
+  .acct-wrap.panel-open .mobile-back-btn{display:flex;align-items:center;gap:8px;background:#f1f5f9;border:none;border-radius:10px;padding:9px 16px;font-size:13px;font-weight:600;color:var(--primary);cursor:pointer;margin-bottom:12px;width:100%}
+}
+/* Desktop: always hide back button */
+@media(min-width:769px){.mobile-back-btn{display:none!important}}
+/* Mobile: fix submission row overflow */
+@media(max-width:600px){
+  .panel-body{padding:12px}
+  .sub-row{flex-wrap:wrap;gap:8px;padding:12px 8px}
+  .sub-actions{flex-direction:row;align-items:center;justify-content:space-between;width:100%;flex-shrink:unset}
+  .sub-title{font-size:12px;word-break:break-word}
+  .sub-meta{font-size:10.5px}
+  .row-actions{flex-wrap:wrap;gap:5px}
+  .btn-edit,.btn-del{font-size:10px;padding:3px 8px}
+  .panel-head{font-size:12px;padding:11px 14px}
+  .panel-head a{font-size:10px;padding:3px 10px}
+  .status-badge{font-size:9px}
+}
 .acct-sidebar{background:#fff;border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;position:sticky;top:72px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
 .acct-profile{padding:26px 20px;text-align:center;background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);color:#fff}
 .acct-avatar{width:76px;height:76px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,.4);margin:0 auto 12px;display:block}
@@ -30,7 +55,7 @@
 .post-btn{display:flex;align-items:center;justify-content:center;gap:6px;margin:14px 16px;background:var(--accent);color:#fff;border-radius:var(--r);padding:11px 14px;font-size:13px;font-weight:700;text-align:center;transition:opacity .15s;text-decoration:none}
 .post-btn:hover{opacity:.88;color:#fff}
 
-.acct-main{display:flex;flex-direction:column;gap:16px}
+.acct-main{display:flex;flex-direction:column;gap:16px;min-width:0;overflow:hidden}
 .panel{background:#fff;border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;display:none;box-shadow:0 1px 4px rgba(0,0,0,.04)}
 .panel.active{display:block}
 .panel-head{background:var(--primary);color:#fff;padding:14px 20px;font-family:var(--fh);font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;display:flex;align-items:center;justify-content:space-between}
@@ -60,6 +85,7 @@
 .status-rejected,.status-inactive{background:var(--red-pale);color:var(--red)}
 .status-draft{background:#f1f5f9;color:#64748b}
 .empty-state{text-align:center;padding:30px;color:var(--muted);font-size:13px}
+.sub-actions{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0}
 .row-actions{display:flex;gap:6px;flex-shrink:0}
 .btn-edit{font-size:11px;padding:4px 10px;border-radius:6px;border:1.5px solid var(--border2);color:var(--muted);cursor:pointer;text-decoration:none;transition:all .15s}
 .btn-edit:hover{border-color:var(--blue);color:var(--blue)}
@@ -98,12 +124,13 @@
             <a href="{{ route('pricing') }}" style="color:#fbbf24;font-size:10px;font-weight:700;text-decoration:none">Upgrade →</a>
           @endif
         </div>
+        @php $totalPostCount = $user->activeListingCount(); @endphp
         @if($user->activePlan() === 'power_seller')
-          <div style="font-size:10px;color:rgba(255,255,255,.7);margin-top:3px">Listings: Unlimited · Auto-renew</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.7);margin-top:3px">Listings: {{ $totalPostCount }} · Auto-renew</div>
         @elseif($user->activePlan() === 'verified')
-          <div style="font-size:10px;color:rgba(255,255,255,.7);margin-top:3px">Listings: {{ $user->activeListingCount() }}/10 · 30-day visibility</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.7);margin-top:3px">Listings: {{ $totalPostCount }}/10 · 30-day visibility</div>
         @else
-          <div style="font-size:10px;color:rgba(255,255,255,.7);margin-top:3px">Listings: {{ $user->activeListingCount() }}/3 · 3-day visibility</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.7);margin-top:3px">Listings: {{ $totalPostCount }}/3 · 3-day visibility</div>
         @endif
       </div>
     </div>
@@ -115,6 +142,7 @@
       @if($user->hasFavorites())
       <a href="{{ route('account.favorites') }}" class="acct-mi"><i class="fa-solid fa-heart"></i> Saved Items</a>
       @endif
+      <a href="#" class="acct-mi" onclick="showBusinessPanel(this)"><i class="fa-solid fa-store"></i> My Business</a>
       <a href="#" class="acct-mi" onclick="showPanel('billing',this)"><i class="fa-solid fa-credit-card"></i> Billing & Payments</a>
       <a href="#" class="acct-mi" onclick="showPanel('profile',this)"><i class="fa-solid fa-user"></i> Edit Profile</a>
       <a href="#" class="acct-mi" onclick="showPanel('password',this)"><i class="fa-solid fa-lock"></i> Change Password</a>
@@ -125,6 +153,11 @@
   </aside>
 
   <div class="acct-main">
+    {{-- Mobile back button (visible only when panel-open on mobile) --}}
+    <button class="mobile-back-btn" onclick="closePanel()">
+      <i class="fa-solid fa-arrow-left" style="font-size:12px"></i> Back to Menu
+    </button>
+
     @if(session('success'))
       <div class="flash flash-success">{{ session('success') }}</div>
     @endif
@@ -178,8 +211,6 @@
             @if($listings->isNotEmpty())<div class="sub-tab active" onclick="showSubTab('classifieds',this)">🏷️ Classifieds ({{ $listings->count() }})</div>@endif
             @if($jobs->isNotEmpty())<div class="sub-tab {{ $listings->isEmpty() ? 'active' : '' }}" onclick="showSubTab('jobs',this)">💼 Jobs ({{ $jobs->count() }})</div>@endif
             @if($events->isNotEmpty())<div class="sub-tab {{ $listings->isEmpty() && $jobs->isEmpty() ? 'active' : '' }}" onclick="showSubTab('events',this)">🎉 Events ({{ $events->count() }})</div>@endif
-            @if($businesses->isNotEmpty())<div class="sub-tab {{ $listings->isEmpty() && $jobs->isEmpty() && $events->isEmpty() ? 'active' : '' }}" onclick="showSubTab('biz',this)">🏢 Directory ({{ $businesses->count() }})</div>@endif
-            @if($businessPosts->isNotEmpty())<div class="sub-tab {{ $listings->isEmpty() && $jobs->isEmpty() && $events->isEmpty() && $businesses->isEmpty() ? 'active' : '' }}" onclick="showSubTab('bizposts',this)">📦 Business Posts ({{ $businessPosts->count() }})</div>@endif
           </div>
 
           {{-- Classifieds --}}
@@ -199,7 +230,7 @@
                 </a>
                 <div class="sub-meta">{{ $item->category->name ?? '' }} · {{ $item->location }} · {{ $item->created_at->format('d M Y') }}</div>
               </div>
-              <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0">
+              <div class="sub-actions">
                 <span class="status-badge status-{{ $item->status }}">{{ ucfirst($item->status) }}</span>
                 <div class="row-actions">
                   @if($user->hasAnalytics())
@@ -244,7 +275,7 @@
                 </a>
                 <div class="sub-meta">{{ $item->company }} · {{ $item->city }} · {{ $item->created_at->format('d M Y') }}</div>
               </div>
-              <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0">
+              <div class="sub-actions">
                 <span class="status-badge status-{{ $item->status }}">{{ ucfirst($item->status) }}</span>
                 <div class="row-actions">
                   <a href="{{ route('jobs.show', $item) }}" class="btn-edit" style="background:#e0e7ff;color:#3730a3">View</a>
@@ -277,7 +308,7 @@
                 </a>
                 <div class="sub-meta">{{ $item->city }} · {{ $item->start_date?->format('d M Y') }} · {{ $item->created_at->format('d M Y') }}</div>
               </div>
-              <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0">
+              <div class="sub-actions">
                 <span class="status-badge status-{{ $item->status }}">{{ ucfirst($item->status) }}</span>
                 <div class="row-actions">
                   <a href="{{ route('events.show', $item) }}" class="btn-edit" style="background:#e0e7ff;color:#3730a3">View</a>
@@ -293,9 +324,37 @@
           </div>
           @endif
 
-          {{-- Businesses --}}
+
+        @endif
+      </div>
+    </div>
+
+    {{-- MY BUSINESS --}}
+    <div class="panel" id="panel-business">
+      <div class="panel-head">
+        <span><i class="fa-solid fa-store" style="margin-right:7px"></i>My Business</span>
+        <div style="display:flex;gap:6px">
+          @if($businesses->isEmpty())
+            <a href="{{ route('post.create', ['type'=>'business']) }}" style="background:var(--red);color:#fff;font-size:11px;padding:4px 12px;border-radius:6px;font-weight:600;text-decoration:none">+ Register Business</a>
+          @else
+            <a href="{{ route('post.create', ['type'=>'business-post']) }}" style="background:var(--accent);color:#fff;font-size:11px;padding:4px 12px;border-radius:6px;font-weight:600;text-decoration:none">+ Add Post</a>
+          @endif
+        </div>
+      </div>
+      <div class="panel-body">
+        @if($businesses->isEmpty() && $businessPosts->isEmpty())
+          <div class="empty-state">
+            <i class="fa-solid fa-store" style="font-size:36px;margin-bottom:12px;display:block;opacity:.25"></i>
+            <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px">No business registered yet</div>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:18px">Register your business to get listed in our directory and add products/services.</div>
+            <a href="{{ route('post.create', ['type'=>'business']) }}" style="display:inline-flex;align-items:center;gap:7px;background:var(--primary);color:#fff;padding:10px 20px;border-radius:9px;font-size:13px;font-weight:700;text-decoration:none">
+              <i class="fa-solid fa-plus"></i> Register Your Business
+            </a>
+          </div>
+        @else
+          {{-- Registered Businesses --}}
           @if($businesses->isNotEmpty())
-          <div class="sub-panel {{ $listings->isEmpty() && $jobs->isEmpty() && $events->isEmpty() ? 'active' : '' }}" id="sub-biz">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:10px">🏢 Registered Businesses ({{ $businesses->count() }})</div>
             @foreach($businesses as $item)
             <div class="sub-row">
               <a href="{{ route('directory.show', $item) }}" style="display:contents;text-decoration:none">
@@ -310,12 +369,12 @@
                 </a>
                 <div class="sub-meta">{{ $item->category->name ?? '' }} · {{ $item->city }} · {{ $item->created_at->format('d M Y') }}</div>
               </div>
-              <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0">
+              <div class="sub-actions">
                 <span class="status-badge status-{{ $item->status }}">{{ ucfirst($item->status) }}</span>
                 <div class="row-actions">
                   <a href="{{ route('directory.show', $item) }}" class="btn-edit" style="background:#e0e7ff;color:#3730a3">View</a>
                   <a href="{{ route('post.edit', ['type'=>'business','id'=>$item->id]) }}" class="btn-edit">Edit</a>
-                  <form method="POST" action="{{ route('post.destroy', ['type'=>'business','id'=>$item->id]) }}" onsubmit="return confirm('Delete this post?')">
+                  <form method="POST" action="{{ route('post.destroy', ['type'=>'business','id'=>$item->id]) }}" onsubmit="return confirm('Delete this business?')">
                     @csrf @method('DELETE')
                     <button type="submit" class="btn-del">Delete</button>
                   </form>
@@ -323,12 +382,11 @@
               </div>
             </div>
             @endforeach
-          </div>
           @endif
 
           {{-- Business Posts --}}
           @if($businessPosts->isNotEmpty())
-          <div class="sub-panel {{ $listings->isEmpty() && $jobs->isEmpty() && $events->isEmpty() && $businesses->isEmpty() ? 'active' : '' }}" id="sub-bizposts">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:16px 0 10px">📦 Business Posts ({{ $businessPosts->count() }})</div>
             @foreach($businessPosts as $item)
             <div class="sub-row">
               <div class="sub-thumb">
@@ -343,7 +401,7 @@
                   · {{ $item->created_at->format('d M Y') }}
                 </div>
               </div>
-              <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0">
+              <div class="sub-actions">
                 <span class="status-badge status-{{ $item->status }}">{{ ucfirst($item->status) }}</span>
                 <div class="row-actions">
                   @if($item->business)
@@ -358,9 +416,7 @@
               </div>
             </div>
             @endforeach
-          </div>
           @endif
-
         @endif
       </div>
     </div>
@@ -555,12 +611,41 @@
 
 @push('scripts')
 <script>
+// Mobile: on load, hide all panels — show only sidebar nav
+document.addEventListener('DOMContentLoaded', function() {
+  if (window.innerWidth <= 768) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.acct-mi').forEach(m => m.classList.remove('active'));
+    document.querySelector('.acct-wrap').classList.remove('panel-open');
+  }
+});
 function showPanel(name, el) {
   event.preventDefault();
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.acct-mi').forEach(m => m.classList.remove('active'));
   document.getElementById('panel-' + name).classList.add('active');
   el.classList.add('active');
+  if (window.innerWidth <= 768) {
+    document.querySelector('.acct-wrap').classList.add('panel-open');
+    setTimeout(function(){ window.scrollTo({ top: 0, behavior: 'smooth' }); }, 60);
+  }
+}
+var _businessEnabled = {{ \App\Models\Setting::bool('business_enabled', true) ? 'true' : 'false' }};
+function showBusinessPanel(el) {
+  if (!_businessEnabled) {
+    document.getElementById('coming-soon-modal').classList.add('open');
+    return;
+  }
+  showPanel('business', el);
+}
+function closeComingSoon() {
+  document.getElementById('coming-soon-modal').classList.remove('open');
+}
+function closePanel() {
+  document.querySelector('.acct-wrap').classList.remove('panel-open');
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.acct-mi').forEach(m => m.classList.remove('active'));
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 function showSubTab(name, el) {
   document.querySelectorAll('.sub-panel').forEach(p => p.classList.remove('active'));
@@ -577,6 +662,50 @@ document.addEventListener('DOMContentLoaded', function () {
   if (mi) mi.classList.add('active');
 });
 @endif
+// Auto-open panel from URL ?panel=xxx (e.g. after business post save)
+(function() {
+  var urlPanel = new URLSearchParams(window.location.search).get('panel');
+  if (urlPanel) {
+    var panelEl = document.getElementById('panel-' + urlPanel);
+    var navEl = document.querySelector('.acct-mi[onclick*="' + urlPanel + '"]');
+    if (panelEl) {
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.acct-mi').forEach(m => m.classList.remove('active'));
+      panelEl.classList.add('active');
+      if (navEl) navEl.classList.add('active');
+      if (window.innerWidth <= 768) {
+        document.querySelector('.acct-wrap').classList.add('panel-open');
+        setTimeout(function(){ window.scrollTo({ top: 0, behavior: 'smooth' }); }, 60);
+      }
+    }
+  }
+})();
 </script>
 @endpush
+
 @endsection
+
+{{-- Coming Soon Modal --}}
+@push('modals')
+<style>
+.coming-soon-modal{display:none;position:fixed;inset:0;z-index:2000;align-items:center;justify-content:center;background:rgba(0,0,0,.55);padding:20px}
+.coming-soon-modal.open{display:flex}
+.coming-soon-box{background:#fff;border-radius:20px;width:100%;max-width:400px;text-align:center;padding:40px 32px;box-shadow:0 20px 60px rgba(0,0,0,.25);animation:csSlide .25s ease;position:relative}
+@keyframes csSlide{from{transform:translateY(-20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.coming-soon-icon{width:72px;height:72px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:32px}
+.coming-soon-box h3{font-family:var(--fh);font-size:22px;font-weight:800;color:var(--primary);margin-bottom:8px}
+.coming-soon-box p{font-size:13.5px;color:var(--muted);line-height:1.6;margin-bottom:22px}
+.coming-soon-badge{display:inline-flex;align-items:center;gap:6px;background:var(--accent-light);color:var(--accent);font-size:12px;font-weight:700;padding:5px 14px;border-radius:20px;margin-bottom:22px;border:1px solid #f5d68a}
+.coming-soon-close{background:var(--primary);color:#fff;border:none;border-radius:10px;padding:11px 28px;font-size:14px;font-weight:700;cursor:pointer;transition:opacity .15s}
+.coming-soon-close:hover{opacity:.88}
+</style>
+<div class="coming-soon-modal" id="coming-soon-modal" onclick="if(event.target===this)closeComingSoon()">
+  <div class="coming-soon-box">
+    <div class="coming-soon-icon">🏪</div>
+    <div class="coming-soon-badge"><i class="fa-solid fa-clock"></i> Coming Soon</div>
+    <h3>My Business</h3>
+    <p>The Business Directory feature is currently being prepared. Stay tuned — it will be available soon!</p>
+    <button class="coming-soon-close" onclick="closeComingSoon()">Got it</button>
+  </div>
+</div>
+@endpush

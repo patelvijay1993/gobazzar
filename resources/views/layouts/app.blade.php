@@ -3,9 +3,32 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>@yield('title', 'GoBazaar') — Indian Community in Canada</title>
-<meta name="description" content="@yield('description', 'Best community website for Indians living in Canada.')">
+<title>@yield('title', 'GoBazaar') — Canada's #1 Community Marketplace</title>
+<meta name="description" content="@yield('description', 'GoBazaar — Canada\'s #1 Community Marketplace. Find classifieds, jobs, events, businesses and more.')">
+<meta name="robots" content="@yield('robots', 'index, follow')">
+<link rel="canonical" href="@yield('canonical', url()->current())">
 <meta name="csrf-token" content="{{ csrf_token() }}">
+
+{{-- Open Graph --}}
+<meta property="og:type"        content="@yield('og_type', 'website')">
+<meta property="og:site_name"   content="GoBazaar">
+<meta property="og:title"       content="@yield('og_title', config('app.name', 'GoBazaar') . ' — Canada\'s #1 Community Marketplace')">
+<meta property="og:description" content="@yield('og_description', 'GoBazaar — Canada\'s #1 Community Marketplace. Find classifieds, jobs, events, businesses and more.')">
+<meta property="og:url"         content="@yield('canonical', url()->current())">
+<meta property="og:image"       content="@yield('og_image', asset('images/og-default.jpg'))">
+<meta property="og:image:width"  content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale"      content="en_CA">
+
+{{-- Twitter Card --}}
+<meta name="twitter:card"        content="summary_large_image">
+<meta name="twitter:title"       content="@yield('og_title', config('app.name', 'GoBazaar') . ' — Canada\'s #1 Community Marketplace')">
+<meta name="twitter:description" content="@yield('og_description', 'GoBazaar — Canada\'s #1 Community Marketplace.')">
+<meta name="twitter:image"       content="@yield('og_image', asset('images/og-default.jpg'))">
+
+{{-- Page-specific JSON-LD structured data --}}
+@stack('schema')
+
 <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon.png') }}">
 <link rel="shortcut icon" href="{{ asset('favicon.png') }}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -223,7 +246,7 @@ footer.site-footer{background:var(--nav-bg);border-top:2px solid #2a4fa8;margin-
 <!-- TOPBAR -->
 <div class="topbar">
   <div class="topbar-inner">
-    <span><i class="fa-solid fa-location-dot" style="color:var(--accent);margin-right:4px"></i> Canada's #1 Indian Community Portal</span>
+    <span><i class="fa-solid fa-location-dot" style="color:var(--accent);margin-right:4px"></i> Canada's #1 Community Marketplace</span>
     <div>
       <a href="{{ route('home') }}">Home</a>
       <a href="{{ route('blog.index') }}">Blog</a>
@@ -375,7 +398,7 @@ footer.site-footer{background:var(--nav-bg);border-top:2px solid #2a4fa8;margin-
           <div style="font-size:10px;color:rgba(255,255,255,.5)">Buy. Sell. Connect.</div>
         </div>
       </div>
-      <p>Canada's #1 Indian Community Portal. Classifieds · Yellow Pages · Events · Jobs · Blog — everything the Indian-Canadian community needs, in one place.</p>
+      <p>Canada's #1 Community Marketplace. Classifieds · Yellow Pages · Events · Jobs · Blog — everything your community needs, in one place.</p>
       <div class="footer-socials">
         <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
         <a href="#"><i class="fa-brands fa-instagram"></i></a>
@@ -411,7 +434,7 @@ footer.site-footer{background:var(--nav-bg);border-top:2px solid #2a4fa8;margin-
     </div>
   </div>
   <div class="footer-bottom">
-    &copy; {{ date('Y') }} GoBazaar &nbsp;·&nbsp; Canada's #1 Indian Community Portal &nbsp;·&nbsp;
+    &copy; {{ date('Y') }} GoBazaar &nbsp;·&nbsp; Canada's #1 Community Marketplace &nbsp;·&nbsp;
     <a href="{{ route('home') }}">Home</a> &nbsp;·&nbsp;
     <a href="{{ route('classifieds.index') }}">Classifieds</a> &nbsp;·&nbsp;
     <a href="{{ route('jobs.index') }}">Jobs</a>

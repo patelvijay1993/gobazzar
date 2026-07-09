@@ -13,18 +13,20 @@ class Listing extends Model
     use Favoritable;
     protected $fillable = [
         'user_id', 'category_id', 'title', 'slug', 'description',
+        'custom_fields',
         'price', 'price_unit', 'location', 'city', 'province', 'image', 'images', 'tags', 'badges',
         'status', 'is_featured', 'is_verified', 'expires_at', 'views',
         'contact_name', 'contact_email', 'contact_phone',
     ];
 
     protected $casts = [
-        'tags'       => 'array',
-        'badges'     => 'array',
-        'images'     => 'array',
-        'is_featured'=> 'boolean',
-        'is_verified'=> 'boolean',
-        'expires_at' => 'datetime',
+        'tags'          => 'array',
+        'badges'        => 'array',
+        'images'        => 'array',
+        'custom_fields' => 'array',
+        'is_featured'   => 'boolean',
+        'is_verified'   => 'boolean',
+        'expires_at'    => 'datetime',
     ];
 
     public function category(): BelongsTo
@@ -54,10 +56,10 @@ class Listing extends Model
 
     public function getFormattedPriceAttribute(): ?string
     {
-        if (!$this->price) return null;
-        $p = trim($this->price);
-        if ($p === '' || preg_match('/^[^\d]/', $p)) return $p; // already has $ or is text
-        return '$' . $p;
+        if ($this->price === null || $this->price === '') return null;
+        $val = (float) $this->price;
+        if ($val <= 0) return 'Free';
+        return '$' . number_format($val, $val == floor($val) ? 0 : 2);
     }
 
     public function getImageUrlAttribute(): ?string

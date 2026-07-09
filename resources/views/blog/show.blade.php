@@ -1,7 +1,35 @@
 @extends('layouts.app')
 
 @section('title', $post->title.' — GoBazaar Blog')
-@section('description', $post->excerpt ?? Str::limit(strip_tags($post->body), 160))
+@section('description', Str::limit(strip_tags($post->excerpt ?? $post->body), 160))
+@section('canonical', route('blog.show', $post->slug))
+@section('og_type', 'article')
+@section('og_title', $post->title)
+@section('og_description', Str::limit(strip_tags($post->excerpt ?? $post->body), 200))
+@section('og_image', $post->image_url ?? asset('images/og-default.jpg'))
+@push('schema')
+<script type="application/ld+json">
+{!! json_encode(array_filter([
+  '@context'      => 'https://schema.org',
+  '@type'         => 'Article',
+  'headline'      => $post->title,
+  'description'   => Str::limit(strip_tags($post->excerpt ?? $post->body), 300),
+  'url'           => route('blog.show', $post->slug),
+  'image'         => $post->image_url ?? null,
+  'datePublished' => $post->created_at->toIso8601String(),
+  'dateModified'  => $post->updated_at->toIso8601String(),
+  'author' => [
+    '@type' => 'Person',
+    'name'  => $post->author->name ?? 'GoBazaar',
+  ],
+  'publisher' => [
+    '@type' => 'Organization',
+    'name'  => 'GoBazaar',
+    'logo'  => ['@type' => 'ImageObject', 'url' => asset('favicon.png')],
+  ],
+]), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT) !!}
+</script>
+@endpush
 
 @push('styles')
 <style>

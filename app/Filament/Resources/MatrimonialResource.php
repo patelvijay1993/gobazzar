@@ -16,7 +16,7 @@ class MatrimonialResource extends Resource
 {
     protected static ?string $model = Matrimonial::class;
     protected static ?string $navigationIcon = 'heroicon-o-heart';
-    protected static ?string $navigationGroup = 'Content';
+    protected static ?string $navigationGroup = 'Classified';
     protected static ?int $navigationSort = 7;
     protected static bool $shouldRegisterNavigation = false;
 
@@ -41,17 +41,17 @@ class MatrimonialResource extends Resource
                 Forms\Components\Select::make('marital_status')
                     ->options(['never_married' => 'Never Married', 'divorced' => 'Divorced', 'widowed' => 'Widowed'])
                     ->default('never_married'),
-                Forms\Components\TextInput::make('religion')->placeholder('Hindu, Muslim, Sikh…'),
+                Forms\Components\TextInput::make('religion')->placeholder('Hindu, Muslim, Sikhâ€¦'),
                 Forms\Components\TextInput::make('caste')->placeholder('Optional'),
-                Forms\Components\TextInput::make('mother_tongue')->placeholder('Hindi, Gujarati, Punjabi…'),
+                Forms\Components\TextInput::make('mother_tongue')->placeholder('Hindi, Gujarati, Punjabiâ€¦'),
                 Forms\Components\Select::make('diet')
                     ->options(['veg' => 'Vegetarian', 'non-veg' => 'Non-Vegetarian', 'eggetarian' => 'Eggetarian']),
             ])->columns(3),
 
             Forms\Components\Section::make('Professional')->schema([
-                Forms\Components\TextInput::make('education')->placeholder('B.Tech, MBA…'),
-                Forms\Components\TextInput::make('occupation')->placeholder('Software Engineer…'),
-                Forms\Components\TextInput::make('income')->placeholder('$60K–$80K/yr'),
+                Forms\Components\TextInput::make('education')->placeholder('B.Tech, MBAâ€¦'),
+                Forms\Components\TextInput::make('occupation')->placeholder('Software Engineerâ€¦'),
+                Forms\Components\TextInput::make('income')->placeholder('$60Kâ€“$80K/yr'),
             ])->columns(3),
 
             Forms\Components\Section::make('Location')->schema([
@@ -59,12 +59,12 @@ class MatrimonialResource extends Resource
                     ->options(fn () => Location::distinct()->orderBy('province')->pluck('province', 'province')->filter()->toArray())
                     ->searchable()
                     ->live()
-                    ->placeholder('— Select Province —')
+                    ->placeholder('â€” Select Province â€”')
                     ->afterStateUpdated(fn (Forms\Set $set) => $set('city', null)),
                 Forms\Components\Select::make('city')
                     ->options(fn (Forms\Get $get) => Location::where('province', $get('province'))->orderBy('city')->pluck('city', 'city')->filter()->toArray())
                     ->searchable()
-                    ->placeholder('— Select City —')
+                    ->placeholder('â€” Select City â€”')
                     ->live()
                     ->required(),
                 Forms\Components\TextInput::make('country')->default('Canada'),
@@ -144,4 +144,5 @@ class MatrimonialResource extends Resource
         ];
     }
 }
+
 

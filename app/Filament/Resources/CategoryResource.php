@@ -15,7 +15,7 @@ class CategoryResource extends Resource
 {
     protected static ?string $model = Category::class;
     protected static ?string $navigationIcon = 'heroicon-o-tag';
-    protected static ?string $navigationGroup = 'Content';
+    protected static ?string $navigationGroup = 'Classified';
     protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
@@ -127,8 +127,7 @@ class CategoryResource extends Resource
                         'events'      => 'warning',
                         'directory'   => 'danger',
                         default       => 'gray',
-                    })
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    }),
                 Tables\Columns\ToggleColumn::make('is_active')
                     ->label('Active'),
                 Tables\Columns\TextColumn::make('sort_order')

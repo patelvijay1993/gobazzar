@@ -25,6 +25,7 @@ class SiteSettings extends Page implements HasForms
     protected static string  $view            = 'filament.pages.site-settings';
 
     public bool   $email_verification_required = true;
+    public bool   $business_enabled            = true;
     public string $openai_api_key        = '';
     public string $google_vision_api_key = '';
     public string $gemini_api_key        = '';
@@ -50,6 +51,7 @@ class SiteSettings extends Page implements HasForms
     public function mount(): void
     {
         $this->email_verification_required = Setting::bool('email_verification_required', true);
+        $this->business_enabled            = Setting::bool('business_enabled', true);
         $this->openai_api_key        = $this->readEnvValue('OPENAI_API_KEY');
         $this->google_vision_api_key = $this->readEnvValue('GOOGLE_VISION_API_KEY');
         $this->gemini_api_key        = $this->readEnvValue('GEMINI_API_KEY');
@@ -87,6 +89,17 @@ class SiteSettings extends Page implements HasForms
     {
         return $form
             ->schema([
+                Section::make('Features')
+                    ->description('Enable or disable site features. Disabled features show a "Coming Soon" popup to users.')
+                    ->collapsible()
+                    ->schema([
+                        Toggle::make('business_enabled')
+                            ->label('My Business / Business Directory')
+                            ->helperText('When OFF — users see a "Coming Soon" popup when they click My Business.')
+                            ->onColor('success')
+                            ->offColor('danger'),
+                    ]),
+
                 Section::make('Authentication')
                     ->description('Control how users authenticate on GoBazaar.')
                     ->collapsible()
@@ -291,6 +304,7 @@ class SiteSettings extends Page implements HasForms
     {
         // Save DB settings
         Setting::set('email_verification_required', $this->email_verification_required ? '1' : '0');
+        Setting::set('business_enabled', $this->business_enabled ? '1' : '0');
 
         // Update .env file for AI keys
         $this->updateEnv([

@@ -1,5 +1,41 @@
 @extends('layouts.app')
-@section('title', $event->title)
+@section('title', $event->title . ' — ' . $event->city . ' | GoBazaar Events')
+@section('description', Str::limit(strip_tags($event->description ?? $event->title . ' event in ' . $event->city . ', Canada. ' . ($event->start_date ? 'Date: ' . $event->start_date->format('d M Y') : '')), 160))
+@section('canonical', route('events.show', $event))
+@section('og_type', 'website')
+@section('og_title', $event->title . ' — ' . $event->city)
+@section('og_description', Str::limit(strip_tags($event->description ?? ''), 200))
+@section('og_image', $event->image_url ?? asset('images/og-default.jpg'))
+@push('schema')
+<script type="application/ld+json">
+{!! json_encode(array_filter([
+  '@context'           => 'https://schema.org',
+  '@type'              => 'Event',
+  'name'               => $event->title,
+  'description'        => Str::limit(strip_tags($event->description ?? ''), 500),
+  'url'                => route('events.show', $event),
+  'image'              => $event->image_url ?? null,
+  'startDate'          => $event->start_date?->toIso8601String(),
+  'endDate'            => $event->end_date?->toIso8601String(),
+  'eventStatus'        => 'https://schema.org/EventScheduled',
+  'eventAttendanceMode'=> 'https://schema.org/OfflineEventAttendanceMode',
+  'location' => [
+    '@type' => 'Place',
+    'name'  => $event->venue ?? $event->city ?? 'Canada',
+    'address' => array_filter([
+      '@type'           => 'PostalAddress',
+      'addressLocality' => $event->city ?? null,
+      'addressRegion'   => $event->province ?? null,
+      'addressCountry'  => 'CA',
+    ]),
+  ],
+  'organizer' => [
+    '@type' => 'Person',
+    'name'  => $event->user->name ?? 'Organizer',
+  ],
+]), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT) !!}
+</script>
+@endpush
 
 @push('styles')
 <style>
@@ -180,17 +216,16 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
       </div>
     </div>
     @endif
-    <div style="margin-top:4px;margin-bottom:8px">
-      <x-favorite-btn type="event" :model-id="$event->id" :model-class="\App\Models\Event::class" />
+    <div class="sidebar-card">
+      <div class="sidebar-body" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px">
+        <x-favorite-btn type="event" :model-id="$event->id" :model-class="\App\Models\Event::class" />
+        @auth
+        <button onclick="openReportModal('event', {{ $event->id }})" style="background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border-radius:6px;transition:color .15s" onmouseover="this.style.color='#e74c3c'" onmouseout="this.style.color='var(--muted)'">
+          <i class="fa-solid fa-flag"></i> Report this event
+        </button>
+        @endauth
+      </div>
     </div>
-
-    @auth
-    <div style="text-align:center;margin-top:4px">
-      <button onclick="openReportModal('event', {{ $event->id }})" style="background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border-radius:6px;transition:color .15s" onmouseover="this.style.color='#e74c3c'" onmouseout="this.style.color='var(--muted)'">
-        <i class="fa-solid fa-flag"></i> Report this event
-      </button>
-    </div>
-    @endauth
   </div>
 </div>
 @endsection

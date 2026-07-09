@@ -200,6 +200,8 @@ Route::prefix('classifieds')->name('classifieds.')->group(function () {
     Route::get('/{listing:slug}', [ListingController::class, 'show'])->name('show');
 });
 
+Route::get('/seller/{user}', [ListingController::class, 'sellerProfile'])->name('seller.profile')->middleware('auth');
+
 Route::prefix('directory')->name('directory.')->group(function () {
     Route::get('/', [BusinessController::class, 'index'])->name('index');
     // Sub-category listing of businesses under a category

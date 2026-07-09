@@ -92,7 +92,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         return $this->planModel()?->max_images ?? 3;
     }
 
-    /** Count of currently active (non-expired) listings + jobs combined (shared plan budget). */
+    /** Count of non-expired listings + active jobs + active events (shared plan budget). */
     public function activeListingCount(): int
     {
         $classifieds = $this->listings()
@@ -102,10 +102,13 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 
         $jobs = $this->hasMany(Job::class)
             ->where('status', 'active')
-            ->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()))
             ->count();
 
-        return $classifieds + $jobs;
+        $events = $this->hasMany(Event::class)
+            ->where('status', 'active')
+            ->count();
+
+        return $classifieds + $jobs + $events;
     }
 
     public function canPostListing(): bool

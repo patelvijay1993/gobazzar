@@ -142,11 +142,35 @@ class Analytics extends Page
         $totalSearches    = SearchLog::where('searched_at', '>=', $since)->count();
         $newUsers         = User::where('created_at', '>=', $since)->count();
 
+        // ── Ad KPIs (placeholder — wire to real ad_impressions table when ready) ──
+        $adTotalImpressions = 0;
+        $adTotalClicks      = 0;
+        $adOverallCtr       = 0;
+        $adDailyStats       = collect();
+        $adPerformance      = collect();
+
+        if (\Schema::hasTable('ad_impressions')) {
+            $adTotalImpressions = DB::table('ad_impressions')->where('created_at', '>=', $since)->count();
+            $adTotalClicks      = DB::table('ad_impressions')->where('created_at', '>=', $since)->where('clicked', true)->count();
+            $adOverallCtr       = $adTotalImpressions > 0
+                ? round(($adTotalClicks / $adTotalImpressions) * 100, 2)
+                : 0;
+            $adDailyStats = DB::table('ad_impressions')
+                ->where('created_at', '>=', $since)
+                ->select(DB::raw('DATE(created_at) as day'), DB::raw('COUNT(*) as impressions'), DB::raw('SUM(clicked) as clicks'))
+                ->groupBy('day')->orderBy('day')->get();
+            $adPerformance = DB::table('ad_impressions')
+                ->where('created_at', '>=', $since)
+                ->select('ad_slot', DB::raw('COUNT(*) as impressions'), DB::raw('SUM(clicked) as clicks'))
+                ->groupBy('ad_slot')->orderByDesc('impressions')->limit(10)->get();
+        }
+
         return compact(
             'viewsByType', 'viewsBySection', 'dailyViews', 'topPosts', 'devices',
             'topKeywords', 'searchBySection', 'zeroResults', 'topProvinces',
             'newUsersDaily', 'totalPageViews', 'uniqueVisitors', 'totalSearches', 'newUsers',
-            'days'
+            'days', 'adTotalImpressions', 'adTotalClicks', 'adOverallCtr',
+            'adDailyStats', 'adPerformance'
         );
     }
 }

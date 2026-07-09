@@ -17,7 +17,7 @@ class BusinessPostResource extends Resource
 {
     protected static ?string $model = BusinessPost::class;
     protected static ?string $navigationIcon = 'heroicon-o-building-storefront';
-    protected static ?string $navigationGroup = 'Content';
+    protected static ?string $navigationGroup = 'Classified';
     protected static ?int $navigationSort = 5;
     protected static ?string $navigationLabel = 'Business Posts';
 
@@ -56,7 +56,7 @@ class BusinessPostResource extends Resource
                     ->options(fn (Forms\Get $get) => Category::where('parent_id', $get('category_id'))->where('is_active', true)->pluck('name', 'id')->toArray())
                     ->searchable()
                     ->nullable()
-                    ->placeholder('— Select Sub-Category —'),
+                    ->placeholder('â€” Select Sub-Category â€”'),
                 Forms\Components\Select::make('status')
                     ->options(['pending' => 'Pending', 'active' => 'Active', 'rejected' => 'Rejected', 'expired' => 'Expired', 'flagged' => 'Flagged'])
                     ->default('active')
@@ -89,7 +89,7 @@ class BusinessPostResource extends Resource
                     ->placeholder('e.g. 25.00 or 25')
                     ->nullable(),
                 Forms\Components\TextInput::make('price_unit')
-                    ->placeholder('per item, /kg, /hr…')
+                    ->placeholder('per item, /kg, /hrâ€¦')
                     ->nullable(),
                 Forms\Components\Toggle::make('is_featured')->label('Featured'),
                 Forms\Components\DateTimePicker::make('expires_at')->label('Expires At')->nullable(),
@@ -121,7 +121,7 @@ class BusinessPostResource extends Resource
                 Tables\Columns\TextColumn::make('title')->searchable()->limit(30)->sortable(),
                 Tables\Columns\TextColumn::make('business.name')->label('Business')->searchable()->limit(25),
                 Tables\Columns\TextColumn::make('user.name')->label('Owner')->searchable()->limit(20),
-                Tables\Columns\TextColumn::make('price')->money('CAD')->sortable()->placeholder('—'),
+                Tables\Columns\TextColumn::make('price')->money('CAD')->sortable()->placeholder('â€”'),
                 Tables\Columns\BadgeColumn::make('status')
                     ->colors(['success' => 'active', 'gray' => 'inactive', 'danger' => 'expired']),
                 Tables\Columns\IconColumn::make('is_featured')->boolean()->label('Featured'),
@@ -152,4 +152,5 @@ class BusinessPostResource extends Resource
         ];
     }
 }
+
 

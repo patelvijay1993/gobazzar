@@ -1,5 +1,47 @@
 @extends('layouts.app')
-@section('title', $job->title . ' — ' . $job->company)
+@section('title', $job->title . ' at ' . $job->company . ' — ' . $job->city . ' | GoBazaar Jobs')
+@section('description', Str::limit(strip_tags($job->description ?? $job->title . ' job at ' . $job->company . ' in ' . $job->city . ', Canada. Apply now on GoBazaar.'), 160))
+@section('canonical', route('jobs.show', $job))
+@section('og_type', 'website')
+@section('og_title', $job->title . ' at ' . $job->company . ' — ' . $job->city)
+@section('og_description', Str::limit(strip_tags($job->description ?? ''), 200))
+@push('schema')
+<script type="application/ld+json">
+{!! json_encode(array_filter([
+  '@context'       => 'https://schema.org',
+  '@type'          => 'JobPosting',
+  'title'          => $job->title,
+  'description'    => Str::limit(strip_tags($job->description ?? ''), 500),
+  'datePosted'     => $job->created_at->toIso8601String(),
+  'validThrough'   => $job->expires_at?->toIso8601String(),
+  'employmentType' => strtoupper(str_replace('-', '_', $job->job_type ?? 'FULL_TIME')),
+  'hiringOrganization' => array_filter([
+    '@type' => 'Organization',
+    'name'  => $job->company,
+    'logo'  => $job->logo_url ?? null,
+  ]),
+  'jobLocation' => [
+    '@type'   => 'Place',
+    'address' => array_filter([
+      '@type'           => 'PostalAddress',
+      'addressLocality' => $job->city ?? null,
+      'addressRegion'   => $job->province ?? null,
+      'addressCountry'  => 'CA',
+    ]),
+  ],
+  'baseSalary' => ($job->salary_min || $job->salary_max) ? array_filter([
+    '@type'    => 'MonetaryAmount',
+    'currency' => 'CAD',
+    'value'    => array_filter([
+      '@type'    => 'QuantitativeValue',
+      'minValue' => $job->salary_min ?? null,
+      'maxValue' => $job->salary_max ?? null,
+      'unitText' => 'YEAR',
+    ]),
+  ]) : null,
+]), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT) !!}
+</script>
+@endpush
 
 @push('styles')
 <style>
@@ -169,17 +211,17 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
       </div>
     </div>
     @endif
-    <div style="margin-top:4px;margin-bottom:8px">
-      <x-favorite-btn type="job" :model-id="$job->id" :model-class="\App\Models\Job::class" />
-    </div>
 
-    @auth
-    <div style="text-align:center;margin-top:4px">
-      <button onclick="openReportModal('job', {{ $job->id }})" style="background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border-radius:6px;transition:color .15s" onmouseover="this.style.color='#e74c3c'" onmouseout="this.style.color='var(--muted)'">
-        <i class="fa-solid fa-flag"></i> Report this job
-      </button>
+    <div class="sidebar-card">
+      <div class="sidebar-body" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px">
+        <x-favorite-btn type="job" :model-id="$job->id" :model-class="\App\Models\Job::class" />
+        @auth
+        <button onclick="openReportModal('job', {{ $job->id }})" style="background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border-radius:6px;transition:color .15s" onmouseover="this.style.color='#e74c3c'" onmouseout="this.style.color='var(--muted)'">
+          <i class="fa-solid fa-flag"></i> Report this job
+        </button>
+        @endauth
+      </div>
     </div>
-    @endauth
   </div>
 </div>
 @endsection

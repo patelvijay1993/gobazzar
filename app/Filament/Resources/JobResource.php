@@ -17,7 +17,7 @@ class JobResource extends Resource
 {
     protected static ?string $model = Job::class;
     protected static ?string $navigationIcon = 'heroicon-o-briefcase';
-    protected static ?string $navigationGroup = 'Content';
+    protected static ?string $navigationGroup = 'Classified';
     protected static ?int $navigationSort = 5;
 
     public static function form(Form $form): Form
@@ -73,12 +73,12 @@ class JobResource extends Resource
                     ->options(fn () => Location::distinct()->orderBy('province')->pluck('province', 'province')->filter()->toArray())
                     ->searchable()
                     ->live()
-                    ->placeholder('— Select Province —')
+                    ->placeholder('â€” Select Province â€”')
                     ->afterStateUpdated(fn (Forms\Set $set) => $set('city', null)),
                 Forms\Components\Select::make('city')
                     ->options(fn (Forms\Get $get) => Location::where('province', $get('province'))->orderBy('city')->pluck('city', 'city')->filter()->toArray())
                     ->searchable()
-                    ->placeholder('— Select City —')
+                    ->placeholder('â€” Select City â€”')
                     ->live(),
             ])->columns(3),
 
@@ -150,4 +150,5 @@ class JobResource extends Resource
         ];
     }
 }
+
 
