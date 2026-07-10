@@ -177,10 +177,48 @@ document.getElementById('msg-input').addEventListener('keydown', function(e) {
 // Browser notification permission
 const SUBJECT_TITLE = '{{ Str::limit($conversation->subject_title, 40) }}';
 
+function urlBase64ToUint8Array(b) {
+  var pad = '='.repeat((4 - b.length % 4) % 4);
+  var base64 = (b + pad).replace(/-/g,'+').replace(/_/g,'/');
+  var raw = atob(base64); var arr = new Uint8Array(raw.length);
+  for (var i=0;i<raw.length;i++) arr[i]=raw.charCodeAt(i); return arr;
+}
+
+function savePushSubscription(reg) {
+  if (!('PushManager' in window)) return;
+  fetch('{{ route("push.vapid-key") }}').then(r=>r.json()).then(data => {
+    if (!data.key) return;
+    reg.pushManager.getSubscription().then(existing => {
+      var doSave = function(sub) {
+        var json = sub.toJSON();
+        fetch('{{ route("push.subscribe") }}', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json','X-CSRF-TOKEN':CSRF,'Accept':'application/json'},
+          body: JSON.stringify({endpoint:json.endpoint, public_key:json.keys?.p256dh||null, auth_token:json.keys?.auth||null}),
+        }).catch(()=>{});
+      };
+      if (existing) { doSave(existing); }
+      else {
+        reg.pushManager.subscribe({userVisibleOnly:true, applicationServerKey:urlBase64ToUint8Array(data.key)})
+          .then(doSave).catch(()=>{});
+      }
+    }).catch(()=>{});
+  }).catch(()=>{});
+}
+
 function requestNotifPermission() {
-  if ('Notification' in window && Notification.permission === 'default') {
-    Notification.requestPermission();
-  }
+  if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
+  navigator.serviceWorker.register('/sw.js').then(reg => {
+    navigator.serviceWorker.ready.then(readyReg => {
+      if (Notification.permission === 'granted') {
+        savePushSubscription(readyReg);
+      } else if (Notification.permission === 'default') {
+        Notification.requestPermission().then(p => {
+          if (p === 'granted') savePushSubscription(readyReg);
+        });
+      }
+    });
+  }).catch(()=>{});
 }
 requestNotifPermission();
 
