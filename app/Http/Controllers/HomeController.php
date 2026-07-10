@@ -50,6 +50,15 @@ class HomeController extends Controller
             ->limit(4)
             ->get();
 
+        // All Listings section — always show, location filtered
+        $allListings = Listing::with('category')
+            ->live()
+            ->when($province, fn ($q) => $q->where('province', $province))
+            ->when($city,     fn ($q) => $q->where('city', $city))
+            ->latest()
+            ->limit(8)
+            ->get();
+
         // ── Business Directory ────────────────────────────────────────
         $directoryCategories = Category::where('type', 'directory')
             ->where('is_active', true)
@@ -210,6 +219,7 @@ class HomeController extends Controller
             'upcomingEvents',
             'classifiedCategories',
             'latestListings',
+            'allListings',
             'directoryCategories',
             'latestBusinesses',
             'professionalServices',

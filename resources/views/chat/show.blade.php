@@ -40,7 +40,7 @@
   {{-- Header --}}
   <div class="chat-header">
     <a href="{{ route('chat.inbox') }}" class="chat-header-back"><i class="fa-solid fa-arrow-left"></i></a>
-    @php $other = $conversation->buyer_id === Auth::id() ? $conversation->seller : $conversation->buyer; @endphp
+    @php $other = (int)$conversation->buyer_id === (int)Auth::id() ? $conversation->seller : $conversation->buyer; @endphp
     <div class="chat-header-avatar">{{ strtoupper(substr($other->name, 0, 2)) }}</div>
     @php
       $subject = $conversation->conversable;
@@ -65,8 +65,8 @@
         <div class="chat-date-divider">{{ $msg->created_at->isToday() ? 'Today' : ($msg->created_at->isYesterday() ? 'Yesterday' : $msg->created_at->format('M d, Y')) }}</div>
         @php $prevDate = $msgDate; @endphp
       @endif
-      <div class="msg {{ $msg->sender_id === Auth::id() ? 'msg-me' : 'msg-other' }}" data-id="{{ $msg->id }}">
-        @if($msg->sender_id !== Auth::id())
+      <div class="msg {{ (int)$msg->sender_id === (int)Auth::id() ? 'msg-me' : 'msg-other' }}" data-id="{{ $msg->id }}">
+        @if((int)$msg->sender_id !== (int)Auth::id())
           <div class="msg-sender">{{ $msg->sender->name }}</div>
         @endif
         <div class="msg-bubble">{{ $msg->body }}</div>
@@ -140,9 +140,13 @@ async function sendMessage() {
   const body = input.value.trim();
   if (!body) return;
   const btn = document.getElementById('send-btn');
-  btn.disabled = true;
+
+  // Clear input & show message immediately (optimistic)
   input.value = '';
   input.style.height = '44px';
+  btn.disabled = true;
+  appendMessage({ body: body, sender_name: '{{ Auth::user()->name }}', created_at: new Date().toISOString() }, true);
+
   try {
     const res = await fetch(SEND_URL, {
       method: 'POST',
@@ -150,12 +154,13 @@ async function sendMessage() {
       body: JSON.stringify({body})
     });
     if (res.status === 401) { window.location.href = '{{ route('login') }}'; return; }
-    if (!res.ok) { input.value = body; btn.disabled = false; input.focus(); return; }
-    const msg = await res.json();
-    if (msg && msg.body) appendMessage(msg, true);
-  } catch(e) {
-    input.value = body;
-  }
+    if (res.ok) {
+      const msg = await res.json();
+      // Update lastMsgId so poll doesn't re-add this message
+      if (msg && msg.id && msg.id > lastMsgId) lastMsgId = msg.id;
+    }
+  } catch(e) { /* message already shown, will sync on next poll */ }
+
   btn.disabled = false;
   input.focus();
 }
@@ -214,7 +219,7 @@ async function pollMessages() {
     const msgs = await res.json();
     if (!Array.isArray(msgs)) { setTimeout(pollMessages, 3000); return; }
     msgs.forEach(msg => {
-      if (msg.sender_id !== MY_ID && msg.body) {
+      if (parseInt(msg.sender_id) !== MY_ID && msg.body) {
         appendMessage(msg, false);
         showBrowserNotif(msg.sender_name || '', msg.body);
       }

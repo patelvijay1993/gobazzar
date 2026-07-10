@@ -6,6 +6,7 @@ use App\Models\Setting;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Concerns\InteractsWithForms;
@@ -26,6 +27,16 @@ class SiteSettings extends Page implements HasForms
 
     public bool   $email_verification_required = true;
     public bool   $business_enabled            = true;
+
+    // SEO settings
+    public string $seo_site_title         = '';
+    public string $seo_tagline            = '';
+    public string $seo_meta_description   = '';
+    public string $seo_og_image           = '';
+    public string $seo_google_verification = '';
+    public string $seo_google_analytics   = '';
+    public string $seo_facebook_pixel     = '';
+
     public string $openai_api_key        = '';
     public string $google_vision_api_key = '';
     public string $gemini_api_key        = '';
@@ -52,6 +63,16 @@ class SiteSettings extends Page implements HasForms
     {
         $this->email_verification_required = Setting::bool('email_verification_required', true);
         $this->business_enabled            = Setting::bool('business_enabled', true);
+
+        // SEO
+        $this->seo_site_title          = Setting::get('seo_site_title', 'GoBazaar');
+        $this->seo_tagline             = Setting::get('seo_tagline', "Canada's #1 Community Marketplace");
+        $this->seo_meta_description    = Setting::get('seo_meta_description', '');
+        $this->seo_og_image            = Setting::get('seo_og_image', '');
+        $this->seo_google_verification = Setting::get('seo_google_verification', '');
+        $this->seo_google_analytics    = Setting::get('seo_google_analytics', '');
+        $this->seo_facebook_pixel      = Setting::get('seo_facebook_pixel', '');
+
         $this->openai_api_key        = $this->readEnvValue('OPENAI_API_KEY');
         $this->google_vision_api_key = $this->readEnvValue('GOOGLE_VISION_API_KEY');
         $this->gemini_api_key        = $this->readEnvValue('GEMINI_API_KEY');
@@ -98,6 +119,58 @@ class SiteSettings extends Page implements HasForms
                             ->helperText('When OFF — users see a "Coming Soon" popup when they click My Business.')
                             ->onColor('success')
                             ->offColor('danger'),
+                    ]),
+
+                Section::make('SEO & Google')
+                    ->description('Search engine optimization, Google Search Console verification, and analytics tracking.')
+                    ->icon('heroicon-o-magnifying-glass-circle')
+                    ->collapsible()
+                    ->schema([
+                        Grid::make(2)->schema([
+                            TextInput::make('seo_site_title')
+                                ->label('Site Name')
+                                ->placeholder('GoBazaar')
+                                ->helperText('Appears in browser tab and search results.')
+                                ->maxLength(100),
+
+                            TextInput::make('seo_tagline')
+                                ->label('Tagline')
+                                ->placeholder("Canada's #1 Community Marketplace")
+                                ->helperText('Short description shown in search results title.')
+                                ->maxLength(100),
+                        ]),
+
+                        Textarea::make('seo_meta_description')
+                            ->label('Default Meta Description')
+                            ->placeholder('GoBazaar — Find classifieds, jobs, events, and businesses across Canada.')
+                            ->helperText('Shown in Google search results. Keep it 120–160 characters.')
+                            ->rows(2)
+                            ->maxLength(200),
+
+                        TextInput::make('seo_og_image')
+                            ->label('Default OG Image URL')
+                            ->placeholder('https://your-bucket.s3.amazonaws.com/og-image.jpg')
+                            ->helperText('Image shown when pages are shared on Facebook/WhatsApp. Recommended: 1200×630px.')
+                            ->url()
+                            ->maxLength(500),
+
+                        TextInput::make('seo_google_verification')
+                            ->label('Google Search Console Verification Code')
+                            ->placeholder('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
+                            ->helperText('Only the content="..." value from the Google meta tag. Example: abc123def456...')
+                            ->maxLength(200),
+
+                        TextInput::make('seo_google_analytics')
+                            ->label('Google Analytics 4 — Measurement ID')
+                            ->placeholder('G-XXXXXXXXXX')
+                            ->helperText('Get from analytics.google.com → Admin → Data Streams → Measurement ID')
+                            ->maxLength(50),
+
+                        TextInput::make('seo_facebook_pixel')
+                            ->label('Facebook Pixel ID')
+                            ->placeholder('123456789012345')
+                            ->helperText('From Facebook Business Manager → Events Manager → Pixel ID')
+                            ->maxLength(50),
                     ]),
 
                 Section::make('Authentication')
@@ -305,6 +378,15 @@ class SiteSettings extends Page implements HasForms
         // Save DB settings
         Setting::set('email_verification_required', $this->email_verification_required ? '1' : '0');
         Setting::set('business_enabled', $this->business_enabled ? '1' : '0');
+
+        // SEO settings
+        Setting::set('seo_site_title',          $this->seo_site_title);
+        Setting::set('seo_tagline',             $this->seo_tagline);
+        Setting::set('seo_meta_description',    $this->seo_meta_description);
+        Setting::set('seo_og_image',            $this->seo_og_image);
+        Setting::set('seo_google_verification', $this->seo_google_verification);
+        Setting::set('seo_google_analytics',    $this->seo_google_analytics);
+        Setting::set('seo_facebook_pixel',      $this->seo_facebook_pixel);
 
         // Update .env file for AI keys
         $this->updateEnv([

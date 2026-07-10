@@ -75,7 +75,7 @@ class ChatController extends Controller
     {
         $userId = Auth::id();
         abort_unless(
-            $conversation->buyer_id === $userId || $conversation->seller_id === $userId,
+            (int)$conversation->buyer_id === (int)$userId || (int)$conversation->seller_id === (int)$userId,
             403
         );
 
@@ -92,7 +92,7 @@ class ChatController extends Controller
             return response()->json(['error' => 'unauthenticated'], 401);
         }
         abort_unless(
-            $conversation->buyer_id === $userId || $conversation->seller_id === $userId,
+            (int)$conversation->buyer_id === (int)$userId || (int)$conversation->seller_id === (int)$userId,
             403
         );
 
@@ -107,6 +107,17 @@ class ChatController extends Controller
         $conversation->markReadFor($userId);
 
         try { broadcast(new MessageSent($message))->toOthers(); } catch (\Throwable $e) { /* Reverb not running — polling fallback handles delivery */ }
+
+        // Push notification to the other person
+        $recipientId = (int)$conversation->buyer_id === (int)$userId
+            ? (int)$conversation->seller_id
+            : (int)$conversation->buyer_id;
+        \App\Http\Controllers\PushController::sendToUser(
+            $recipientId,
+            'New message from ' . $message->sender->name,
+            \Str::limit($message->body, 80),
+            route('chat.conversation', $conversation->id)
+        );
 
         return response()->json([
             'id'          => $message->id,
@@ -124,7 +135,7 @@ class ChatController extends Controller
             return response()->json(['error' => 'unauthenticated'], 401);
         }
         abort_unless(
-            $conversation->buyer_id === $userId || $conversation->seller_id === $userId,
+            (int)$conversation->buyer_id === (int)$userId || (int)$conversation->seller_id === (int)$userId,
             403
         );
 
@@ -152,7 +163,7 @@ class ChatController extends Controller
     {
         $userId = Auth::id();
         abort_unless(
-            $conversation->buyer_id === $userId || $conversation->seller_id === $userId,
+            (int)$conversation->buyer_id === (int)$userId || (int)$conversation->seller_id === (int)$userId,
             403
         );
         $conversation->markReadFor($userId);

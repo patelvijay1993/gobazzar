@@ -48,7 +48,7 @@ class Conversation extends Model
 
     public function unreadCountFor(int $userId): int
     {
-        $lastRead = $this->buyer_id === $userId ? $this->buyer_last_read : $this->seller_last_read;
+        $lastRead = (int)$this->buyer_id === $userId ? $this->buyer_last_read : $this->seller_last_read;
 
         return $this->messages()
             ->where('sender_id', '!=', $userId)
@@ -58,7 +58,7 @@ class Conversation extends Model
 
     public function markReadFor(int $userId): void
     {
-        if ($this->buyer_id === $userId) {
+        if ((int)$this->buyer_id === $userId) {
             $this->update(['buyer_last_read' => now()]);
         } else {
             $this->update(['seller_last_read' => now()]);

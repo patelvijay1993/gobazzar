@@ -1,21 +1,21 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>@yield('title', 'GoBazaar') — Canada's #1 Community Marketplace</title>
-<meta name="description" content="@yield('description', 'GoBazaar — Canada\'s #1 Community Marketplace. Find classifieds, jobs, events, businesses and more.')">
+<title>@yield('title', \App\Models\Setting::get('seo_site_title', 'GoBazaar')) — {{ \App\Models\Setting::get('seo_tagline', "Canada's #1 Community Marketplace") }}</title>
+<meta name="description" content="@yield('description', \App\Models\Setting::get('seo_meta_description', 'GoBazaar — Canada\'s #1 Community Marketplace. Find classifieds, jobs, events, businesses and more.'))">
 <meta name="robots" content="@yield('robots', 'index, follow')">
 <link rel="canonical" href="@yield('canonical', url()->current())">
 <meta name="csrf-token" content="{{ csrf_token() }}">
 
 {{-- Open Graph --}}
 <meta property="og:type"        content="@yield('og_type', 'website')">
-<meta property="og:site_name"   content="GoBazaar">
+<meta property="og:site_name"   content="{{ \App\Models\Setting::get('seo_site_title', 'GoBazaar') }}">
 <meta property="og:title"       content="@yield('og_title', config('app.name', 'GoBazaar') . ' — Canada\'s #1 Community Marketplace')">
 <meta property="og:description" content="@yield('og_description', 'GoBazaar — Canada\'s #1 Community Marketplace. Find classifieds, jobs, events, businesses and more.')">
 <meta property="og:url"         content="@yield('canonical', url()->current())">
-<meta property="og:image"       content="@yield('og_image', asset('images/og-default.jpg'))">
+<meta property="og:image"       content="@yield('og_image', \App\Models\Setting::get('seo_og_image') ?: asset('images/og-default.jpg'))">
 <meta property="og:image:width"  content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:locale"      content="en_CA">
@@ -24,13 +24,26 @@
 <meta name="twitter:card"        content="summary_large_image">
 <meta name="twitter:title"       content="@yield('og_title', config('app.name', 'GoBazaar') . ' — Canada\'s #1 Community Marketplace')">
 <meta name="twitter:description" content="@yield('og_description', 'GoBazaar — Canada\'s #1 Community Marketplace.')">
-<meta name="twitter:image"       content="@yield('og_image', asset('images/og-default.jpg'))">
+<meta name="twitter:image"       content="@yield('og_image', \App\Models\Setting::get('seo_og_image') ?: asset('images/og-default.jpg'))">
 
 {{-- Page-specific JSON-LD structured data --}}
 @stack('schema')
+{{-- SEO: Google Search Console Verification --}}
+@php $gv = \App\Models\Setting::get('seo_google_verification'); @endphp
+@if($gv)
+<meta name="google-site-verification" content="{{ $gv }}">
+@endif
 
 <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon.png') }}">
 <link rel="shortcut icon" href="{{ asset('favicon.png') }}">
+{{-- PWA --}}
+<link rel="manifest" href="/manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GoBazaar">
+<link rel="apple-touch-icon" href="{{ asset('images/pwa-icon-192.png') }}">
+<meta name="theme-color" content="#1a3a8f">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Noto+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -889,10 +902,117 @@ document.getElementById('nav-search-input')?.addEventListener('keydown', functio
   if (e.key === 'Enter') navSearch();
 });
 
-// Chat unread badge
+// ── PWA: Service Worker + Push Subscription ───────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').then(reg => {
+    @auth
+    // Subscribe to push notifications after SW is ready
+    reg.ready.then(() => {
+      if (!('PushManager' in window)) return;
+
+      function urlBase64ToUint8Array(base64String) {
+        var padding = '='.repeat((4 - base64String.length % 4) % 4);
+        var base64  = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+        var raw     = atob(base64);
+        var arr     = new Uint8Array(raw.length);
+        for (var i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+        return arr;
+      }
+
+      function subscribePush(vapidKey) {
+        reg.pushManager.subscribe({
+          userVisibleOnly:      true,
+          applicationServerKey: urlBase64ToUint8Array(vapidKey),
+        }).then(sub => {
+          var json = sub.toJSON();
+          fetch('{{ route('push.subscribe') }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+            body: JSON.stringify({
+              endpoint:   json.endpoint,
+              public_key: json.keys?.p256dh || null,
+              auth_token: json.keys?.auth    || null,
+            }),
+          }).catch(() => {});
+        }).catch(() => {});
+      }
+
+      fetch('{{ route('push.vapid-key') }}')
+        .then(r => r.json())
+        .then(data => {
+          if (!data.key) return;
+
+          function doSubscribe() {
+            reg.pushManager.getSubscription().then(existing => {
+              if (existing) {
+                // Always re-save existing sub to server (in case DB was cleared)
+                var json = existing.toJSON();
+                fetch('{{ route('push.subscribe') }}', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                  body: JSON.stringify({
+                    endpoint:   json.endpoint,
+                    public_key: json.keys?.p256dh || null,
+                    auth_token: json.keys?.auth    || null,
+                  }),
+                }).catch(() => {});
+              } else {
+                subscribePush(data.key);
+              }
+            }).catch(() => {});
+          }
+
+          if (Notification.permission === 'granted') {
+            doSubscribe();
+          } else if (Notification.permission === 'default') {
+            document.addEventListener('click', function trySubscribe() {
+              Notification.requestPermission().then(p => {
+                if (p === 'granted') doSubscribe();
+              });
+              document.removeEventListener('click', trySubscribe);
+            }, { once: true });
+          }
+        }).catch(() => {});
+    });
+    @endauth
+  }).catch(() => {});
+}
+
+// Chat unread badge + PWA notifications
 @auth
 (function() {
-  let _lastNavUnread = 0;
+  const STORAGE_KEY = 'gobazaar_last_unread_{{ Auth::id() }}';
+  let _lastNavUnread = parseInt(localStorage.getItem(STORAGE_KEY) || '0', 10);
+
+  // Ask notification permission once (only after user interaction to avoid browser block)
+  function askNotifPermission() {
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }
+  document.addEventListener('click', askNotifPermission, { once: true });
+
+  function showNotification(count, convUrl) {
+    const body = count === 1 ? 'You have 1 new message' : 'You have ' + count + ' new messages';
+    // Use SW notification (shows in notification bar even when app is in background)
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({
+        type: 'SHOW_NOTIFICATION',
+        title: 'New message — GoBazaar',
+        body: body,
+        url: convUrl || '{{ route('chat.inbox') }}',
+      });
+    } else if ('Notification' in window && Notification.permission === 'granted') {
+      const notif = new Notification('New message — GoBazaar', {
+        body: body,
+        icon: '/images/pwa-icon-192.png',
+        tag: 'gobazaar-nav',
+        renotify: true,
+      });
+      notif.onclick = function() { notif.close(); window.focus(); window.location.href = convUrl || '{{ route('chat.inbox') }}'; };
+    }
+  }
+
   function refreshChatBadge() {
     fetch('{{ route('chat.unread') }}', {headers:{'Accept':'application/json','X-CSRF-TOKEN':'{{ csrf_token() }}'}})
       .then(r => r.json())
@@ -906,25 +1026,16 @@ document.getElementById('nav-search-input')?.addEventListener('keydown', functio
             badge.style.display = 'none';
           }
         }
-        // Show browser notification from any page
-        if (data.count > _lastNavUnread && 'Notification' in window && Notification.permission === 'granted') {
-          const notif = new Notification('New message — GoBazaar', {
-            body: 'You have ' + data.count + ' unread message' + (data.count > 1 ? 's' : ''),
-            icon: '/favicon.ico',
-            tag: 'gobazaar-nav',
-            renotify: true,
-          });
-          notif.onclick = function() {
-            notif.close();
-            window.open(data.conv_url || '{{ route('chat.inbox') }}', '_self');
-            window.focus();
-          };
+        // Only notify when count genuinely increased
+        if (data.count > _lastNavUnread && Notification.permission === 'granted') {
+          showNotification(data.count - _lastNavUnread, data.conv_url);
         }
         _lastNavUnread = data.count;
+        localStorage.setItem(STORAGE_KEY, data.count);
       }).catch(() => {});
   }
   refreshChatBadge();
-  setInterval(refreshChatBadge, 30000);
+  setInterval(refreshChatBadge, 10000);
 })();
 @endauth
 
@@ -1181,5 +1292,32 @@ document.addEventListener('click', function(e) {
   .catch(function() { btn.disabled = false; });
 });
 </script>
+
+{{-- Google Analytics 4 --}}
+@php $gaId = \App\Models\Setting::get('seo_google_analytics'); @endphp
+@if($gaId)
+<script async src="https://www.googletagmanager.com/gtag/js?id={{ $gaId }}"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', '{{ $gaId }}');
+</script>
+@endif
+
+{{-- Facebook Pixel --}}
+@php $fbPixel = \App\Models\Setting::get('seo_facebook_pixel'); @endphp
+@if($fbPixel)
+<script>
+  !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+  n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+  n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+  t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+  document,'script','https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init', '{{ $fbPixel }}');
+  fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id={{ $fbPixel }}&ev=PageView&noscript=1"/></noscript>
+@endif
 </body>
 </html>

@@ -465,7 +465,7 @@ $heroLocLabel = request('city') ?: request('province');
   {{-- FEATURED CLASSIFIEDS --}}
   <div class="sh">
     <div class="sh-title"><i class="fa-solid fa-star"></i> Featured Classifieds</div>
-    <a href="{{ route('classifieds.index') }}" class="sh-link">View All <i class="fa-solid fa-arrow-right" style="font-size:10px"></i></a>
+    <a href="{{ route('classifieds.index', array_filter(['province' => request('province'), 'city' => request('city')])) }}" class="sh-link">View All <i class="fa-solid fa-arrow-right" style="font-size:10px"></i></a>
   </div>
   @if($latestListings->isEmpty() && (request('province') || request('city')))
     <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:30px;text-align:center;color:var(--muted);font-size:13px;margin-bottom:22px">
@@ -527,56 +527,42 @@ $heroLocLabel = request('city') ?: request('province');
   @php $evColors=['#1a3a8f','#e8a020','#c0392b','#2e7d32']; @endphp
   <div class="sh">
     <div class="sh-title"><i class="fa-solid fa-calendar-days"></i> Community Events</div>
-    <a href="{{ route('events.index') }}" class="sh-link">View All <i class="fa-solid fa-arrow-right" style="font-size:10px"></i></a>
+    <a href="{{ route('events.index', array_filter(['province' => request('province'), 'city' => request('city')])) }}" class="sh-link">View All <i class="fa-solid fa-arrow-right" style="font-size:10px"></i></a>
   </div>
-  @if($upcomingEvents->isEmpty() && (request('province') || request('city')))
+  @if($upcomingEvents->isEmpty())
     <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:30px;text-align:center;color:var(--muted);font-size:13px;margin-bottom:22px">
       <div style="font-size:32px;margin-bottom:8px">📅</div>
-      No upcoming events in <strong>{{ request('city') ?: request('province') }}</strong>.
-      <a href="{{ route('post.create') }}" style="color:var(--primary);font-weight:600;text-decoration:none">Post an event →</a>
+      @if(request('province') || request('city'))
+        No upcoming events in <strong>{{ request('city') ?: request('province') }}</strong> yet.
+      @else
+        No upcoming events yet.
+      @endif
+      <a href="{{ route('post.create') }}" style="color:var(--primary);font-weight:600;text-decoration:none;display:block;margin-top:6px">Post an event →</a>
     </div>
   @else
   <div class="ev-grid">
-    @if($upcomingEvents->isEmpty())
-      @foreach([
-        ['14','Jun','Bhangra Night Live — Toronto Spring Edition','Danforth Music Hall, Toronto',true,'#1a3a8f'],
-        ['28','Jun','Canada Cup Cricket Tournament 2026','Brampton · India-Canada Cricket Club',false,'#2e7d32'],
-        ['27','Aug','Ganesh Chaturthi Pooja & Community Celebration','Hindu Sabha Mandir, Brampton',false,'#e8a020'],
-        ['20','Oct','Diwali Mela 2026 — Grand Celebration in Brampton','Rose Theatre, Brampton',false,'#c0392b'],
-      ] as $ph)
-      <div class="ev-card" style="pointer-events:none">
-        <div class="ev-date" style="background:{{ $ph[5] }}"><div class="ev-day">{{ $ph[0] }}</div><div class="ev-mon">{{ $ph[1] }}</div></div>
-        <div class="ev-body">
-          <div class="ev-title">{{ $ph[2] }}</div>
-          <div class="ev-meta"><i class="fa-solid fa-location-dot"></i> {{ $ph[3] }}</div>
-          <span class="ev-badge {{ $ph[4]?'badge-paid':'badge-free' }}">{{ $ph[4]?'Paid':'Free' }}</span>
-        </div>
+    @foreach($upcomingEvents->take(4) as $i => $event)
+    <a href="{{ route('events.show', $event->slug) }}" class="ev-card">
+      <div class="ev-date" style="background:{{ $evColors[$i%4] }}">
+        <div class="ev-day">{{ $event->start_date->format('j') }}</div>
+        <div class="ev-mon">{{ $event->start_date->format('M') }}</div>
       </div>
-      @endforeach
-    @else
-      @foreach($upcomingEvents->take(4) as $i => $event)
-      <a href="{{ route('events.show', $event->slug) }}" class="ev-card">
-        <div class="ev-date" style="background:{{ $evColors[$i%4] }}">
-          <div class="ev-day">{{ $event->start_date->format('j') }}</div>
-          <div class="ev-mon">{{ $event->start_date->format('M') }}</div>
-        </div>
-        <div class="ev-body">
-          <div class="ev-title">{{ $event->title }}</div>
-          <div class="ev-meta"><i class="fa-solid fa-location-dot"></i> {{ $event->city }}@if($event->venue) · {{ $event->venue }}@endif</div>
-          @if($event->price)
-            @php $isFree = strtolower($event->price)==='free'||$event->price==='0'; @endphp
-            <span class="ev-badge {{ $isFree?'badge-free':'badge-paid' }}">{{ $isFree?'Free':$event->formatted_price }}</span>
-          @endif
-        </div>
-      </a>
-      @endforeach
-    @endif
+      <div class="ev-body">
+        <div class="ev-title">{{ $event->title }}</div>
+        <div class="ev-meta"><i class="fa-solid fa-location-dot"></i> {{ $event->city }}@if($event->venue) · {{ $event->venue }}@endif</div>
+        @if($event->price)
+          @php $isFree = strtolower($event->price)==='free'||$event->price==='0'; @endphp
+          <span class="ev-badge {{ $isFree?'badge-free':'badge-paid' }}">{{ $isFree?'Free':$event->formatted_price }}</span>
+        @endif
+      </div>
+    </a>
+    @endforeach
   </div>
   @endif
 
   <div class="sec-div"></div>
 
-  {{-- COMMUNITY NEWS --}}
+  {{-- COMMUNITY NEWS — global (no location filter), always visible --}}
   <div class="sh">
     <div class="sh-title"><i class="fa-solid fa-newspaper"></i> Community News</div>
     <a href="{{ route('blog.index') }}" class="sh-link">View All <i class="fa-solid fa-arrow-right" style="font-size:10px"></i></a>
@@ -584,8 +570,8 @@ $heroLocLabel = request('city') ?: request('province');
   <div class="news-wrap">
     @forelse($blogPosts as $post)
       @php
-        $isFirst = $loop->first;
-        $isLast  = $loop->last;
+        $isFirst  = $loop->first;
+        $isLast   = $loop->last;
         $tagClass = $post->is_featured ? 'ntag-hot' : ($isFirst ? 'ntag-new' : 'ntag-comm');
         $tagLabel = $post->is_featured ? 'Featured' : ($isFirst ? 'New' : 'Community');
         $meta     = trim($post->category ?? '');
@@ -599,9 +585,10 @@ $heroLocLabel = request('city') ?: request('province');
         </div>
       </a>
     @empty
-      <div class="news-item" style="border-bottom:none;color:var(--muted);font-size:13px;text-align:center;padding:18px 0">
-        <i class="fa-solid fa-newspaper" style="font-size:22px;display:block;margin-bottom:6px;color:#ccc"></i>
-        No posts yet. <a href="{{ route('blog.index') }}" style="color:var(--primary);font-weight:600">Visit the blog →</a>
+      <div class="news-item" style="border-bottom:none;color:var(--muted);font-size:13px;text-align:center;padding:20px 0">
+        <i class="fa-solid fa-newspaper" style="font-size:28px;display:block;margin-bottom:8px;color:#ccc"></i>
+        No community news yet.<br>
+        <a href="{{ route('blog.index') }}" style="color:var(--primary);font-weight:600;margin-top:6px;display:inline-block">Visit the blog →</a>
       </div>
     @endforelse
   </div>
@@ -699,51 +686,29 @@ $heroLocLabel = request('city') ?: request('province');
   </div>
   @endif
 
-  {{-- ALL LISTINGS — only show when there's data OR no location filter --}}
-  @php
-  $hideAllListings = $latestListings->isEmpty() && (request('province') || request('city'));
-  @endphp
-  @unless($hideAllListings)
+  {{-- ALL LISTINGS — always show (location filtered) --}}
+  @if($allListings->isNotEmpty())
   <div class="sh">
     <div class="sh-title"><i class="fa-solid fa-list"></i> All Listings</div>
-    <a href="{{ route('classifieds.index') }}" class="sh-link">View All <i class="fa-solid fa-arrow-right" style="font-size:10px"></i></a>
+    <a href="{{ route('classifieds.index', array_filter(['province' => request('province'), 'city' => request('city')])) }}" class="sh-link">View All <i class="fa-solid fa-arrow-right" style="font-size:10px"></i></a>
   </div>
   <div class="al-list">
-    @if($latestListings->count()>4)
-      @foreach($latestListings->skip(4)->take(5) as $i=>$listing)
-      <a href="{{ route('classifieds.show', $listing->slug) }}" class="al-item">
-        <div class="al-thumb">
-          @if($listing->image_url)<img src="{{ $listing->image_url }}" alt="{{ $listing->title }}">
-          @else<span style="font-size:32px">{{ $listing->category->icon ?? '📦' }}</span>@endif
-        </div>
-        <div class="al-info">
-          <div class="al-title">{{ $listing->title }}@if($listing->is_verified)<span style="display:inline-flex;align-items:center;gap:2px;font-size:9px;font-weight:700;background:#dcfce7;color:#15803d;padding:1px 6px;border-radius:20px;margin-left:5px;vertical-align:middle"><i class="fa-solid fa-circle-check" style="font-size:8px"></i> Verified</span>@endif</div>
-          @if($listing->price)<div class="al-price">{{ $listing->formatted_price }}<small>{{ $listing->price_unit }}</small></div>@endif
-          <div class="al-meta"><span>{{ $listing->category->name ?? '' }}</span><span><i class="fa-solid fa-location-dot"></i>{{ $listing->location }}</span><span><i class="fa-regular fa-clock"></i>{{ $listing->created_at->diffForHumans() }}</span></div>
-        </div>
-        <div style="color:#ddd;align-self:flex-start;margin-top:2px"><i class="fa-regular fa-heart" style="font-size:16px"></i></div>
-      </a>
-      @endforeach
-    @else
-      @foreach([
-        ['🚲','Mountain Bike — barely used, great condition','$250','Brampton, ON','1h ago','Buy & Sell'],
-        ['🛏️','1 Bed Apartment — near university, utilities included','$1,100','Brampton, ON','2h ago','Rentals','/mo'],
-        ['🎮','PlayStation 5 — disc edition, 2 controllers','$800','Mississauga, ON','3h ago','Electronics'],
-        ['🍱','Indian tiffin service — GTA area, veg & jain options','$200','Mississauga, ON','4h ago','Services','/mo'],
-      ] as $ph)
-      <div class="al-item" style="pointer-events:none">
-        <div class="al-thumb" style="font-size:32px;display:flex;align-items:center;justify-content:center;background:#f5f0ec">{{ $ph[0] }}</div>
-        <div class="al-info">
-          <div class="al-title">{{ $ph[1] }}</div>
-          <div class="al-price">{{ $ph[2] }}@isset($ph[6])<small>{{ $ph[6] }}</small>@endisset</div>
-          <div class="al-meta"><span><i class="fa-solid fa-location-dot"></i>{{ $ph[3] }}</span><span><i class="fa-regular fa-clock"></i>{{ $ph[4] }}</span></div>
-        </div>
-        <div style="color:#ddd;align-self:flex-start;margin-top:2px"><i class="fa-regular fa-heart" style="font-size:16px"></i></div>
+    @foreach($allListings as $listing)
+    <a href="{{ route('classifieds.show', $listing->slug) }}" class="al-item">
+      <div class="al-thumb">
+        @if($listing->image_url)<img src="{{ $listing->image_url }}" alt="{{ $listing->title }}">
+        @else<span style="font-size:32px">{{ $listing->category->icon ?? '📦' }}</span>@endif
       </div>
-      @endforeach
-    @endif
+      <div class="al-info">
+        <div class="al-title">{{ $listing->title }}@if($listing->is_verified)<span style="display:inline-flex;align-items:center;gap:2px;font-size:9px;font-weight:700;background:#dcfce7;color:#15803d;padding:1px 6px;border-radius:20px;margin-left:5px;vertical-align:middle"><i class="fa-solid fa-circle-check" style="font-size:8px"></i> Verified</span>@endif</div>
+        @if($listing->price)<div class="al-price">{{ $listing->formatted_price }}<small>{{ $listing->price_unit }}</small></div>@endif
+        <div class="al-meta"><span>{{ $listing->category->name ?? '' }}</span><span><i class="fa-solid fa-location-dot"></i>{{ $listing->location }}</span><span><i class="fa-regular fa-clock"></i>{{ $listing->created_at->diffForHumans() }}</span></div>
+      </div>
+      <div style="color:#ddd;align-self:flex-start;margin-top:2px"><i class="fa-regular fa-heart" style="font-size:16px"></i></div>
+    </a>
+    @endforeach
   </div>
-  @endunless
+  @endif
 
   {{-- MOBILE ONLY: Sidebar Ads --}}
   @if($ads->where('position','sidebar')->isNotEmpty())

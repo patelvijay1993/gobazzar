@@ -94,6 +94,15 @@ Route::post('/poll/{poll}/vote', function (\Illuminate\Http\Request $request, \A
     ]);
 })->name('poll.vote');
 
+// Sitemaps
+Route::get('/sitemap.xml',          [\App\Http\Controllers\SitemapController::class, 'index'])->name('sitemap');
+Route::get('/sitemap-static.xml',   [\App\Http\Controllers\SitemapController::class, 'static']);
+Route::get('/sitemap-listings.xml', [\App\Http\Controllers\SitemapController::class, 'listings']);
+Route::get('/sitemap-events.xml',   [\App\Http\Controllers\SitemapController::class, 'events']);
+Route::get('/sitemap-jobs.xml',     [\App\Http\Controllers\SitemapController::class, 'jobs']);
+Route::get('/sitemap-businesses.xml', [\App\Http\Controllers\SitemapController::class, 'businesses']);
+Route::get('/sitemap-blog.xml',     [\App\Http\Controllers\SitemapController::class, 'blog']);
+
 // Static pages
 Route::get('/about',     [PageController::class, 'about'])->name('about');
 Route::get('/advertise', [PageController::class, 'advertise'])->name('advertise');
@@ -149,6 +158,14 @@ Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verificationVer
 Route::post('/email/resend', [AuthController::class, 'verificationSend'])
     ->middleware('throttle:6,1')
     ->name('verification.send');
+
+// PWA Push Notifications
+Route::get('/push/vapid-key', [\App\Http\Controllers\PushController::class, 'vapidKey'])->name('push.vapid-key');
+Route::get('/enable-notifications', fn() => view('push-subscribe'))->name('push.enable')->middleware('auth');
+Route::middleware('auth')->group(function () {
+    Route::post('/push/subscribe',   [\App\Http\Controllers\PushController::class, 'subscribe'])->name('push.subscribe');
+    Route::post('/push/unsubscribe', [\App\Http\Controllers\PushController::class, 'unsubscribe'])->name('push.unsubscribe');
+});
 
 // Chat routes (auth required)
 Route::middleware('auth')->prefix('chat')->name('chat.')->group(function () {
