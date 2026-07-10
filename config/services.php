@@ -48,7 +48,12 @@ return [
     ],
 
     'groq' => [
-        'key' => env('GROQ_API_KEY'),
+        'keys' => array_filter([
+            env('GROQ_API_KEY'),
+            env('GROQ_API_KEY1'),
+            env('GROQ_API_KEY2'),
+            env('GROQ_API_KEY3'),
+        ]),
     ],
 
     'stripe' => [

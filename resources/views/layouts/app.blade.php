@@ -454,6 +454,185 @@ footer.site-footer{background:var(--nav-bg);border-top:2px solid #2a4fa8;margin-
   </div>
 </footer>
 
+{{-- AI ASSISTANT FLOATING BUTTON --}}
+<style>
+.ai-fab{position:fixed;bottom:80px;right:18px;z-index:500;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+.ai-fab-btn{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#1a3a8f,#2d5be3);color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 4px 16px rgba(26,58,143,.4);transition:transform .2s,box-shadow .2s}
+.ai-fab-btn:hover{transform:scale(1.08);box-shadow:0 6px 24px rgba(26,58,143,.5)}
+.ai-fab-btn .ai-pulse{position:absolute;width:52px;height:52px;border-radius:50%;background:rgba(26,58,143,.3);animation:aiPulse 2s infinite}
+@keyframes aiPulse{0%{transform:scale(1);opacity:.6}70%{transform:scale(1.5);opacity:0}100%{transform:scale(1.5);opacity:0}}
+.ai-chat-box{width:340px;max-width:calc(100vw - 36px);background:#fff;border-radius:16px;box-shadow:0 8px 40px rgba(0,0,0,.18);display:none;flex-direction:column;overflow:hidden;animation:aiSlideUp .25s ease}
+.ai-chat-box.open{display:flex}
+@keyframes aiSlideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.ai-chat-head{background:linear-gradient(135deg,#1a3a8f,#2d5be3);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:10px}
+.ai-chat-head-icon{width:36px;height:36px;background:rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.ai-chat-head-info{flex:1}
+.ai-chat-head-name{font-weight:700;font-size:14px}
+.ai-chat-head-sub{font-size:11px;opacity:.8}
+.ai-close-btn{background:none;border:none;color:#fff;font-size:20px;cursor:pointer;padding:0;line-height:1;opacity:.8}
+.ai-close-btn:hover{opacity:1}
+.ai-messages{flex:1;max-height:320px;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;background:#f8f9fc}
+.ai-msg{display:flex;flex-direction:column;gap:4px;max-width:88%}
+.ai-msg-bot{align-self:flex-start}
+.ai-msg-user{align-self:flex-end;align-items:flex-end}
+.ai-bubble{padding:9px 13px;border-radius:14px;font-size:13px;line-height:1.5}
+.ai-msg-bot .ai-bubble{background:#fff;color:#222;border:1px solid #e8e8e8;border-bottom-left-radius:4px}
+.ai-msg-user .ai-bubble{background:#1a3a8f;color:#fff;border-bottom-right-radius:4px}
+.ai-result-card{background:#fff;border:1px solid #e8e8e8;border-radius:10px;padding:10px 12px;margin-top:4px;display:flex;gap:10px;align-items:center;text-decoration:none;color:inherit;transition:border-color .15s}
+.ai-result-card:hover{border-color:#1a3a8f}
+.ai-result-img{width:44px;height:44px;border-radius:8px;object-fit:cover;background:#f0f0f0;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px}
+.ai-result-info{flex:1;min-width:0}
+.ai-result-title{font-weight:600;font-size:12.5px;color:#1a1a1a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ai-result-meta{font-size:11px;color:#888;margin-top:2px}
+.ai-result-price{font-size:12px;font-weight:700;color:#1a3a8f}
+.ai-type-badge{font-size:10px;padding:2px 7px;border-radius:20px;font-weight:600;display:inline-block;margin-bottom:3px}
+.badge-listing{background:#e8edf7;color:#1a3a8f}
+.badge-job{background:#e8f5e9;color:#2e7d32}
+.badge-event{background:#fef6e4;color:#e8a020}
+.badge-business{background:#fce4ec;color:#c62828}
+.ai-input-wrap{display:flex;gap:8px;padding:12px;border-top:1px solid #eee;background:#fff}
+.ai-input{flex:1;border:1.5px solid #e0e0e0;border-radius:10px;padding:9px 12px;font-size:13px;outline:none;font-family:inherit}
+.ai-input:focus{border-color:#1a3a8f}
+.ai-send-btn{background:#1a3a8f;color:#fff;border:none;border-radius:10px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-size:15px}
+.ai-send-btn:disabled{opacity:.5}
+.ai-suggestions{display:flex;flex-wrap:wrap;gap:6px;padding:0 14px 10px}
+.ai-sug-btn{background:#f0f4ff;color:#1a3a8f;border:1px solid #c8d5f5;border-radius:20px;padding:5px 11px;font-size:11.5px;cursor:pointer;white-space:nowrap;font-family:inherit}
+.ai-sug-btn:hover{background:#e0e8ff}
+@media(max-width:400px){.ai-chat-box{width:calc(100vw - 24px)}}
+</style>
+
+<div class="ai-fab" id="ai-fab">
+  <div class="ai-chat-box" id="ai-chat-box">
+    <div class="ai-chat-head">
+      <div class="ai-chat-head-icon">🤖</div>
+      <div class="ai-chat-head-info">
+        <div class="ai-chat-head-name">GoBazaar Assistant</div>
+        <div class="ai-chat-head-sub">Search listings, jobs, events & more</div>
+      </div>
+      <button class="ai-close-btn" onclick="toggleAI()">&times;</button>
+    </div>
+    <div class="ai-messages" id="ai-messages">
+      <div class="ai-msg ai-msg-bot">
+        <div class="ai-bubble">👋 Hi! I can help you find anything on GoBazaar.<br>Try asking me something like:<br><em>"Room for rent under $800 in Calgary"</em></div>
+      </div>
+    </div>
+    <div class="ai-suggestions" id="ai-suggestions">
+      <button class="ai-sug-btn" onclick="aiAsk('Room for rent in Toronto under $1000')">🏠 Room in Toronto</button>
+      <button class="ai-sug-btn" onclick="aiAsk('Software developer jobs in Ontario')">💼 Dev jobs Ontario</button>
+      <button class="ai-sug-btn" onclick="aiAsk('Events in Calgary this week')">🎉 Events in Calgary</button>
+      <button class="ai-sug-btn" onclick="aiAsk('Indian restaurants in Vancouver')">🍽️ Restaurants Vancouver</button>
+    </div>
+    <div class="ai-input-wrap">
+      <input class="ai-input" id="ai-input" placeholder="Ask me anything…" onkeydown="if(event.key==='Enter')aiSend()">
+      <button class="ai-send-btn" id="ai-send-btn" onclick="aiSend()"><i class="fa-solid fa-paper-plane"></i></button>
+    </div>
+  </div>
+
+  <button class="ai-fab-btn" onclick="toggleAI()" title="Ask GoBazaar Assistant">
+    <span class="ai-pulse"></span>
+    🤖
+  </button>
+</div>
+
+<script>
+var _aiOpen = false;
+function toggleAI() {
+  _aiOpen = !_aiOpen;
+  document.getElementById('ai-chat-box').classList.toggle('open', _aiOpen);
+  if (_aiOpen) setTimeout(()=>document.getElementById('ai-input').focus(), 250);
+}
+
+function aiAsk(text) {
+  document.getElementById('ai-suggestions').style.display = 'none';
+  document.getElementById('ai-input').value = text;
+  aiSend();
+}
+
+function aiAppend(html, isUser) {
+  var wrap = document.getElementById('ai-messages');
+  var div = document.createElement('div');
+  div.className = 'ai-msg ' + (isUser ? 'ai-msg-user' : 'ai-msg-bot');
+  div.innerHTML = '<div class="ai-bubble">' + html + '</div>';
+  wrap.appendChild(div);
+  wrap.scrollTop = wrap.scrollHeight;
+}
+
+function aiAppendResults(results, count) {
+  var wrap = document.getElementById('ai-messages');
+  if (!results || results.length === 0) {
+    aiAppend('😕 No results found. Try different keywords or location.', false);
+    return;
+  }
+  var intro = document.createElement('div');
+  intro.className = 'ai-msg ai-msg-bot';
+  intro.innerHTML = '<div class="ai-bubble">Found <strong>' + count + '</strong> result' + (count>1?'s':'') + ':</div>';
+  wrap.appendChild(intro);
+
+  var icons = {listing:'📦',job:'💼',event:'🎉',business:'🏢',blog:'📰'};
+  var badges = {listing:'listing',job:'job',event:'event',business:'business',blog:'blog'};
+
+  results.forEach(function(r) {
+    var card = document.createElement('a');
+    card.className = 'ai-result-card';
+    card.href = r.url;
+    card.target = '_blank';
+    var imgHtml = r.image
+      ? '<img src="'+r.image+'" class="ai-result-img" onerror="this.style.display=\'none\'">'
+      : '<div class="ai-result-img">'+(icons[r.type]||'📌')+'</div>';
+    card.innerHTML = imgHtml +
+      '<div class="ai-result-info">' +
+        '<div><span class="ai-type-badge badge-'+r.type+'">'+(r.type||'').toUpperCase()+'</span></div>' +
+        '<div class="ai-result-title">' + (r.title||'') + '</div>' +
+        '<div class="ai-result-meta">' + (r.location||'') + '</div>' +
+        (r.price ? '<div class="ai-result-price">'+r.price+'</div>' : '') +
+      '</div>';
+    wrap.appendChild(card);
+  });
+  wrap.scrollTop = wrap.scrollHeight;
+}
+
+async function aiSend() {
+  var input = document.getElementById('ai-input');
+  var msg = input.value.trim();
+  if (!msg) return;
+  var btn = document.getElementById('ai-send-btn');
+
+  input.value = '';
+  btn.disabled = true;
+  document.getElementById('ai-suggestions').style.display = 'none';
+  aiAppend(msg.replace(/</g,'&lt;'), true);
+
+  // Typing indicator
+  var wrap = document.getElementById('ai-messages');
+  var typing = document.createElement('div');
+  typing.className = 'ai-msg ai-msg-bot';
+  typing.id = 'ai-typing';
+  typing.innerHTML = '<div class="ai-bubble" style="color:#aaa">⏳ Searching…</div>';
+  wrap.appendChild(typing);
+  wrap.scrollTop = wrap.scrollHeight;
+
+  try {
+    var res = await fetch('{{ route("assistant.chat") }}', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','X-CSRF-TOKEN':'{{ csrf_token() }}','Accept':'application/json'},
+      body: JSON.stringify({message: msg}),
+    });
+    var data = await res.json();
+    document.getElementById('ai-typing')?.remove();
+    if (data.results) {
+      aiAppendResults(data.results, data.count);
+    } else {
+      aiAppend('Something went wrong. Please try again.', false);
+    }
+  } catch(e) {
+    document.getElementById('ai-typing')?.remove();
+    aiAppend('Connection error. Please try again.', false);
+  }
+  btn.disabled = false;
+  input.focus();
+}
+</script>
+
 {{-- OLX-STYLE LOCATION MODAL --}}
 <style>
 .loc-modal{display:none;position:fixed;inset:0;z-index:1000;align-items:flex-start;justify-content:center;background:rgba(0,0,0,.55);padding-top:60px}

@@ -159,6 +159,9 @@ Route::post('/email/resend', [AuthController::class, 'verificationSend'])
     ->middleware('throttle:6,1')
     ->name('verification.send');
 
+// AI Assistant
+Route::post('/assistant/chat', [\App\Http\Controllers\AssistantController::class, 'chat'])->name('assistant.chat');
+
 // PWA Push Notifications
 Route::get('/push/vapid-key', [\App\Http\Controllers\PushController::class, 'vapidKey'])->name('push.vapid-key');
 Route::get('/enable-notifications', fn() => view('push-subscribe'))->name('push.enable')->middleware('auth');
