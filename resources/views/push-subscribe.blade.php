@@ -93,7 +93,11 @@ async function enablePush() {
         auth_token: json.keys?.auth    || null,
       }),
     });
-    const result = await res.json();
+    log('HTTP Status: ' + res.status, res.ok ? '#2e7d32' : '#c62828');
+    const text = await res.text();
+    log('Raw response: ' + text.substring(0, 200));
+    let result;
+    try { result = JSON.parse(text); } catch(e) { log('❌ Response is not JSON — likely redirect/HTML','#c62828'); btn.disabled=false; return; }
     if (result.ok) {
       log('🎉 <strong>Done! Notifications enabled.</strong>','#2e7d32');
       btn.textContent = '✅ Notifications Enabled';

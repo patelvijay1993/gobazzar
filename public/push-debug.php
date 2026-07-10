@@ -20,28 +20,56 @@ try {
     $subs = \DB::table('push_subscriptions')->get();
     foreach ($subs as $s) {
         echo "  User #{$s->user_id}: " . substr($s->endpoint, 0, 60) . "...\n";
+        echo "  public_key: " . ($s->public_key ? substr($s->public_key,0,20)."..." : "❌ NULL") . "\n";
+        echo "  auth_token: " . ($s->auth_token ? substr($s->auth_token,0,20)."..." : "❌ NULL") . "\n\n";
     }
 } catch (\Exception $e) {
     echo "push_subscriptions table: ❌ " . $e->getMessage() . "\n";
-    echo "Run migration: /deploy.php?key=gobazzar-deploy-2026\n";
 }
 
 echo "\n";
 
-// 3. Test send push to a specific user
+// 3. Check /push/subscribe route directly
+echo "--- Route Check ---\n";
+$routes = app('router')->getRoutes();
+$found = false;
+foreach ($routes as $route) {
+    if (str_contains($route->uri(), 'push/subscribe')) {
+        echo "Route: " . $route->methods()[0] . " /" . $route->uri() . "\n";
+        echo "Middleware: " . implode(', ', $route->middleware()) . "\n";
+        $found = true;
+    }
+}
+if (!$found) echo "❌ /push/subscribe route NOT FOUND!\n";
+
+echo "\n--- Users ---\n";
+$users = \DB::table('users')->select('id','name','email')->get();
+foreach ($users as $u) {
+    echo "  #{$u->id}: {$u->name} ({$u->email})\n";
+}
+
+echo "\n";
+
+// 4. Test send push to a specific user
 $testUserId = $_GET['user'] ?? null;
 if ($testUserId && $pub && $priv) {
     echo "Sending test push to user #$testUserId...\n";
-    \App\Http\Controllers\PushController::sendToUser(
-        (int)$testUserId,
-        'Test — GoBazaar',
-        'Push notifications are working!',
-        '/chat'
-    );
-    echo "Done! Check your phone.\n";
+    $subs = \DB::table('push_subscriptions')->where('user_id', $testUserId)->count();
+    echo "Subscriptions for this user: $subs\n";
+    if ($subs === 0) {
+        echo "❌ No subscriptions found for user #$testUserId — cannot send push!\n";
+        echo "User needs to visit /enable-notifications first.\n";
+    } else {
+        \App\Http\Controllers\PushController::sendToUser(
+            (int)$testUserId,
+            'Test — GoBazaar',
+            'Push notifications are working!',
+            '/chat'
+        );
+        echo "✅ Push sent! Check your phone.\n";
+    }
 } else {
-    echo "To test push: add ?user=USER_ID to URL\n";
-    echo "Example: /push-debug.php?key=gobazzar-deploy-2026&user=6\n";
+    echo "To test push: /push-debug.php?key=gobazzar-deploy-2026&user=USER_ID\n";
 }
 
 echo "</pre>";
