@@ -903,79 +903,56 @@ document.getElementById('nav-search-input')?.addEventListener('keydown', functio
 });
 
 // ── PWA: Service Worker + Push Subscription ───────────────────────────
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').then(reg => {
+if ('serviceWorker' in navigator && 'PushManager' in window) {
+  navigator.serviceWorker.register('/sw.js').then(function(reg) {
+    return navigator.serviceWorker.ready;
+  }).then(function(reg) {
     @auth
-    // Subscribe to push notifications after SW is ready
-    reg.ready.then(() => {
-      if (!('PushManager' in window)) return;
+    var PUSH_CSRF = '{{ csrf_token() }}';
+    var VAPID_URL = '{{ route("push.vapid-key") }}';
+    var SUB_URL   = '{{ route("push.subscribe") }}';
 
-      function urlBase64ToUint8Array(base64String) {
-        var padding = '='.repeat((4 - base64String.length % 4) % 4);
-        var base64  = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-        var raw     = atob(base64);
-        var arr     = new Uint8Array(raw.length);
-        for (var i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
-        return arr;
+    function u8(b) {
+      var pad = '='.repeat((4-b.length%4)%4);
+      var s = atob((b+pad).replace(/-/g,'+').replace(/_/g,'/'));
+      var a = new Uint8Array(s.length);
+      for(var i=0;i<s.length;i++) a[i]=s.charCodeAt(i);
+      return a;
+    }
+
+    function saveSubToServer(sub) {
+      var j = sub.toJSON();
+      fetch(SUB_URL, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json','X-CSRF-TOKEN':PUSH_CSRF,'Accept':'application/json'},
+        body: JSON.stringify({endpoint:j.endpoint, public_key:j.keys?.p256dh||null, auth_token:j.keys?.auth||null}),
+      }).catch(function(){});
+    }
+
+    function doSubscribe(vapidKey) {
+      reg.pushManager.getSubscription().then(function(existing) {
+        if (existing) {
+          saveSubToServer(existing);
+        } else {
+          reg.pushManager.subscribe({userVisibleOnly:true, applicationServerKey:u8(vapidKey)})
+            .then(saveSubToServer).catch(function(){});
+        }
+      }).catch(function(){});
+    }
+
+    fetch(VAPID_URL).then(function(r){return r.json();}).then(function(data) {
+      if (!data.key) return;
+      if (Notification.permission === 'granted') {
+        doSubscribe(data.key);
+      } else if (Notification.permission === 'default') {
+        // Ask immediately — browsers allow this without user gesture on page load
+        Notification.requestPermission().then(function(p) {
+          if (p === 'granted') doSubscribe(data.key);
+        });
       }
-
-      function subscribePush(vapidKey) {
-        reg.pushManager.subscribe({
-          userVisibleOnly:      true,
-          applicationServerKey: urlBase64ToUint8Array(vapidKey),
-        }).then(sub => {
-          var json = sub.toJSON();
-          fetch('{{ route('push.subscribe') }}', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-            body: JSON.stringify({
-              endpoint:   json.endpoint,
-              public_key: json.keys?.p256dh || null,
-              auth_token: json.keys?.auth    || null,
-            }),
-          }).catch(() => {});
-        }).catch(() => {});
-      }
-
-      fetch('{{ route('push.vapid-key') }}')
-        .then(r => r.json())
-        .then(data => {
-          if (!data.key) return;
-
-          function doSubscribe() {
-            reg.pushManager.getSubscription().then(existing => {
-              if (existing) {
-                // Always re-save existing sub to server (in case DB was cleared)
-                var json = existing.toJSON();
-                fetch('{{ route('push.subscribe') }}', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-                  body: JSON.stringify({
-                    endpoint:   json.endpoint,
-                    public_key: json.keys?.p256dh || null,
-                    auth_token: json.keys?.auth    || null,
-                  }),
-                }).catch(() => {});
-              } else {
-                subscribePush(data.key);
-              }
-            }).catch(() => {});
-          }
-
-          if (Notification.permission === 'granted') {
-            doSubscribe();
-          } else if (Notification.permission === 'default') {
-            document.addEventListener('click', function trySubscribe() {
-              Notification.requestPermission().then(p => {
-                if (p === 'granted') doSubscribe();
-              });
-              document.removeEventListener('click', trySubscribe);
-            }, { once: true });
-          }
-        }).catch(() => {});
-    });
+    }).catch(function(){});
     @endauth
-  }).catch(() => {});
+  }).catch(function(){});
 }
 
 // Chat unread badge + PWA notifications
