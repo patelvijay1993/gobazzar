@@ -186,7 +186,7 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
         @if($job->apply_url)
           <a href="{{ $job->apply_url }}" target="_blank" class="apply-btn-main apply-primary"><i class="fa-solid fa-rocket"></i> Apply Online</a>
         @endif
-        @if($job->apply_email)
+        @if($job->apply_email && !optional($job->user)->hide_email)
           <a href="mailto:{{ $job->apply_email }}?subject=Application: {{ $job->title }}" class="apply-btn-main apply-outline"><i class="fa-solid fa-envelope"></i> Apply via Email</a>
         @endif
         @if(!$job->apply_url && !$job->apply_email)

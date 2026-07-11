@@ -227,10 +227,10 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
         @if($listing->contact_name)
           <div class="contact-row"><span class="icon"><i class="fa-solid fa-user"></i></span> {{ $listing->contact_name }}</div>
         @endif
-        @if($listing->contact_phone)
+        @if($listing->contact_phone && !optional($listing->user)->hide_phone)
           <div class="contact-row"><span class="icon"><i class="fa-solid fa-phone"></i></span> {{ $listing->contact_phone }}</div>
         @endif
-        @if($listing->contact_email)
+        @if($listing->contact_email && !optional($listing->user)->hide_email)
           <div class="contact-row"><span class="icon"><i class="fa-solid fa-envelope"></i></span> {{ Str::limit($listing->contact_email, 24) }}</div>
         @endif
         {{-- Chat with Seller button --}}
@@ -246,10 +246,10 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
           </a>
         @endauth
 
-        @if($listing->contact_email)
+        @if($listing->contact_email && !optional($listing->user)->hide_email)
           <a href="mailto:{{ $listing->contact_email }}" class="contact-btn contact-btn-primary"><i class="fa-solid fa-envelope"></i> Send Email</a>
         @endif
-        @if($listing->contact_phone)
+        @if($listing->contact_phone && !optional($listing->user)->hide_phone)
           <a href="tel:{{ $listing->contact_phone }}" class="contact-btn contact-btn-outline"><i class="fa-solid fa-phone"></i> Call Now</a>
         @endif
       </div>

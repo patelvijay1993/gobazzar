@@ -145,6 +145,7 @@
       <a href="#" class="acct-mi" onclick="showBusinessPanel(this)"><i class="fa-solid fa-store"></i> My Business</a>
       <a href="#" class="acct-mi" onclick="showPanel('billing',this)"><i class="fa-solid fa-credit-card"></i> Billing & Payments</a>
       <a href="#" class="acct-mi" onclick="showPanel('profile',this)"><i class="fa-solid fa-user"></i> Edit Profile</a>
+      <a href="#" class="acct-mi" onclick="showPanel('privacy',this)"><i class="fa-solid fa-shield-halved"></i> Privacy Settings</a>
       <a href="#" class="acct-mi" onclick="showPanel('password',this)"><i class="fa-solid fa-lock"></i> Change Password</a>
       <a href="{{ route('home') }}" class="acct-mi"><i class="fa-solid fa-house"></i> Browse Site</a>
       <a href="#" onclick="event.preventDefault();document.getElementById('logout-form').submit()" class="acct-mi" style="color:#dc2626"><i class="fa-solid fa-right-from-bracket" style="color:#dc2626"></i> Logout</a>
@@ -577,6 +578,63 @@
           </div>
           <button type="submit" class="btn-save">Save Profile</button>
         </form>
+      </div>
+    </div>
+
+    {{-- PRIVACY SETTINGS --}}
+    <div class="panel" id="panel-privacy">
+      <div class="panel-head"><span>Privacy Settings</span></div>
+      <div class="panel-body">
+        @if(session('privacy_saved'))
+          <div class="flash flash-success">Privacy settings saved!</div>
+        @endif
+        <form method="POST" action="{{ route('account.privacy') }}">
+          @csrf @method('PATCH')
+          <p style="font-size:13.5px;color:var(--muted);margin-bottom:20px">
+            Control what contact information is visible to other users on your posts and profile.
+          </p>
+
+          <div style="display:flex;flex-direction:column;gap:16px">
+
+            <label style="display:flex;align-items:center;justify-content:space-between;padding:16px;background:var(--bg);border:1px solid var(--border);border-radius:10px;cursor:pointer;gap:12px">
+              <div>
+                <div style="font-size:14px;font-weight:600;color:var(--text)"><i class="fa-solid fa-phone" style="color:var(--primary);margin-right:6px"></i> Hide Phone Number</div>
+                <div style="font-size:12px;color:var(--muted);margin-top:3px">Your phone number will not be shown on any of your posts or public profile</div>
+              </div>
+              <div style="position:relative;flex-shrink:0">
+                <input type="checkbox" name="hide_phone" id="hide_phone" value="1" {{ $user->hide_phone ? 'checked' : '' }}
+                  style="width:42px;height:24px;appearance:none;background:{{ $user->hide_phone ? 'var(--primary)' : '#d1d5db' }};border-radius:12px;cursor:pointer;transition:background .2s;outline:none"
+                  onchange="this.style.background=this.checked?'var(--primary)':'#d1d5db'">
+                <span style="position:absolute;top:3px;left:{{ $user->hide_phone ? '21px' : '3px' }};width:18px;height:18px;background:#fff;border-radius:50%;pointer-events:none;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)" id="phone_knob"></span>
+              </div>
+            </label>
+
+            <label style="display:flex;align-items:center;justify-content:space-between;padding:16px;background:var(--bg);border:1px solid var(--border);border-radius:10px;cursor:pointer;gap:12px">
+              <div>
+                <div style="font-size:14px;font-weight:600;color:var(--text)"><i class="fa-solid fa-envelope" style="color:var(--primary);margin-right:6px"></i> Hide Email Address</div>
+                <div style="font-size:12px;color:var(--muted);margin-top:3px">Your email will not be shown on posts. Users can still contact you via the message system</div>
+              </div>
+              <div style="position:relative;flex-shrink:0">
+                <input type="checkbox" name="hide_email" id="hide_email" value="1" {{ $user->hide_email ? 'checked' : '' }}
+                  style="width:42px;height:24px;appearance:none;background:{{ $user->hide_email ? 'var(--primary)' : '#d1d5db' }};border-radius:12px;cursor:pointer;transition:background .2s;outline:none"
+                  onchange="this.style.background=this.checked?'var(--primary)':'#d1d5db'">
+                <span style="position:absolute;top:3px;left:{{ $user->hide_email ? '21px' : '3px' }};width:18px;height:18px;background:#fff;border-radius:50%;pointer-events:none;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)" id="email_knob"></span>
+              </div>
+            </label>
+
+          </div>
+
+          <button type="submit" class="btn-save" style="margin-top:20px">Save Privacy Settings</button>
+        </form>
+
+        <script>
+        document.getElementById('hide_phone').addEventListener('change', function() {
+          document.getElementById('phone_knob').style.left = this.checked ? '21px' : '3px';
+        });
+        document.getElementById('hide_email').addEventListener('change', function() {
+          document.getElementById('email_knob').style.left = this.checked ? '21px' : '3px';
+        });
+        </script>
       </div>
     </div>
 

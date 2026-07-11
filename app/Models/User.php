@@ -24,6 +24,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         'plan', 'plan_expires_at',
         'stripe_customer_id', 'stripe_subscription_id', 'subscription_status',
         'featured_credits_used', 'featured_credits_reset_at',
+        'hide_phone', 'hide_email',
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -35,6 +36,8 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
             'password'                    => 'hashed',
             'is_admin'                    => 'boolean',
             'is_active'                   => 'boolean',
+            'hide_phone'                  => 'boolean',
+            'hide_email'                  => 'boolean',
             'plan_expires_at'             => 'datetime',
             'featured_credits_reset_at'   => 'datetime',
         ];

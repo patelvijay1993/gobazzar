@@ -189,6 +189,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/account', [UserController::class, 'account'])->name('account');
     Route::patch('/account/profile', [UserController::class, 'updateProfile'])->name('account.profile');
     Route::patch('/account/password', [UserController::class, 'updatePassword'])->name('account.password');
+    Route::patch('/account/privacy', [UserController::class, 'updatePrivacy'])->name('account.privacy');
     Route::get('/account/analytics/{listing}', [UserController::class, 'analytics'])->name('account.analytics');
     Route::get('/account/favorites', [FavoriteController::class, 'index'])->name('account.favorites');
     Route::post('/favorites/toggle', [FavoriteController::class, 'toggle'])->name('favorites.toggle');

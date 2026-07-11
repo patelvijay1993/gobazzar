@@ -182,10 +182,10 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
             <i class="fa-solid fa-comments"></i> Chat with Organizer
           </a>
         @endauth
-        @if($event->organizer_phone)
+        @if($event->organizer_phone && !optional($event->user)->hide_phone)
           <a href="tel:{{ $event->organizer_phone }}" class="ev-btn ev-btn-primary"><i class="fa-solid fa-phone"></i> {{ $event->organizer_phone }}</a>
         @endif
-        @if($event->organizer_email)
+        @if($event->organizer_email && !optional($event->user)->hide_email)
           <a href="mailto:{{ $event->organizer_email }}" class="ev-btn ev-btn-outline"><i class="fa-solid fa-envelope"></i> Send Email</a>
         @endif
         @if($event->website)

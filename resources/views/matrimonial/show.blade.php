@@ -171,7 +171,7 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
           </div>
         </div>
         @endif
-        @if($profile->contact_phone)
+        @if($profile->contact_phone && !optional($profile->user)->hide_phone)
         <div class="contact-row">
           <div class="contact-icon">📞</div>
           <div>
@@ -180,7 +180,7 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
           </div>
         </div>
         @endif
-        @if($profile->contact_email)
+        @if($profile->contact_email && !optional($profile->user)->hide_email)
         <div class="contact-row">
           <div class="contact-icon">✉️</div>
           <div>

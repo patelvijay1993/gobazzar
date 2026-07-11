@@ -120,5 +120,14 @@ class UserController extends Controller
         Auth::user()->update(['password' => Hash::make($request->password)]);
         return back()->with('success', 'Password changed successfully!');
     }
+
+    public function updatePrivacy(Request $request)
+    {
+        Auth::user()->update([
+            'hide_phone' => $request->boolean('hide_phone'),
+            'hide_email' => $request->boolean('hide_email'),
+        ]);
+        return back()->with('privacy_saved', true);
+    }
 }
 

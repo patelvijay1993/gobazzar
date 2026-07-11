@@ -259,10 +259,10 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
             <i class="fa-solid fa-comments"></i> Chat with Business
           </a>
         @endauth
-        @if($business->phone)
+        @if($business->phone && !optional($business->user)->hide_phone)
           <a href="tel:{{ $business->phone }}" class="biz-btn biz-btn-primary"><i class="fa-solid fa-phone"></i> {{ $business->phone }}</a>
         @endif
-        @if($business->email)
+        @if($business->email && !optional($business->user)->hide_email)
           <a href="mailto:{{ $business->email }}" class="biz-btn biz-btn-outline"><i class="fa-solid fa-envelope"></i> Send Email</a>
         @endif
         @if($business->website)
