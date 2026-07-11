@@ -27,6 +27,7 @@ class SiteSettings extends Page implements HasForms
 
     public bool   $email_verification_required = true;
     public bool   $business_enabled            = true;
+    public bool   $ai_assistant_enabled        = true;
 
     // SEO settings
     public string $seo_site_title         = '';
@@ -63,6 +64,7 @@ class SiteSettings extends Page implements HasForms
     {
         $this->email_verification_required = Setting::bool('email_verification_required', true);
         $this->business_enabled            = Setting::bool('business_enabled', true);
+        $this->ai_assistant_enabled        = Setting::bool('ai_assistant_enabled', true);
 
         // SEO
         $this->seo_site_title          = Setting::get('seo_site_title', 'GoBazaar');
@@ -117,6 +119,12 @@ class SiteSettings extends Page implements HasForms
                         Toggle::make('business_enabled')
                             ->label('My Business / Business Directory')
                             ->helperText('When OFF — users see a "Coming Soon" popup when they click My Business.')
+                            ->onColor('success')
+                            ->offColor('danger'),
+
+                        Toggle::make('ai_assistant_enabled')
+                            ->label('AI Assistant Chatbot')
+                            ->helperText('When ON — floating 🤖 button appears on all pages. Users can search listings, jobs, events by natural language.')
                             ->onColor('success')
                             ->offColor('danger'),
                     ]),
@@ -378,6 +386,7 @@ class SiteSettings extends Page implements HasForms
         // Save DB settings
         Setting::set('email_verification_required', $this->email_verification_required ? '1' : '0');
         Setting::set('business_enabled', $this->business_enabled ? '1' : '0');
+        Setting::set('ai_assistant_enabled', $this->ai_assistant_enabled ? '1' : '0');
 
         // SEO settings
         Setting::set('seo_site_title',          $this->seo_site_title);

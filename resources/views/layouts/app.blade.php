@@ -455,6 +455,7 @@ footer.site-footer{background:var(--nav-bg);border-top:2px solid #2a4fa8;margin-
 </footer>
 
 {{-- AI ASSISTANT FLOATING BUTTON --}}
+@if(\App\Models\Setting::bool('ai_assistant_enabled', true))
 <style>
 .ai-fab{position:fixed;bottom:80px;right:18px;z-index:500;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
 .ai-fab-btn{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#1a3a8f,#2d5be3);color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 4px 16px rgba(26,58,143,.4);transition:transform .2s,box-shadow .2s}
@@ -633,6 +634,7 @@ async function aiSend() {
 }
 </script>
 
+@endif
 {{-- OLX-STYLE LOCATION MODAL --}}
 <style>
 .loc-modal{display:none;position:fixed;inset:0;z-index:1000;align-items:flex-start;justify-content:center;background:rgba(0,0,0,.55);padding-top:60px}
