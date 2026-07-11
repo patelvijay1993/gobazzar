@@ -1,0 +1,23 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/heavendw/public_html/gobazzarweb.heavendwell.com
+    - /bin/cp -rf app $DEPLOYPATH/
+    - /bin/cp -rf bootstrap $DEPLOYPATH/
+    - /bin/cp -rf config $DEPLOYPATH/
+    - /bin/cp -rf database $DEPLOYPATH/
+    - /bin/cp -rf public $DEPLOYPATH/
+    - /bin/cp -rf resources $DEPLOYPATH/
+    - /bin/cp -rf routes $DEPLOYPATH/
+    - /bin/cp -rf storage $DEPLOYPATH/
+    - /bin/cp -rf vendor $DEPLOYPATH/
+    - /bin/cp -f artisan $DEPLOYPATH/
+    - /bin/cp -f composer.json $DEPLOYPATH/
+    - export HOME=/home/heavendw
+    - /usr/local/bin/php $DEPLOYPATH/artisan config:clear
+    - /usr/local/bin/php $DEPLOYPATH/artisan route:clear
+    - /usr/local/bin/php $DEPLOYPATH/artisan view:clear
+    - /usr/local/bin/php $DEPLOYPATH/artisan migrate --force
+    - /usr/local/bin/php $DEPLOYPATH/artisan config:cache
+    - /usr/local/bin/php $DEPLOYPATH/artisan route:cache
+    - /usr/local/bin/php $DEPLOYPATH/artisan view:cache
