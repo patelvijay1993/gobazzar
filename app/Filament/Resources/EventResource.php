@@ -74,7 +74,7 @@ class EventResource extends Resource
             ])->columns(2),
 
             Forms\Components\Section::make('Media & Tags')->schema([
-                Forms\Components\FileUpload::make('image')->image()->disk(config('filesystems.default'))->directory('events')->columnSpanFull(),
+                Forms\Components\FileUpload::make('image')->image()->disk('s3')->directory('events')->columnSpanFull(),
                 Forms\Components\TagsInput::make('tags')->columnSpanFull(),
                 Forms\Components\Toggle::make('is_featured'),
             ]),

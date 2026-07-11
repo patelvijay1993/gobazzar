@@ -76,11 +76,11 @@ class MatrimonialResource extends Resource
             ]),
 
             Forms\Components\Section::make('Photos & Contact')->schema([
-                Forms\Components\FileUpload::make('photo')->image()->disk(config('filesystems.default'))->directory('matrimonials')->label('Profile Photo'),
+                Forms\Components\FileUpload::make('photo')->image()->disk('s3')->directory('matrimonials')->label('Profile Photo'),
                 Forms\Components\FileUpload::make('photos')
                     ->label('Gallery Photos')
                     ->image()
-                    ->disk(config('filesystems.default'))
+                    ->disk('s3')
                     ->directory('matrimonials')
                     ->multiple()
                     ->reorderable()

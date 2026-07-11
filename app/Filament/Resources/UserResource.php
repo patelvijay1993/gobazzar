@@ -64,7 +64,7 @@ class UserResource extends Resource
                     Forms\Components\FileUpload::make('avatar')
                         ->label('Avatar')
                         ->image()
-                        ->disk(config('filesystems.default'))
+                        ->disk('s3')
                         ->directory('avatars')
                         ->helperText('Upload or replace the user\'s profile photo.')
                         ->columnSpanFull(),

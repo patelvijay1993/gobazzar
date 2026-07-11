@@ -96,6 +96,7 @@ class AdvertisementResource extends Resource
                             })
                             ->image()
                             ->required()
+                            ->disk('s3')
                             ->directory('ads')
                             ->imagePreviewHeight('120')
                             ->maxSize(2048)
@@ -204,7 +205,7 @@ class AdvertisementResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\ImageColumn::make('image')
-                    ->disk(config('filesystems.default'))
+                    ->disk('s3')
                     ->width(80)
                     ->height(40),
 

@@ -85,7 +85,7 @@ class JobResource extends Resource
             Forms\Components\Section::make('Apply & Media')->schema([
                 Forms\Components\TextInput::make('apply_email')->email(),
                 Forms\Components\TextInput::make('apply_url')->url(),
-                Forms\Components\FileUpload::make('company_logo')->image()->disk(config('filesystems.default'))->directory('jobs'),
+                Forms\Components\FileUpload::make('company_logo')->image()->disk('s3')->directory('jobs'),
                 Forms\Components\TagsInput::make('tags'),
                 Forms\Components\Toggle::make('is_featured'),
                 Forms\Components\DateTimePicker::make('expires_at'),

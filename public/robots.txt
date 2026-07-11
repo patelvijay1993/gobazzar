@@ -1,2 +1,8 @@
 User-agent: *
-Disallow:
+Disallow: /admin/
+Disallow: /login
+Disallow: /register
+Disallow: /account
+Disallow: /chat/
+
+Sitemap: https://gobazzarweb.heavendwell.com/sitemap.xml

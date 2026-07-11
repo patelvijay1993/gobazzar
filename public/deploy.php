@@ -2,14 +2,75 @@
 if (($_GET['key'] ?? '') !== 'gobazzar-deploy-2026') { http_response_code(403); die('Forbidden'); }
 
 $base    = dirname(__DIR__);
-// cPanel Git Version Control clones to gobazzar-git sibling folder
-$gitBase = '/home/heavendw/public_html/gobazzarweb.heavendwell.com/gobazzar-git';
-$useGit  = is_dir($gitBase . '/.git') ? $gitBase : $base;
 
-function run($cmd, $base) {
-    $out = shell_exec("cd " . escapeshellarg($base) . " && $cmd 2>&1");
+// Find gobazzar-git folder (cPanel clones here)
+$gitPaths = [
+    $base . '/gobazzar-git',
+    '/home/heavendw/public_html/gobazzarweb.heavendwell.com/gobazzar-git',
+    dirname($base) . '/gobazzar-git',
+];
+$useGit = null;
+foreach ($gitPaths as $p) {
+    if (is_dir($p)) { $useGit = $p; break; }
+}
+
+// Find .git dir — cPanel may store it separately
+$gitDir = null;
+if ($useGit) {
+    if (is_dir($useGit . '/.git'))          $gitDir = $useGit . '/.git';
+    elseif (is_file($useGit . '/.git'))     $gitDir = trim(file_get_contents($useGit . '/.git')); // git worktree pointer
+}
+
+function run($cmd, $dir) {
+    $out = shell_exec("cd " . escapeshellarg($dir) . " && $cmd 2>&1");
     return trim($out ?: '');
 }
+
+function gitRun($cmd, $useGit, $gitDir) {
+    if (!$useGit) return 'ERROR: gobazzar-git not found';
+    if ($gitDir && is_dir($gitDir)) {
+        $out = shell_exec("git --git-dir=" . escapeshellarg($gitDir) . " --work-tree=" . escapeshellarg($useGit) . " $cmd 2>&1");
+    } else {
+        $out = shell_exec("cd " . escapeshellarg($useGit) . " && git $cmd 2>&1");
+    }
+    return trim($out ?: '');
+}
+
+// GitHub API — get latest commit without local git
+$githubRepo   = 'vijaypateldeveloper/gobazzar-app'; // UPDATE THIS if different
+$githubBranch = 'main';
+$apiUrl       = "https://api.github.com/repos/$githubRepo/commits/$githubBranch";
+$ctx = stream_context_create(['http'=>['header'=>"User-Agent: GoBazaarDeploy/1.0\r\n",'timeout'=>8]]);
+$apiResp = @file_get_contents($apiUrl, false, $ctx);
+$apiData = $apiResp ? json_decode($apiResp, true) : null;
+$remoteCommit     = $apiData['sha'] ?? null;
+$remoteCommitShort= $remoteCommit ? substr($remoteCommit, 0, 7) : 'N/A';
+$remoteMsg        = $apiData['commit']['message'] ?? 'N/A';
+$remoteAuthor     = $apiData['commit']['author']['name'] ?? 'N/A';
+$remoteTime       = $apiData['commit']['author']['date'] ?? '';
+$remoteTimeHuman  = $remoteTime ? date('d M Y H:i', strtotime($remoteTime)) : '';
+
+// Local commit from gobazzar-git
+$localCommitFull  = $useGit ? gitRun('rev-parse HEAD', $useGit, $gitDir) : 'N/A';
+$localCommit      = (strlen($localCommitFull) >= 7) ? substr($localCommitFull, 0, 7) : $localCommitFull;
+$currentBranch    = $useGit ? gitRun('rev-parse --abbrev-ref HEAD', $useGit, $gitDir) : 'N/A';
+$lastCommitMsg    = $useGit ? gitRun('log -1 --pretty=format:"%s"', $useGit, $gitDir) : 'N/A';
+$lastCommitTime   = $useGit ? gitRun('log -1 --pretty=format:"%ar"', $useGit, $gitDir) : 'N/A';
+
+$isUpToDate = $remoteCommit && $localCommitFull && str_starts_with($localCommitFull, substr($remoteCommit, 0, 7));
+
+// Get pending files from GitHub API compare
+$compareUrl  = "https://api.github.com/repos/$githubRepo/compare/{$localCommitFull}...{$remoteCommit}";
+$compareResp = ($remoteCommit && $localCommitFull && strlen($localCommitFull) > 10)
+    ? @file_get_contents($compareUrl, false, $ctx) : null;
+$compareData = $compareResp ? json_decode($compareResp, true) : null;
+$pendingFiles = $compareData['files'] ?? [];
+$pendingCount = count($pendingFiles);
+
+// Last 5 commits from GitHub API
+$commitsUrl  = "https://api.github.com/repos/$githubRepo/commits?sha=$githubBranch&per_page=5";
+$commitsResp = @file_get_contents($commitsUrl, false, $ctx);
+$commitsData = $commitsResp ? json_decode($commitsResp, true) : [];
 
 $action = $_GET['action'] ?? 'status';
 
@@ -38,7 +99,6 @@ body{font-family:'Segoe UI',sans-serif;background:#0f1117;color:#e2e8f0;min-heig
 .btn-primary{background:#3b82f6;color:#fff}
 .btn-primary:hover{background:#2563eb}
 .btn-danger{background:#ef4444;color:#fff}
-.btn-danger:hover{background:#dc2626}
 .btn-green{background:#10b981;color:#fff}
 .btn-green:hover{background:#059669}
 .btn-gray{background:#334155;color:#e2e8f0}
@@ -83,50 +143,38 @@ body{font-family:'Segoe UI',sans-serif;background:#0f1117;color:#e2e8f0;min-heig
 </div>
 
 <?php
-// ── Get current git info ──────────────────────────────────────────────
-$currentBranch  = run('git rev-parse --abbrev-ref HEAD', $useGit);
-$localCommit    = run('git rev-parse --short HEAD', $useGit);
-$localCommitFull= run('git rev-parse HEAD', $useGit);
-$lastCommitMsg  = run('git log -1 --pretty=format:"%s"', $useGit);
-$lastCommitTime = run('git log -1 --pretty=format:"%ar"', $useGit);
-$lastCommitAuth = run('git log -1 --pretty=format:"%an"', $useGit);
-
-// Fetch remote to compare
-run('git fetch origin 2>&1', $useGit);
-$remoteCommit     = run('git rev-parse --short origin/main', $useGit);
-$remoteCommitFull = run('git rev-parse origin/main', $useGit);
-$isUpToDate       = ($localCommitFull === $remoteCommitFull);
-
-// Files that will change on pull
-$pendingFiles = run('git diff --name-status HEAD origin/main', $useGit);
-$pendingLines = $pendingFiles ? array_filter(explode("\n", $pendingFiles)) : [];
-$pendingCount = count($pendingLines);
-
-// Last 5 commits on remote
-$remoteLog      = run('git log origin/main -5 --pretty=format:"%h|||%s|||%an|||%ar"', $useGit);
-$remoteLogLines = $remoteLog ? array_filter(explode("\n", $remoteLog)) : [];
+// Debug info (shown in pull log, not status)
+$debugInfo  = "gobazzar-git path: " . ($useGit ?: 'NOT FOUND') . "\n";
+$debugInfo .= ".git dir: " . ($gitDir ?: 'NOT FOUND') . "\n";
+$debugInfo .= "Local commit: $localCommit\n";
+$debugInfo .= "Remote commit: $remoteCommitShort\n";
+$debugInfo .= "GitHub repo: $githubRepo\n";
 ?>
 
 <?php if ($action === 'pull'): ?>
 <?php
-  // ── DO THE PULL ────────────────────────────────────────────────────
-  $pullLog = '';
+  $pullLog = $debugInfo . "\n";
 
-  // 1. Pull into git repo folder
-  $pullLog .= "--- Git Pull ($useGit) ---\n";
-  $pullLog .= run('git fetch origin', $useGit) . "\n";
-  $pullLog .= run('git reset --hard origin/main', $useGit) . "\n";
-  $pullLog .= run('git pull origin main', $useGit) . "\n\n";
+  // 1. Git pull in gobazzar-git
+  if ($useGit) {
+      $pullLog .= "--- Git Pull in gobazzar-git ---\n";
+      $pullLog .= gitRun('fetch origin', $useGit, $gitDir) . "\n";
+      $pullLog .= gitRun('reset --hard origin/main', $useGit, $gitDir) . "\n";
+      $newLocalCommit = gitRun('rev-parse --short HEAD', $useGit, $gitDir);
+      $pullLog .= "Now at: $newLocalCommit\n\n";
 
-  // 2. If git repo is in subfolder (gobazzar-git), copy files to site root
-  if ($useGit !== $base) {
+      // 2. Copy files to site root (rsync)
       $pullLog .= "--- Copying files from gobazzar-git to site root ---\n";
-      // Copy all except .git folder and public/index.php (already exists)
-      $rsync = shell_exec("cd " . escapeshellarg($useGit) . " && rsync -a --exclude='.git' --exclude='node_modules' --exclude='.env' . " . escapeshellarg($base . '/') . " 2>&1");
-      $pullLog .= ($rsync ?: 'Files copied OK') . "\n\n";
+      $rsyncCmd = "rsync -av --exclude='.git' --exclude='node_modules' --exclude='.env' --exclude='public/storage' "
+                . escapeshellarg($useGit . '/') . " " . escapeshellarg($base . '/') . " 2>&1";
+      $rsync = shell_exec($rsyncCmd);
+      $pullLog .= ($rsync ?: 'rsync: no output') . "\n\n";
+  } else {
+      $pullLog .= "WARNING: gobazzar-git folder not found! Only running artisan.\n\n";
+      $newLocalCommit = 'unknown';
   }
 
-  // 3. Artisan commands on site root
+  // 3. Artisan
   $pullLog .= "--- Artisan ---\n";
   $pullLog .= run('php artisan config:clear', $base) . "\n";
   $pullLog .= run('php artisan route:clear', $base) . "\n";
@@ -136,9 +184,8 @@ $remoteLogLines = $remoteLog ? array_filter(explode("\n", $remoteLog)) : [];
   $pullLog .= run('php artisan config:cache', $base) . "\n";
   $pullLog .= run('php artisan route:cache', $base) . "\n";
   $pullLog .= run('php artisan view:cache', $base) . "\n";
-  $newCommit = run('git rev-parse --short HEAD', $useGit);
 ?>
-  <div class="alert alert-success">✅ Deploy complete! Now on <strong><?= htmlspecialchars($newCommit) ?></strong></div>
+  <div class="alert alert-success">Deploy complete! Now on <strong><?= htmlspecialchars($newLocalCommit) ?></strong></div>
   <div class="card">
     <div class="card-head"><span class="icon">📋</span><h3>Deploy Log</h3></div>
     <div class="card-body">
@@ -153,11 +200,11 @@ $remoteLogLines = $remoteLog ? array_filter(explode("\n", $remoteLog)) : [];
 <div class="grid2" style="margin-bottom:20px">
   <div class="stat-box">
     <div class="stat-num"><?= htmlspecialchars($localCommit) ?></div>
-    <div class="stat-label">Current (Production)</div>
+    <div class="stat-label">Current (gobazzar-git)</div>
     <div style="font-size:11px;color:#64748b;margin-top:4px"><?= htmlspecialchars($lastCommitTime) ?></div>
   </div>
   <div class="stat-box">
-    <div class="stat-num" style="color:<?= $isUpToDate ? '#10b981' : '#f59e0b' ?>"><?= htmlspecialchars($remoteCommit) ?></div>
+    <div class="stat-num" style="color:<?= $isUpToDate ? '#10b981' : '#f59e0b' ?>"><?= htmlspecialchars($remoteCommitShort) ?></div>
     <div class="stat-label">Latest (GitHub)</div>
     <div style="font-size:11px;color:<?= $isUpToDate ? '#10b981' : '#f59e0b' ?>;margin-top:4px">
       <?= $isUpToDate ? '✅ Up to date' : "⚠️ $pendingCount file(s) pending" ?>
@@ -170,18 +217,23 @@ $remoteLogLines = $remoteLog ? array_filter(explode("\n", $remoteLog)) : [];
   <div class="card-head"><span class="icon">🖥️</span><h3>Production Status</h3></div>
   <div class="card-body">
     <div class="status-row">
+      <div class="dot dot-<?= $useGit ? 'green' : 'red' ?>"></div>
+      <div style="flex:1;font-size:13px">gobazzar-git</div>
+      <div style="font-family:monospace;color:#94a3b8;font-size:12px"><?= htmlspecialchars($useGit ?: 'NOT FOUND') ?></div>
+    </div>
+    <div class="status-row">
       <div class="dot dot-green"></div>
       <div style="flex:1;font-size:13px">Branch</div>
       <div style="font-family:monospace;color:#f59e0b"><?= htmlspecialchars($currentBranch) ?></div>
     </div>
     <div class="status-row">
       <div class="dot dot-green"></div>
-      <div style="flex:1;font-size:13px">Current Commit</div>
+      <div style="flex:1;font-size:13px">Local Commit (gobazzar-git)</div>
       <div style="font-family:monospace;color:#f59e0b"><?= htmlspecialchars($localCommit) ?></div>
     </div>
     <div class="status-row">
       <div class="dot dot-green"></div>
-      <div style="flex:1;font-size:13px">Last Deploy</div>
+      <div style="flex:1;font-size:13px">Last Commit</div>
       <div style="font-size:13px;color:#94a3b8"><?= htmlspecialchars($lastCommitMsg) ?></div>
     </div>
     <div class="status-row">
@@ -200,16 +252,15 @@ $remoteLogLines = $remoteLog ? array_filter(explode("\n", $remoteLog)) : [];
   <div class="card-head"><span class="icon">📁</span><h3>Files to be Updated (<?= $pendingCount ?>)</h3></div>
   <div class="card-body">
     <div class="file-list">
-      <?php foreach ($pendingLines as $line):
-        $parts = explode("\t", $line);
-        $status = $parts[0] ?? '';
-        $file   = $parts[1] ?? $line;
-        $badgeClass = str_starts_with($status,'A') ? 'f-add' : (str_starts_with($status,'D') ? 'f-del' : 'f-mod');
-        $badgeText  = str_starts_with($status,'A') ? 'NEW' : (str_starts_with($status,'D') ? 'DEL' : 'MOD');
+      <?php foreach ($pendingFiles as $f):
+        $status    = $f['status'] ?? 'modified';
+        $filename  = $f['filename'] ?? '';
+        $badgeClass = ($status === 'added') ? 'f-add' : (($status === 'removed') ? 'f-del' : 'f-mod');
+        $badgeText  = ($status === 'added') ? 'NEW' : (($status === 'removed') ? 'DEL' : 'MOD');
       ?>
       <div class="file-item">
         <span class="file-badge <?= $badgeClass ?>"><?= $badgeText ?></span>
-        <span style="color:#e2e8f0"><?= htmlspecialchars($file) ?></span>
+        <span style="color:#e2e8f0"><?= htmlspecialchars($filename) ?></span>
       </div>
       <?php endforeach; ?>
     </div>
@@ -217,28 +268,28 @@ $remoteLogLines = $remoteLog ? array_filter(explode("\n", $remoteLog)) : [];
       <a href="/deploy.php?key=gobazzar-deploy-2026&action=pull"
          onclick="return confirm('Deploy karo? Production update ho jayega.')"
          class="btn btn-green">
-        🚀 Deploy Now (Pull + Cache Clear)
+        🚀 Deploy Now (Pull + rsync + Cache Clear)
       </a>
     </div>
   </div>
 </div>
 <?php else: ?>
-<div class="alert alert-success">✅ Production is up to date! Koi pending changes nahi hain.</div>
+<div class="alert alert-success">✅ Production is up to date!</div>
 <a href="/deploy.php?key=gobazzar-deploy-2026&action=pull"
-   onclick="return confirm('Force deploy karo?')"
-   class="btn btn-gray" style="margin-bottom:20px">🔄 Force Redeploy Anyway</a>
+   onclick="return confirm('Force deploy karo? gobazzar-git se site root me rsync hoga.')"
+   class="btn btn-gray" style="margin-bottom:20px">🔄 Force Redeploy (rsync only)</a>
 <?php endif; ?>
 
 <!-- RECENT COMMITS -->
 <div class="card">
   <div class="card-head"><span class="icon">📝</span><h3>Recent Commits (GitHub)</h3></div>
   <div class="card-body">
-    <?php foreach ($remoteLogLines as $line):
-      $parts = explode('|||', $line);
-      $hash  = $parts[0] ?? '';
-      $msg   = $parts[1] ?? '';
-      $auth  = $parts[2] ?? '';
-      $time  = $parts[3] ?? '';
+    <?php foreach (array_slice($commitsData, 0, 5) as $commit):
+      $hash = substr($commit['sha'] ?? '', 0, 7);
+      $msg  = $commit['commit']['message'] ?? '';
+      $auth = $commit['commit']['author']['name'] ?? '';
+      $time = $commit['commit']['author']['date'] ?? '';
+      $timeH = $time ? date('d M H:i', strtotime($time)) : '';
       $isCurrent = ($hash === $localCommit);
     ?>
     <div class="commit-item">
@@ -249,9 +300,12 @@ $remoteLogLines = $remoteLog ? array_filter(explode("\n", $remoteLog)) : [];
         <?php endif; ?>
       </div>
       <div class="commit-msg"><?= htmlspecialchars($msg) ?></div>
-      <div class="commit-meta"><?= htmlspecialchars($auth) ?> · <?= htmlspecialchars($time) ?></div>
+      <div class="commit-meta"><?= htmlspecialchars($auth) ?> · <?= htmlspecialchars($timeH) ?></div>
     </div>
     <?php endforeach; ?>
+    <?php if (empty($commitsData)): ?>
+    <div style="color:#64748b;font-size:13px">GitHub API se commits load nahi hue. Repo name check karo: <code><?= $githubRepo ?></code></div>
+    <?php endif; ?>
   </div>
 </div>
 

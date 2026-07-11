@@ -60,7 +60,8 @@ class LocationResource extends Resource
                 Forms\Components\FileUpload::make('city_image')
                     ->label('City Image')
                     ->image()
-                    ->disk(config('filesystems.default'))
+                    ->disk(fn() => config('filesystems.default'))
+                    ->visibility('public')
                     ->directory('locations/cities')
                     ->imagePreviewHeight('80')
                     ->columnSpanFull(),

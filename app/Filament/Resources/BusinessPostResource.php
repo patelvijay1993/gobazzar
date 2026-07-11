@@ -99,13 +99,13 @@ class BusinessPostResource extends Resource
                 Forms\Components\FileUpload::make('image')
                     ->label('Main Image')
                     ->image()
-                    ->disk(config('filesystems.default'))
+                    ->disk('s3')
                     ->directory('business-posts')
                     ->nullable(),
                 Forms\Components\FileUpload::make('images')
                     ->label('Additional Images')
                     ->image()
-                    ->disk(config('filesystems.default'))
+                    ->disk('s3')
                     ->directory('business-posts')
                     ->multiple()
                     ->nullable(),
@@ -117,7 +117,7 @@ class BusinessPostResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\ImageColumn::make('image')->label('Photo')->disk(config('filesystems.default')),
+                Tables\Columns\ImageColumn::make('image')->label('Photo')->disk('s3'),
                 Tables\Columns\TextColumn::make('title')->searchable()->limit(30)->sortable(),
                 Tables\Columns\TextColumn::make('business.name')->label('Business')->searchable()->limit(25),
                 Tables\Columns\TextColumn::make('user.name')->label('Owner')->searchable()->limit(20),

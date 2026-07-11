@@ -73,12 +73,12 @@ class BusinessResource extends Resource
             ])->columns(3),
 
             Forms\Components\Section::make('Media & Tags')->schema([
-                Forms\Components\FileUpload::make('image')->image()->disk(config('filesystems.default'))->directory('businesses')->columnSpanFull(),
-                Forms\Components\FileUpload::make('logo')->image()->disk(config('filesystems.default'))->directory('businesses/logos'),
+                Forms\Components\FileUpload::make('image')->image()->disk('s3')->directory('businesses')->columnSpanFull(),
+                Forms\Components\FileUpload::make('logo')->image()->disk('s3')->directory('businesses/logos'),
                 Forms\Components\FileUpload::make('images')
                     ->label('Gallery Images')
                     ->image()
-                    ->disk(config('filesystems.default'))
+                    ->disk('s3')
                     ->directory('businesses')
                     ->multiple()
                     ->reorderable()

@@ -22,3 +22,15 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Security/debug scripts - do not push to production
+/public/generate-vapid.php
+/public/run-composer.php
+/public/fix-permissions.php
+/public/generate-pwa-icons.php
+/public/check-paths.php
+/public/clear-cache.php
+/public/test-s3.php
+/public/upload-city-images.php
+/public/push-debug.php
+/public/git-fix.php

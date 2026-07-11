@@ -182,7 +182,7 @@ class ListingResource extends Resource
                     ->multiple()
                     ->maxFiles(5)
                     ->reorderable()
-                    ->disk(config('filesystems.default'))
+                    ->disk('s3')
                     ->directory('listings')
                     ->imagePreviewHeight('100')
                     ->panelLayout('grid')

@@ -55,7 +55,7 @@ class BlogPostResource extends Resource
             Forms\Components\Section::make('Media & Meta')->schema([
                 Forms\Components\FileUpload::make('image')
                     ->image()
-                    ->disk(config('filesystems.default'))
+                    ->disk('s3')
                     ->directory('blog')
                     ->columnSpanFull(),
                 Forms\Components\TagsInput::make('tags'),
