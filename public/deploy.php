@@ -2,7 +2,8 @@
 if (($_GET['key'] ?? '') !== 'gobazzar-deploy-2026') { http_response_code(403); die('Forbidden'); }
 
 $base    = dirname(__DIR__);
-$gitBase = $base . '/gobazzar-git'; // cPanel git clone path
+// cPanel Git Version Control clones to gobazzar-git sibling folder
+$gitBase = '/home/heavendw/public_html/gobazzarweb.heavendwell.com/gobazzar-git';
 $useGit  = is_dir($gitBase . '/.git') ? $gitBase : $base;
 
 function run($cmd, $base) {
