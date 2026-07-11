@@ -1,7 +1,9 @@
 <?php
 if (($_GET['key'] ?? '') !== 'gobazzar-deploy-2026') { http_response_code(403); die('Forbidden'); }
 
-$base = dirname(__DIR__);
+$base    = dirname(__DIR__);
+$gitBase = $base . '/gobazzar-git'; // cPanel git clone path
+$useGit  = is_dir($gitBase . '/.git') ? $gitBase : $base;
 
 function run($cmd, $base) {
     $out = shell_exec("cd " . escapeshellarg($base) . " && $cmd 2>&1");
@@ -81,26 +83,26 @@ body{font-family:'Segoe UI',sans-serif;background:#0f1117;color:#e2e8f0;min-heig
 
 <?php
 // ── Get current git info ──────────────────────────────────────────────
-$currentBranch  = run('git rev-parse --abbrev-ref HEAD', $base);
-$localCommit    = run('git rev-parse --short HEAD', $base);
-$localCommitFull= run('git rev-parse HEAD', $base);
-$lastCommitMsg  = run('git log -1 --pretty=format:"%s"', $base);
-$lastCommitTime = run('git log -1 --pretty=format:"%ar"', $base);
-$lastCommitAuth = run('git log -1 --pretty=format:"%an"', $base);
+$currentBranch  = run('git rev-parse --abbrev-ref HEAD', $useGit);
+$localCommit    = run('git rev-parse --short HEAD', $useGit);
+$localCommitFull= run('git rev-parse HEAD', $useGit);
+$lastCommitMsg  = run('git log -1 --pretty=format:"%s"', $useGit);
+$lastCommitTime = run('git log -1 --pretty=format:"%ar"', $useGit);
+$lastCommitAuth = run('git log -1 --pretty=format:"%an"', $useGit);
 
 // Fetch remote to compare
-run('git fetch origin 2>&1', $base);
-$remoteCommit   = run('git rev-parse --short origin/main', $base);
-$remoteCommitFull = run('git rev-parse origin/main', $base);
-$isUpToDate     = ($localCommitFull === $remoteCommitFull);
+run('git fetch origin 2>&1', $useGit);
+$remoteCommit     = run('git rev-parse --short origin/main', $useGit);
+$remoteCommitFull = run('git rev-parse origin/main', $useGit);
+$isUpToDate       = ($localCommitFull === $remoteCommitFull);
 
 // Files that will change on pull
-$pendingFiles   = run('git diff --name-status HEAD origin/main', $base);
-$pendingLines   = $pendingFiles ? array_filter(explode("\n", $pendingFiles)) : [];
-$pendingCount   = count($pendingLines);
+$pendingFiles = run('git diff --name-status HEAD origin/main', $useGit);
+$pendingLines = $pendingFiles ? array_filter(explode("\n", $pendingFiles)) : [];
+$pendingCount = count($pendingLines);
 
 // Last 5 commits on remote
-$remoteLog = run('git log origin/main -5 --pretty=format:"%h|||%s|||%an|||%ar"', $base);
+$remoteLog      = run('git log origin/main -5 --pretty=format:"%h|||%s|||%an|||%ar"', $useGit);
 $remoteLogLines = $remoteLog ? array_filter(explode("\n", $remoteLog)) : [];
 ?>
 
@@ -108,8 +110,22 @@ $remoteLogLines = $remoteLog ? array_filter(explode("\n", $remoteLog)) : [];
 <?php
   // ── DO THE PULL ────────────────────────────────────────────────────
   $pullLog = '';
-  $pullLog .= run('git reset --hard origin/main', $base) . "\n";
-  $pullLog .= run('git pull origin main', $base) . "\n\n";
+
+  // 1. Pull into git repo folder
+  $pullLog .= "--- Git Pull ($useGit) ---\n";
+  $pullLog .= run('git fetch origin', $useGit) . "\n";
+  $pullLog .= run('git reset --hard origin/main', $useGit) . "\n";
+  $pullLog .= run('git pull origin main', $useGit) . "\n\n";
+
+  // 2. If git repo is in subfolder (gobazzar-git), copy files to site root
+  if ($useGit !== $base) {
+      $pullLog .= "--- Copying files from gobazzar-git to site root ---\n";
+      // Copy all except .git folder and public/index.php (already exists)
+      $rsync = shell_exec("cd " . escapeshellarg($useGit) . " && rsync -a --exclude='.git' --exclude='node_modules' --exclude='.env' . " . escapeshellarg($base . '/') . " 2>&1");
+      $pullLog .= ($rsync ?: 'Files copied OK') . "\n\n";
+  }
+
+  // 3. Artisan commands on site root
   $pullLog .= "--- Artisan ---\n";
   $pullLog .= run('php artisan config:clear', $base) . "\n";
   $pullLog .= run('php artisan route:clear', $base) . "\n";
@@ -119,7 +135,7 @@ $remoteLogLines = $remoteLog ? array_filter(explode("\n", $remoteLog)) : [];
   $pullLog .= run('php artisan config:cache', $base) . "\n";
   $pullLog .= run('php artisan route:cache', $base) . "\n";
   $pullLog .= run('php artisan view:cache', $base) . "\n";
-  $newCommit = run('git rev-parse --short HEAD', $base);
+  $newCommit = run('git rev-parse --short HEAD', $useGit);
 ?>
   <div class="alert alert-success">✅ Deploy complete! Now on <strong><?= htmlspecialchars($newCommit) ?></strong></div>
   <div class="card">
