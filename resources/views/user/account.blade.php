@@ -571,13 +571,111 @@
           </div>
           <div class="form-group">
             <label class="form-label">Profile Photo</label>
-            @if($user->avatar)
-              <div style="margin-bottom:8px"><img src="{{ $user->avatar_url }}" style="width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid var(--border2)"></div>
-            @endif
-            <input type="file" name="avatar" class="form-input" accept="image/*">
+
+            {{-- Current avatar preview --}}
+            <div id="avatar-current" style="margin-bottom:10px;{{ $user->avatar ? '' : 'display:none' }}">
+              <img src="{{ $user->avatar_url ?? '' }}" id="avatar-preview-img" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid var(--border2)">
+            </div>
+
+            {{-- File picker --}}
+            <input type="file" id="avatar-file-input" accept="image/*" style="display:none">
+            <button type="button" onclick="document.getElementById('avatar-file-input').click()"
+              style="display:inline-flex;align-items:center;gap:7px;padding:8px 16px;background:var(--primary-light);color:var(--primary);border:1px dashed var(--primary);border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">
+              <i class="fa-solid fa-camera"></i> Choose Photo
+            </button>
+            <span style="font-size:11px;color:var(--muted);margin-left:8px">JPG, PNG — max 5MB</span>
+
+            {{-- Crop modal --}}
+            <div id="crop-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;align-items:center;justify-content:center">
+              <div style="background:#fff;border-radius:16px;padding:24px;width:min(420px,95vw);box-shadow:0 20px 60px rgba(0,0,0,.4)">
+                <div style="font-size:15px;font-weight:700;color:#1e293b;margin-bottom:16px"><i class="fa-solid fa-crop-simple" style="margin-right:6px;color:var(--primary)"></i> Crop Profile Photo</div>
+                <div style="position:relative;height:300px;background:#f1f5f9;border-radius:10px;overflow:hidden">
+                  <img id="crop-image" style="max-width:100%;display:block">
+                </div>
+                <p style="font-size:11.5px;color:#64748b;margin:10px 0 16px">Drag to move · Pinch/scroll to zoom · Square crop only</p>
+                <div style="display:flex;gap:10px">
+                  <button type="button" onclick="closeCropModal()" style="flex:1;padding:10px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;font-size:13px;font-weight:600;cursor:pointer;color:#64748b">Cancel</button>
+                  <button type="button" onclick="applyCrop()" style="flex:2;padding:10px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer"><i class="fa-solid fa-check"></i> Use This Photo</button>
+                </div>
+              </div>
+            </div>
+
+            {{-- Hidden input for cropped base64 --}}
+            <input type="hidden" name="avatar_cropped" id="avatar-cropped-data">
+            {{-- Remove original file input so only cropped goes --}}
           </div>
           <button type="submit" class="btn-save">Save Profile</button>
         </form>
+
+        {{-- Cropper.js (inline, no CDN) --}}
+        <script>
+        // Minimal Cropper.js loaded from jsDelivr — fallback: use plain resize if blocked
+        (function(){
+          var s = document.createElement('script');
+          s.src = 'https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js';
+          s.onload = function(){ window._cropperLoaded = true; };
+          document.head.appendChild(s);
+          var l = document.createElement('link');
+          l.rel='stylesheet';
+          l.href='https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css';
+          document.head.appendChild(l);
+        })();
+
+        var _cropper = null;
+
+        document.getElementById('avatar-file-input').addEventListener('change', function(e){
+          var file = e.target.files[0];
+          if (!file) return;
+          if (file.size > 5 * 1024 * 1024) { alert('File too large. Max 5MB.'); return; }
+          var reader = new FileReader();
+          reader.onload = function(ev){
+            var modal = document.getElementById('crop-modal');
+            modal.style.display = 'flex';
+            var img = document.getElementById('crop-image');
+            img.src = ev.target.result;
+            // init cropper after image loads
+            img.onload = function(){
+              if (_cropper) { _cropper.destroy(); _cropper = null; }
+              if (window._cropperLoaded && window.Cropper) {
+                _cropper = new Cropper(img, {
+                  aspectRatio: 1,
+                  viewMode: 1,
+                  dragMode: 'move',
+                  autoCropArea: 0.85,
+                  responsive: true,
+                  checkOrientation: true,
+                });
+              }
+            };
+          };
+          reader.readAsDataURL(file);
+          // reset so same file can be picked again
+          this.value = '';
+        });
+
+        function closeCropModal(){
+          document.getElementById('crop-modal').style.display = 'none';
+          if (_cropper) { _cropper.destroy(); _cropper = null; }
+        }
+
+        function applyCrop(){
+          var dataUrl;
+          if (_cropper) {
+            // Get cropped canvas at 300x300
+            var canvas = _cropper.getCroppedCanvas({ width: 300, height: 300, imageSmoothingQuality: 'high' });
+            dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+          } else {
+            // Fallback: just use the raw image (no cropper loaded)
+            dataUrl = document.getElementById('crop-image').src;
+          }
+          // Set hidden field
+          document.getElementById('avatar-cropped-data').value = dataUrl;
+          // Show preview
+          document.getElementById('avatar-preview-img').src = dataUrl;
+          document.getElementById('avatar-current').style.display = 'block';
+          closeCropModal();
+        }
+        </script>
       </div>
     </div>
 
