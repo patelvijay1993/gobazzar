@@ -115,6 +115,7 @@ class SiteSettings extends Page implements HasForms
                 Section::make('Features')
                     ->description('Enable or disable site features. Disabled features show a "Coming Soon" popup to users.')
                     ->collapsible()
+                    ->collapsed(false)
                     ->schema([
                         Toggle::make('business_enabled')
                             ->label('My Business / Business Directory')
