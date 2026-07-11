@@ -39,24 +39,25 @@ class AssistantController extends Controller
         if (empty($keys)) return null;
 
         $prompt = <<<PROMPT
-You are a search assistant for GoBazaar, a Canadian community marketplace.
-Extract search intent from the user's message and return ONLY valid JSON.
+You are a search assistant for GoBazaar, a Canadian community marketplace used by Indian-Canadians.
+Extract search intent and return ONLY valid JSON. Understand Indian terms too (e.g. "bhk" = bedroom, "tiffin" = food delivery, "desi" = Indian).
 
-Categories available: listings, jobs, events, businesses, blog
+Categories: listings (for rent/sale/buy items), jobs (employment), events (festivals/concerts/gatherings), businesses (restaurants/shops/services), blog
+
+Rules:
+- "2 bhk", "1 bhk", "apartment", "room", "basement", "condo" → category: listings, keywords: "apartment" or "room"
+- "job", "work", "developer", "engineer", "nurse", "driver" → category: jobs
+- "restaurant", "shop", "salon", "service" → category: businesses
+- "event", "festival", "concert", "party" → category: events
+- keywords should be SHORT (1-3 words max), only the core item being searched
+- Remove filler words: i want, find me, looking for, please, show me, etc.
 
 JSON format:
-{
-  "category": "listings|jobs|events|businesses|blog|all",
-  "keywords": "search keywords",
-  "city": "city name or null",
-  "province": "province name or null",
-  "min_price": number or null,
-  "max_price": number or null
-}
+{"category":"listings|jobs|events|businesses|blog|all","keywords":"short core keywords","city":"city or null","province":"province name or null","min_price":null,"max_price":null}
 
 User message: "$message"
 
-Return ONLY the JSON object, nothing else.
+Return ONLY the JSON, nothing else.
 PROMPT;
 
         foreach ($keys as $key) {
@@ -143,12 +144,29 @@ PROMPT;
         elseif (preg_match('/\$?([\d,]+)\s*(?:or less|max|maximum)/i', $message, $m)) $maxPrice = (int)str_replace(',','',$m[1]);
         if (preg_match('/(?:above|over|min(?:imum)?|more than|at least)\s*\$?([\d,]+)/i', $message, $m)) $minPrice = (int)str_replace(',','',$m[1]);
 
-        // Keywords — remove stop words
+        // Keywords — remove stop words, cities, provinces, price words
         $stopWords = ['i','want','need','find','looking','for','a','an','the','in','at','on',
                       'under','below','above','over','with','and','or','is','are','can','you',
-                      'please','show','me','get','some','any','good','best','near','around'];
+                      'please','show','me','get','some','any','good','best','near','around',
+                      'like','have','buy','sell','rent','lease','hire','seeking','search',
+                      'bhk','bedroom','bedrooms','bath','dollar','dollars','month','monthly',
+                      'weekly','daily','year','yearly','per','price','cost','budget','salary',
+                      'this','that','which','what','where','how','who','when','job','jobs',
+                      'work','event','events','listing','listings','business','businesses'];
+        // Remove city, province names from keywords
+        $locationWords = array_merge(
+            $cities, $provinces,
+            ['british','columbia','nova','scotia','new','brunswick','prince','edward','island']
+        );
         $words = preg_split('/\s+/', $msg);
-        $keywords = implode(' ', array_filter($words, fn($w) => strlen($w) > 2 && !in_array($w, $stopWords)));
+        $filtered = array_filter($words, function($w) use ($stopWords, $locationWords) {
+            return strlen($w) > 1
+                && !in_array($w, $stopWords)
+                && !in_array($w, $locationWords)
+                && !is_numeric($w)
+                && !preg_match('/^\$?[\d,]+$/', $w);
+        });
+        $keywords = implode(' ', $filtered);
 
         return [
             'category'  => $category,
@@ -179,7 +197,12 @@ PROMPT;
         // Listings
         if ($searchListings) {
             $q = Listing::query()->where('status','active');
-            if ($keywords) $q->where(fn($q) => $q->where('title','like',"%$keywords%")->orWhere('description','like',"%$keywords%"));
+            if ($keywords) {
+                $words = array_filter(explode(' ', $keywords), fn($w) => strlen($w) > 1);
+                foreach ($words as $word) {
+                    $q->where(fn($q) => $q->where('title','like',"%$word%")->orWhere('description','like',"%$word%"));
+                }
+            }
             if ($city)     $q->where('city','like',"%$city%");
             if ($province) $q->where('province','like',"%$province%");
             if ($maxPrice) $q->where('price','<=',$maxPrice);
@@ -189,7 +212,7 @@ PROMPT;
                 $results[] = [
                     'type'     => 'listing',
                     'title'    => $item->title,
-                    'price'    => $item->price ? '$'.number_format($item->price) : null,
+                    'price'    => $item->price ? '$'.number_format((float)$item->price) : null,
                     'location' => trim(($item->city ?? '').' '.($item->province ?? '')),
                     'url'      => route('classifieds.show', $item->slug ?? $item->id),
                     'image'    => $images[0] ?? null,
@@ -200,7 +223,12 @@ PROMPT;
         // Jobs
         if ($searchJobs) {
             $q = Job::query()->where('status','active');
-            if ($keywords) $q->where(fn($q) => $q->where('title','like',"%$keywords%")->orWhere('description','like',"%$keywords%"));
+            if ($keywords) {
+                $words = array_filter(explode(' ', $keywords), fn($w) => strlen($w) > 1);
+                foreach ($words as $word) {
+                    $q->where(fn($q) => $q->where('title','like',"%$word%")->orWhere('description','like',"%$word%"));
+                }
+            }
             if ($city)     $q->where('city','like',"%$city%");
             if ($province) $q->where('province','like',"%$province%");
             $q->latest()->limit(5)->get()->each(function($item) use (&$results) {
@@ -218,14 +246,19 @@ PROMPT;
         // Events
         if ($searchEvents) {
             $q = Event::query()->where('status','active')->where('start_date','>=',now());
-            if ($keywords) $q->where(fn($q) => $q->where('title','like',"%$keywords%")->orWhere('description','like',"%$keywords%"));
+            if ($keywords) {
+                $words = array_filter(explode(' ', $keywords), fn($w) => strlen($w) > 1);
+                foreach ($words as $word) {
+                    $q->where(fn($q) => $q->where('title','like',"%$word%")->orWhere('description','like',"%$word%"));
+                }
+            }
             if ($city)     $q->where('city','like',"%$city%");
             if ($province) $q->where('province','like',"%$province%");
             $q->latest()->limit(5)->get()->each(function($item) use (&$results) {
                 $results[] = [
                     'type'     => 'event',
                     'title'    => $item->title,
-                    'price'    => $item->price ? '$'.number_format($item->price) : 'Free',
+                    'price'    => $item->price ? '$'.number_format((float)$item->price) : 'Free',
                     'location' => trim(($item->city ?? '').' '.($item->province ?? '')),
                     'url'      => route('events.show', $item->slug ?? $item->id),
                     'image'    => $item->image ?? null,
@@ -236,7 +269,12 @@ PROMPT;
         // Businesses
         if ($searchBiz) {
             $q = Business::query()->where('status','active');
-            if ($keywords) $q->where(fn($q) => $q->where('name','like',"%$keywords%")->orWhere('description','like',"%$keywords%"));
+            if ($keywords) {
+                $words = array_filter(explode(' ', $keywords), fn($w) => strlen($w) > 1);
+                foreach ($words as $word) {
+                    $q->where(fn($q) => $q->where('name','like',"%$word%")->orWhere('description','like',"%$word%"));
+                }
+            }
             if ($city)     $q->where('city','like',"%$city%");
             if ($province) $q->where('province','like',"%$province%");
             $q->latest()->limit(5)->get()->each(function($item) use (&$results) {
