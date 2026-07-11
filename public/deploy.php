@@ -163,12 +163,23 @@ $debugInfo .= "GitHub repo: $githubRepo\n";
       $newLocalCommit = gitRun('rev-parse --short HEAD', $useGit, $gitDir);
       $pullLog .= "Now at: $newLocalCommit\n\n";
 
-      // 2. Copy files to site root (rsync)
+      // 2. Copy files to site root (cp -rf, rsync not available on shared hosting)
       $pullLog .= "--- Copying files from gobazzar-git to site root ---\n";
-      $rsyncCmd = "rsync -av --exclude='.git' --exclude='node_modules' --exclude='.env' --exclude='public/storage' "
-                . escapeshellarg($useGit . '/') . " " . escapeshellarg($base . '/') . " 2>&1";
-      $rsync = shell_exec($rsyncCmd);
-      $pullLog .= ($rsync ?: 'rsync: no output') . "\n\n";
+      $dirs = ['app','bootstrap','config','database','public','resources','routes','vendor'];
+      foreach ($dirs as $d) {
+          $src = escapeshellarg($useGit . '/' . $d);
+          $dst = escapeshellarg($base . '/');
+          $out = shell_exec("/bin/cp -rf $src $dst 2>&1");
+          $pullLog .= "cp $d: " . ($out ?: 'OK') . "\n";
+      }
+      // Copy root files
+      foreach (['artisan','composer.json','.gitignore'] as $f) {
+          if (file_exists($useGit . '/' . $f)) {
+              $out = shell_exec("/bin/cp -f " . escapeshellarg($useGit.'/'.$f) . " " . escapeshellarg($base.'/'.$f) . " 2>&1");
+              $pullLog .= "cp $f: " . ($out ?: 'OK') . "\n";
+          }
+      }
+      $pullLog .= "\n";
   } else {
       $pullLog .= "WARNING: gobazzar-git folder not found! Only running artisan.\n\n";
       $newLocalCommit = 'unknown';
