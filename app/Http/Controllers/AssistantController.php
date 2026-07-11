@@ -71,7 +71,7 @@ PROMPT;
                         'Content-Type: application/json',
                     ],
                     CURLOPT_POSTFIELDS => json_encode([
-                        'model'       => 'llama3-8b-8192',
+                        'model'       => 'llama-3.1-8b-instant',
                         'messages'    => [['role' => 'user', 'content' => $prompt]],
                         'temperature' => 0.1,
                         'max_tokens'  => 150,
@@ -110,7 +110,7 @@ PROMPT;
         $category = 'all';
         if (preg_match('/\b(room|rent|apartment|condo|house|basement|studio|roommate|lease)\b/', $msg)) $category = 'listings';
         elseif (preg_match('/\b(job|work|career|hiring|position|salary|employment|developer|engineer|nurse|driver)\b/', $msg)) $category = 'jobs';
-        elseif (preg_match('/\b(event|festival|concert|party|meetup|show|wedding|gathering)\b/', $msg)) $category = 'events';
+        elseif (preg_match('/\b(events?|festival|concert|party|meetup|show|wedding|gathering)\b/', $msg)) $category = 'events';
         elseif (preg_match('/\b(business|restaurant|store|shop|salon|service|company)\b/', $msg)) $category = 'businesses';
         elseif (preg_match('/\b(blog|news|article|post|read)\b/', $msg)) $category = 'blog';
 
@@ -150,7 +150,14 @@ PROMPT;
         $words = preg_split('/\s+/', $msg);
         $keywords = implode(' ', array_filter($words, fn($w) => strlen($w) > 2 && !in_array($w, $stopWords)));
 
-        return compact('category','keywords','city','province','min_price','max_price') + ['min_price' => $minPrice, 'max_price' => $maxPrice];
+        return [
+            'category'  => $category,
+            'keywords'  => $keywords,
+            'city'      => $city,
+            'province'  => $province,
+            'min_price' => $minPrice,
+            'max_price' => $maxPrice,
+        ];
     }
 
     // ── DB Search ─────────────────────────────────────────────────────
