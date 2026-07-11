@@ -41,7 +41,11 @@
   <div class="chat-header">
     <a href="{{ route('chat.inbox') }}" class="chat-header-back"><i class="fa-solid fa-arrow-left"></i></a>
     @php $other = (int)$conversation->buyer_id === (int)Auth::id() ? $conversation->seller : $conversation->buyer; @endphp
-    <div class="chat-header-avatar">{{ strtoupper(substr($other->name, 0, 2)) }}</div>
+    @if($other->avatar_url)
+      <img src="{{ $other->avatar_url }}" class="chat-header-avatar" style="object-fit:cover;padding:0" alt="{{ $other->name }}">
+    @else
+      <div class="chat-header-avatar">{{ strtoupper(substr($other->name, 0, 2)) }}</div>
+    @endif
     @php
       $subject = $conversation->conversable;
       $subjectIcon = $subject instanceof \App\Models\Event ? '🗓️' : ($subject instanceof \App\Models\Business ? '🏢' : ($subject instanceof \App\Models\BusinessPost ? '🛍️' : '📦'));

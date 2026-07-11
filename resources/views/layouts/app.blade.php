@@ -303,7 +303,11 @@ footer.site-footer{background:var(--nav-bg);border-top:2px solid #2a4fa8;margin-
         </a>
         <a href="{{ route('post.create') }}" class="nav-post-btn"><i class="fa-solid fa-plus"></i> Post Free Ad</a>
         <a href="{{ route('account') }}" class="nav-user">
-          <div class="nav-avatar">{{ strtoupper(substr(Auth::user()->name, 0, 2)) }}</div>
+          @if(Auth::user()->avatar_url)
+            <img src="{{ Auth::user()->avatar_url }}" class="nav-avatar" style="object-fit:cover;padding:0" alt="{{ Auth::user()->name }}">
+          @else
+            <div class="nav-avatar">{{ strtoupper(substr(Auth::user()->name, 0, 2)) }}</div>
+          @endif
           <span>Hi, {{ Str::limit(Auth::user()->name, 10) }}</span>
           <i class="fa-solid fa-chevron-down" style="font-size:10px;color:rgba(255,255,255,.6)"></i>
         </a>

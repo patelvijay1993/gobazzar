@@ -139,8 +139,8 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
     @if($post->author)
     <div class="author-card" style="margin-top:28px">
       <div class="author-avatar">
-        @if($post->author->avatar)
-          <img src="{{ str_starts_with($post->author->avatar,'http') ? $post->author->avatar : \Illuminate\Support\Facades\Storage::disk('s3')->url($post->author->avatar) }}" alt="{{ $post->author->name }}">
+        @if($post->author->avatar_url)
+          <img src="{{ $post->author->avatar_url }}" alt="{{ $post->author->name }}">
         @else
           {{ strtoupper(substr($post->author->name,0,1)) }}
         @endif

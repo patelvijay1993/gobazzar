@@ -50,7 +50,11 @@
           $latest = $conv->latestMessage;
         @endphp
         <a href="{{ route('chat.conversation', $conv) }}" class="conv-item {{ $unread > 0 ? 'unread' : '' }}">
-          <div class="conv-avatar">{{ strtoupper(substr($other->name, 0, 2)) }}</div>
+          @if($other->avatar_url)
+            <img src="{{ $other->avatar_url }}" class="conv-avatar" style="object-fit:cover;padding:0" alt="{{ $other->name }}">
+          @else
+            <div class="conv-avatar">{{ strtoupper(substr($other->name, 0, 2)) }}</div>
+          @endif
           <div class="conv-info">
             <div class="conv-name">{{ $other->name }}</div>
             <div class="conv-listing">
