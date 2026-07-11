@@ -59,7 +59,7 @@ run('php artisan view:cache');
 
 // 5. Status check
 echo "\n--- Status ---\n";
-echo "APP_URL: " . (getenv('APP_URL') ?: env('APP_URL') ?: '(not set)') . "\n";
+echo "APP_URL: " . (getenv('APP_URL') ?: '(not set)') . "\n";
 echo "Storage writable: " . (is_writable($base.'/storage') ? 'YES ✓' : 'NO ✗') . "\n";
 echo "Bootstrap/cache writable: " . (is_writable($base.'/bootstrap/cache') ? 'YES ✓' : 'NO ✗') . "\n";
 
