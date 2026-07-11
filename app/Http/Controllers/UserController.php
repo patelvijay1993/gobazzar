@@ -99,26 +99,28 @@ class UserController extends Controller
         $data = $request->only('name', 'phone', 'city', 'province', 'bio');
 
         if ($request->filled('avatar_cropped')) {
-            // Cropped base64 from browser crop UI
-            $base64 = $request->input('avatar_cropped');
-            // Strip data URI prefix: data:image/jpeg;base64,...
-            $imageData = preg_replace('/^data:image\/\w+;base64,/', '', $base64);
-            $imageData = base64_decode($imageData);
+            $base64    = $request->input('avatar_cropped');
+            $imageData = base64_decode(preg_replace('/^data:image\/\w+;base64,/', '', $base64));
+
+            // Resize to 300x300 using native GD (no extra library needed)
+            $src = imagecreatefromstring($imageData);
+            if ($src === false) {
+                return back()->withErrors(['avatar' => 'Invalid image data.']);
+            }
+            $dst = imagecreatetruecolor(300, 300);
+            imagecopyresampled($dst, $src, 0, 0, 0, 0, 300, 300, imagesx($src), imagesy($src));
+            imagedestroy($src);
+
+            ob_start();
+            imagejpeg($dst, null, 85);
+            $jpegData = ob_get_clean();
+            imagedestroy($dst);
 
             $filename = 'avatars/' . uniqid('av_') . '.jpg';
             $disk     = config('filesystems.default');
 
-            // Resize to 300x300 using Intervention Image v3
-            $manager = new \Intervention\Image\ImageManager(
-                new \Intervention\Image\Drivers\Gd\Driver()
-            );
-            $image = $manager->read($imageData)
-                ->cover(300, 300)
-                ->toJpeg(85);
+            \Illuminate\Support\Facades\Storage::disk($disk)->put($filename, $jpegData);
 
-            \Illuminate\Support\Facades\Storage::disk($disk)->put($filename, (string) $image);
-
-            // Delete old avatar
             if ($user->avatar) {
                 \Illuminate\Support\Facades\Storage::disk($disk)->delete($user->avatar);
             }
