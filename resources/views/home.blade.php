@@ -463,6 +463,7 @@ $heroLocLabel = request('city') ?: request('province');
   </div>
 
   {{-- FEATURED CLASSIFIEDS --}}
+  @if($latestListings->isNotEmpty() || request('province') || request('city'))
   <div class="sh">
     <div class="sh-title"><i class="fa-solid fa-star"></i> Featured Classifieds</div>
     <a href="{{ route('classifieds.index', array_filter(['province' => request('province'), 'city' => request('city')])) }}" class="sh-link">View All <i class="fa-solid fa-arrow-right" style="font-size:10px"></i></a>
@@ -498,6 +499,7 @@ $heroLocLabel = request('city') ?: request('province');
     @endforeach
   </div>
   @endif
+  @endif {{-- /classifieds outer --}}
 
   <div class="sec-div"></div>
 
@@ -706,7 +708,7 @@ $heroLocLabel = request('city') ?: request('province');
       <div class="stat-box"><div class="stat-num">{{ number_format($stats['businesses']) }}+</div><div class="stat-lbl">Businesses</div></div>
       <div class="stat-box"><div class="stat-num">{{ number_format($stats['listings']) }}+</div><div class="stat-lbl">Free Ads</div></div>
       <div class="stat-box"><div class="stat-num">{{ number_format($stats['events']) }}+</div><div class="stat-lbl">Events</div></div>
-      <div class="stat-box"><div class="stat-num">1.6M+</div><div class="stat-lbl">Community</div></div>
+      <div class="stat-box"><div class="stat-num">{{ number_format(\App\Models\User::count()) }}+</div><div class="stat-lbl">Members</div></div>
     </div>
   </div>
 
