@@ -89,8 +89,7 @@ h1 span{background:linear-gradient(135deg,var(--accent),#ff8c00);-webkit-backgro
 
 <div class="container">
   <div class="logo">
-    <div class="logo-icon">🏪</div>
-    <div class="logo-text">Go<span>Bazaar</span></div>
+    <img src="/images/logo.png" alt="GoBazaar" style="height:56px;width:auto;object-fit:contain;filter:drop-shadow(0 4px 16px rgba(26,58,143,.4))">
   </div>
 
   <div class="badge">⚡ Something Amazing is Coming</div>
