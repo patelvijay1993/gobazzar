@@ -38,10 +38,14 @@ class SiteSettings extends Page implements HasForms
     public string $seo_google_analytics   = '';
     public string $seo_facebook_pixel     = '';
 
+    public string $app_name              = '';
+    public string $app_url               = '';
     public string $openai_api_key        = '';
     public string $google_vision_api_key = '';
+    public string $google_places_api_key = '';
     public string $gemini_api_key        = '';
     public string $groq_api_key          = '';
+    public string $groq_api_key1         = '';
     public string $stripe_key            = '';
     public string $stripe_secret         = '';
     public string $stripe_webhook_secret = '';
@@ -75,10 +79,14 @@ class SiteSettings extends Page implements HasForms
         $this->seo_google_analytics    = Setting::get('seo_google_analytics', '');
         $this->seo_facebook_pixel      = Setting::get('seo_facebook_pixel', '');
 
+        $this->app_name              = $this->readEnvValue('APP_NAME') ?: 'GoBazaar';
+        $this->app_url               = $this->readEnvValue('APP_URL');
         $this->openai_api_key        = $this->readEnvValue('OPENAI_API_KEY');
         $this->google_vision_api_key = $this->readEnvValue('GOOGLE_VISION_API_KEY');
+        $this->google_places_api_key = $this->readEnvValue('GOOGLE_PLACES_API_KEY');
         $this->gemini_api_key        = $this->readEnvValue('GEMINI_API_KEY');
         $this->groq_api_key          = $this->readEnvValue('GROQ_API_KEY');
+        $this->groq_api_key1         = $this->readEnvValue('GROQ_API_KEY1');
         $this->stripe_key            = $this->readEnvValue('STRIPE_KEY');
         $this->stripe_secret         = $this->readEnvValue('STRIPE_SECRET');
         $this->stripe_webhook_secret = $this->readEnvValue('STRIPE_WEBHOOK_SECRET');
@@ -112,6 +120,26 @@ class SiteSettings extends Page implements HasForms
     {
         return $form
             ->schema([
+                Section::make('General')
+                    ->description('Basic application settings.')
+                    ->icon('heroicon-o-globe-alt')
+                    ->collapsible()
+                    ->schema([
+                        Grid::make(2)->schema([
+                            TextInput::make('app_name')
+                                ->label('Site Name')
+                                ->placeholder('GoBazaar')
+                                ->helperText('Application name shown in emails and browser tabs.')
+                                ->maxLength(100),
+
+                            TextInput::make('app_url')
+                                ->label('App URL')
+                                ->placeholder('https://gobazaar.ca')
+                                ->helperText('Full URL of the site including https://')
+                                ->maxLength(200),
+                        ]),
+                    ]),
+
                 Section::make('Features')
                     ->description('Enable or disable site features. Disabled features show a "Coming Soon" popup to users.')
                     ->collapsible()
@@ -227,6 +255,22 @@ class SiteSettings extends Page implements HasForms
                             ->label('Groq API Key')
                             ->helperText('Used for fast AI content generation (business descriptions fallback). Get from console.groq.com')
                             ->placeholder('gsk_...')
+                            ->password()
+                            ->revealable()
+                            ->maxLength(200),
+
+                        TextInput::make('groq_api_key1')
+                            ->label('Groq API Key (Backup)')
+                            ->helperText('Backup Groq key used when primary key hits rate limit.')
+                            ->placeholder('gsk_...')
+                            ->password()
+                            ->revealable()
+                            ->maxLength(200),
+
+                        TextInput::make('google_places_api_key')
+                            ->label('Google Places API Key')
+                            ->helperText('Used for Lead Finder — search businesses on Google Maps. Enable "Places API" in console.cloud.google.com')
+                            ->placeholder('AIzaSy...')
                             ->password()
                             ->revealable()
                             ->maxLength(200),
@@ -400,10 +444,14 @@ class SiteSettings extends Page implements HasForms
 
         // Update .env file for AI keys
         $this->updateEnv([
+            'APP_NAME'              => $this->app_name,
+            'APP_URL'               => $this->app_url,
             'OPENAI_API_KEY'        => $this->openai_api_key,
             'GOOGLE_VISION_API_KEY' => $this->google_vision_api_key,
+            'GOOGLE_PLACES_API_KEY' => $this->google_places_api_key,
             'GEMINI_API_KEY'        => $this->gemini_api_key,
             'GROQ_API_KEY'          => $this->groq_api_key,
+            'GROQ_API_KEY1'         => $this->groq_api_key1,
             'STRIPE_KEY'                  => $this->stripe_key,
             'STRIPE_SECRET'               => $this->stripe_secret,
             'STRIPE_WEBHOOK_SECRET'       => $this->stripe_webhook_secret,
