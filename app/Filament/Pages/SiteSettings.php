@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Models\Setting;
+use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
@@ -28,6 +29,10 @@ class SiteSettings extends Page implements HasForms
     public bool   $email_verification_required = true;
     public bool   $business_enabled            = true;
     public bool   $ai_assistant_enabled        = true;
+    public bool   $coming_soon_mode            = false;
+    public bool   $maintenance_mode            = false;
+    public string $coming_soon_date            = '';
+    public string $coming_soon_start_date      = '';
 
     // SEO settings
     public string $seo_site_title         = '';
@@ -69,6 +74,10 @@ class SiteSettings extends Page implements HasForms
         $this->email_verification_required = Setting::bool('email_verification_required', true);
         $this->business_enabled            = Setting::bool('business_enabled', true);
         $this->ai_assistant_enabled        = Setting::bool('ai_assistant_enabled', true);
+        $this->coming_soon_mode            = Setting::bool('coming_soon_mode', false);
+        $this->maintenance_mode            = Setting::bool('maintenance_mode', false);
+        $this->coming_soon_date            = Setting::get('coming_soon_date', '');
+        $this->coming_soon_start_date      = Setting::get('coming_soon_start_date', '');
 
         // SEO
         $this->seo_site_title          = Setting::get('seo_site_title', 'GoBazaar');
@@ -137,6 +146,41 @@ class SiteSettings extends Page implements HasForms
                                 ->placeholder('https://gobazaar.ca')
                                 ->helperText('Full URL of the site including https://')
                                 ->maxLength(200),
+                        ]),
+                    ]),
+
+                Section::make('Site Mode')
+                    ->description('Control site visibility. Coming Soon shows a launch countdown. Maintenance shows a "We\'ll be back" page. Admins always bypass both modes.')
+                    ->icon('heroicon-o-signal')
+                    ->collapsible()
+                    ->collapsed(false)
+                    ->schema([
+                        Grid::make(2)->schema([
+                            Toggle::make('coming_soon_mode')
+                                ->label('🚀 Coming Soon Mode')
+                                ->helperText('When ON — all visitors see the Coming Soon page with countdown. Admins can still access the site.')
+                                ->onColor('warning')
+                                ->offColor('gray'),
+
+                            Toggle::make('maintenance_mode')
+                                ->label('🔧 Maintenance Mode')
+                                ->helperText('When ON — visitors see the Maintenance page. Admins bypass it.')
+                                ->onColor('danger')
+                                ->offColor('gray'),
+                        ]),
+
+                        Grid::make(2)->schema([
+                            DateTimePicker::make('coming_soon_date')
+                                ->label('Launch Date & Time')
+                                ->helperText('Countdown timer will count down to this date.')
+                                ->placeholder('Pick launch date...')
+                                ->nullable(),
+
+                            DateTimePicker::make('coming_soon_start_date')
+                                ->label('Countdown Start Date')
+                                ->helperText('Used to calculate progress bar. Set to when you enabled Coming Soon.')
+                                ->placeholder('Pick start date...')
+                                ->nullable(),
                         ]),
                     ]),
 
@@ -432,6 +476,10 @@ class SiteSettings extends Page implements HasForms
         Setting::set('email_verification_required', $this->email_verification_required ? '1' : '0');
         Setting::set('business_enabled', $this->business_enabled ? '1' : '0');
         Setting::set('ai_assistant_enabled', $this->ai_assistant_enabled ? '1' : '0');
+        Setting::set('coming_soon_mode', $this->coming_soon_mode ? '1' : '0');
+        Setting::set('maintenance_mode', $this->maintenance_mode ? '1' : '0');
+        Setting::set('coming_soon_date', $this->coming_soon_date ?? '');
+        Setting::set('coming_soon_start_date', $this->coming_soon_start_date ?? '');
 
         // SEO settings
         Setting::set('seo_site_title',          $this->seo_site_title);

@@ -25,6 +25,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'email.verified' => \App\Http\Middleware\EnsureEmailVerified::class,
         ]);
         $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
+        $middleware->append(\App\Http\Middleware\CheckSiteMode::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
