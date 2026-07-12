@@ -775,13 +775,11 @@ $heroLocLabel = request('city') ?: request('province');
         </a>
         @endforeach
       @else
-        @foreach([['🪑','Wooden Dining Table Set','$350','Brampton, ON','10 min'],['💼','Part-time Cashier','$16','Brampton, ON','25 min'],['🛏️','Room for Rent near U of T','$650','Toronto, ON','1h ago'],['🚗','2020 Toyota Corolla — 45K km','$18,500','Mississauga, ON','2h ago']] as $i=>$ph)
-        <div class="la-item">
-          <div class="la-thumb" style="font-size:26px;display:flex;align-items:center;justify-content:center">{{ ['🪑','💼','🛏️','🚗'][$i] ?? '📦' }}</div>
-          <div class="la-info"><div class="la-name">{{ $ph[1] }}</div><div class="la-price">{{ $ph[2] }}</div><div class="la-loc"><i class="fa-solid fa-location-dot" style="font-size:10px"></i> {{ $ph[3] }}</div></div>
-          <div class="la-side"><div class="la-fav"><i class="fa-regular fa-heart"></i></div><div class="la-time">{{ $ph[4] }}</div></div>
+        <div style="text-align:center;padding:20px;color:var(--muted);font-size:12px">
+          <div style="font-size:28px;margin-bottom:6px">📭</div>
+          No listings yet.<br>
+          <a href="{{ route('post.create') }}" style="color:var(--primary);font-weight:600;text-decoration:none">Post the first one →</a>
         </div>
-        @endforeach
       @endif
     </div>
   </div>
