@@ -506,6 +506,7 @@ $heroLocLabel = request('city') ?: request('province');
 
   {{-- COMMUNITY EVENTS --}}
   @php $evColors=['#1a3a8f','#e8a020','#c0392b','#2e7d32']; @endphp
+  @if($upcomingEvents->isNotEmpty() || request('province') || request('city'))
   <div class="sh">
     <div class="sh-title"><i class="fa-solid fa-calendar-days"></i> Community Events</div>
     <a href="{{ route('events.index', array_filter(['province' => request('province'), 'city' => request('city')])) }}" class="sh-link">View All <i class="fa-solid fa-arrow-right" style="font-size:10px"></i></a>
@@ -513,11 +514,7 @@ $heroLocLabel = request('city') ?: request('province');
   @if($upcomingEvents->isEmpty())
     <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:30px;text-align:center;color:var(--muted);font-size:13px;margin-bottom:22px">
       <div style="font-size:32px;margin-bottom:8px">📅</div>
-      @if(request('province') || request('city'))
-        No upcoming events in <strong>{{ request('city') ?: request('province') }}</strong> yet.
-      @else
-        No upcoming events yet.
-      @endif
+      No upcoming events in <strong>{{ request('city') ?: request('province') }}</strong> yet.
       <a href="{{ route('post.create') }}" style="color:var(--primary);font-weight:600;text-decoration:none;display:block;margin-top:6px">Post an event →</a>
     </div>
   @else
@@ -540,10 +537,12 @@ $heroLocLabel = request('city') ?: request('province');
     @endforeach
   </div>
   @endif
+  @endif {{-- /events outer --}}
 
   <div class="sec-div"></div>
 
-  {{-- COMMUNITY NEWS — global (no location filter), always visible --}}
+  {{-- COMMUNITY NEWS — hide section when no posts --}}
+  @if($blogPosts->isNotEmpty())
   <div class="sh">
     <div class="sh-title"><i class="fa-solid fa-newspaper"></i> Community News</div>
     <a href="{{ route('blog.index') }}" class="sh-link">View All <i class="fa-solid fa-arrow-right" style="font-size:10px"></i></a>
@@ -573,8 +572,10 @@ $heroLocLabel = request('city') ?: request('province');
       </div>
     @endforelse
   </div>
+  @endif {{-- /news section --}}
 
   {{-- JOBS --}}
+  @if($latestJobs->isNotEmpty() || request('province') || request('city'))
   <div class="sh">
     <div class="sh-title"><i class="fa-solid fa-briefcase"></i> Jobs & IT Training</div>
     <a href="{{ route('jobs.index') }}" class="sh-link">View All <i class="fa-solid fa-arrow-right" style="font-size:10px"></i></a>
@@ -606,6 +607,7 @@ $heroLocLabel = request('city') ?: request('province');
     @endforeach
   </div>
   @endif
+  @endif {{-- /jobs outer --}}
 
   <div class="sec-div"></div>
 
@@ -613,8 +615,7 @@ $heroLocLabel = request('city') ?: request('province');
   <x-ad-slot position="inline" :ads="$ads" />
 
   {{-- BUSINESS DIRECTORY --}}
-  @php
-  @endphp
+  @if($latestBusinesses->isNotEmpty() || request('province') || request('city'))
   <div class="sh">
     <div class="sh-title"><i class="fa-solid fa-building-columns"></i> Business Directory</div>
     <a href="{{ route('directory.index') }}" class="sh-link">{{ $stats['businesses']>0?number_format($stats['businesses']).'+ Listings':'View All' }} <i class="fa-solid fa-arrow-right" style="font-size:10px"></i></a>
@@ -642,6 +643,7 @@ $heroLocLabel = request('city') ?: request('province');
     @endforeach
   </div>
   @endif
+  @endif {{-- /business outer --}}
 
   {{-- ALL LISTINGS — always show (location filtered) --}}
   @if($allListings->isNotEmpty())
