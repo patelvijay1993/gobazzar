@@ -474,25 +474,9 @@ $heroLocLabel = request('city') ?: request('province');
       <a href="{{ route('post.create') }}" style="color:var(--primary);font-weight:600;text-decoration:none">Post the first one →</a>
     </div>
   @else
+  @if($latestListings->isNotEmpty())
   <div class="cl-grid">
-    @if($latestListings->isEmpty())
-      @foreach([
-        ['https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&h=260&fit=crop','$450','Grey Sofa — excellent condition','Furniture','Brampton, ON','2h ago'],
-        ['https://images.unsplash.com/photo-1556656793-08538906a9f8?w=400&h=260&fit=crop','$699','iPhone 14 Pro Max 256GB','Electronics','Mississauga, ON','3h ago'],
-        ['https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400&h=260&fit=crop','$1,250','2 Bed Room House — Indian family','Rentals','Brampton, ON','5h ago','/month'],
-        ['https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=400&h=260&fit=crop','$18,500','2020 Toyota Corolla — 45,000 km','Autos','Calgary, AB','1d ago'],
-      ] as $ph)
-      <div class="cl-card" style="pointer-events:none">
-        <div class="cl-img"><img src="{{ $ph[0] }}" alt="{{ $ph[2] }}"><div class="cl-feat">Featured</div><div class="cl-fav"><i class="fa-regular fa-heart"></i></div></div>
-        <div class="cl-body">
-          <div class="cl-price">{{ $ph[1] }}@isset($ph[6])<small>{{ $ph[6] }}</small>@endisset</div>
-          <div class="cl-title">{{ $ph[2] }}</div>
-          <div class="cl-cat">{{ $ph[3] }}</div>
-          <div class="cl-foot"><span><i class="fa-solid fa-location-dot"></i>{{ $ph[4] }}</span><span>{{ $ph[5] }}</span></div>
-        </div>
-      </div>
-      @endforeach
-    @else
+    @if(false)
       @foreach($latestListings->take(4) as $i => $listing)
       <a href="{{ route('classifieds.show', $listing->slug) }}" class="cl-card">
         <div class="cl-img">
@@ -605,20 +589,9 @@ $heroLocLabel = request('city') ?: request('province');
       <a href="{{ route('post.create') }}" style="color:var(--primary);font-weight:600;text-decoration:none">Post a job →</a>
     </div>
   @else
+  @if($latestJobs->isNotEmpty())
   <div class="jobs-list">
-    @if($latestJobs->isEmpty())
-      @foreach([
-        ['💻','Full Stack Developer — Laravel & Vue.js','TechMove Inc. · Full Time · Toronto',['Laravel','Vue.js','Remote OK'],'$80K–$90K'],
-        ['📊','Senior Accountant — CPA preferred','Maple Finance Group · Full Time · Mississauga',['CPA','Accounting','Finance'],'$75K–$85K'],
-        ['🏥','Registered Nurse — Long Term Care Facility','Sunrise Care Home · Full Time · Toronto',['RN','Healthcare'],'$35–$40/hr'],
-        ['📚','Math & Science Tutor — Grade 9 to 12','BrightMinds Tutoring · Part Time · Toronto',['Tutoring','Education'],'$20–$30/hr'],
-      ] as $i=>$ph)
-      <div class="job-card" style="pointer-events:none">
-        <div class="job-logo" style="font-size:32px;display:flex;align-items:center;justify-content:center">💼</div>
-        <div class="job-info"><div class="job-title">{{ $ph[1] }}</div><div class="job-co">{{ $ph[2] }}</div><div class="job-tags">@foreach($ph[3] as $t)<span class="job-tag">{{ $t }}</span>@endforeach</div></div>
-        <div class="job-sal">{{ $ph[4] }}</div>
-      </div>
-      @endforeach
+    @if(false)
     @else
       @foreach($latestJobs as $i=>$job)
       <a href="{{ route('jobs.show', $job->slug) }}" class="job-card">
@@ -659,15 +632,9 @@ $heroLocLabel = request('city') ?: request('province');
       No businesses in <strong>{{ request('city') ?: request('province') }}</strong> yet.
       <a href="{{ route('post.create') }}" style="color:var(--primary);font-weight:600;text-decoration:none">List your business →</a>
     </div>
-  @else
+  @elseif($latestBusinesses->isNotEmpty())
   <div class="biz-grid">
-    @if($latestBusinesses->isEmpty())
-      @foreach([['🍛','Taste of India Restaurant','Restaurant · Brampton',4.5],['⚖️','Canada Immigration Experts','Immigration · Mississauga',4.0],['🏠','Patel Realty Group','Real Estate · Toronto',5.0],['🛒','Spice Garden Indian Grocery','Grocery · Brampton',3.7]] as $i=>$ph)
-      <div class="biz-card" style="pointer-events:none">
-        <div class="biz-img" style="display:flex;align-items:center;justify-content:center;font-size:40px;background:#f5f0ec">{{ $ph[0] }}</div>
-        <div class="biz-body"><div class="biz-name">{{ $ph[1] }}</div><div class="biz-cat">{{ $ph[2] }}</div><div class="biz-stars"><i class="fa-solid fa-star"></i> {{ $ph[3] }}</div></div>
-      </div>
-      @endforeach
+    @if(false)
     @else
       @foreach($latestBusinesses->take(4) as $i=>$biz)
       <a href="{{ route('directory.show', $biz->slug) }}" class="biz-card">
