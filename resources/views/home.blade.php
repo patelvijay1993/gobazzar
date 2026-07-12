@@ -473,11 +473,9 @@ $heroLocLabel = request('city') ?: request('province');
       No classifieds in <strong>{{ request('city') ?: request('province') }}</strong> yet.
       <a href="{{ route('post.create') }}" style="color:var(--primary);font-weight:600;text-decoration:none">Post the first one →</a>
     </div>
-  @else
-  @if($latestListings->isNotEmpty())
+  @elseif($latestListings->isNotEmpty())
   <div class="cl-grid">
-    @if(false)
-      @foreach($latestListings->take(4) as $i => $listing)
+    @foreach($latestListings->take(4) as $i => $listing)
       <a href="{{ route('classifieds.show', $listing->slug) }}" class="cl-card">
         <div class="cl-img">
           @if($listing->is_featured)<div class="cl-feat">Featured</div>@endif
@@ -497,8 +495,7 @@ $heroLocLabel = request('city') ?: request('province');
           <div class="cl-foot"><span><i class="fa-solid fa-location-dot"></i>{{ $listing->location }}</span><span>{{ $listing->created_at->diffForHumans() }}</span></div>
         </div>
       </a>
-      @endforeach
-    @endif
+    @endforeach
   </div>
   @endif
 
@@ -588,12 +585,9 @@ $heroLocLabel = request('city') ?: request('province');
       No jobs in <strong>{{ request('city') ?: request('province') }}</strong> yet.
       <a href="{{ route('post.create') }}" style="color:var(--primary);font-weight:600;text-decoration:none">Post a job →</a>
     </div>
-  @else
-  @if($latestJobs->isNotEmpty())
+  @elseif($latestJobs->isNotEmpty())
   <div class="jobs-list">
-    @if(false)
-    @else
-      @foreach($latestJobs as $i=>$job)
+    @foreach($latestJobs as $i=>$job)
       <a href="{{ route('jobs.show', $job->slug) }}" class="job-card">
         <div class="job-logo" style="padding:0;overflow:hidden">
           @if($job->company_logo_url ?? false)
@@ -609,8 +603,7 @@ $heroLocLabel = request('city') ?: request('province');
         </div>
         @if($job->salary)<div class="job-sal">{{ $job->formatted_salary }}</div>@endif
       </a>
-      @endforeach
-    @endif
+    @endforeach
   </div>
   @endif
 
@@ -634,9 +627,7 @@ $heroLocLabel = request('city') ?: request('province');
     </div>
   @elseif($latestBusinesses->isNotEmpty())
   <div class="biz-grid">
-    @if(false)
-    @else
-      @foreach($latestBusinesses->take(4) as $i=>$biz)
+    @foreach($latestBusinesses->take(4) as $i=>$biz)
       <a href="{{ route('directory.show', $biz->slug) }}" class="biz-card">
         <div class="biz-img">
           @if($biz->image_url)<img src="{{ $biz->image_url }}" alt="{{ $biz->name }}">
@@ -648,8 +639,7 @@ $heroLocLabel = request('city') ?: request('province');
           @if($biz->rating>0)<div class="biz-stars"><i class="fa-solid fa-star"></i> {{ number_format($biz->rating,1) }}</div>@endif
         </div>
       </a>
-      @endforeach
-    @endif
+    @endforeach
   </div>
   @endif
 
