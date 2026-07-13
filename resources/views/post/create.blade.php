@@ -168,13 +168,21 @@ textarea.form-input{resize:vertical;min-height:100px}
             <div class="form-row">
               <div class="form-group">
                 <label class="form-label">Category <span>*</span></label>
-                <select name="category_id" class="form-input" required onchange="clLoadFields(this.value)">
+                <select name="category_id" id="cl-category" class="form-input" required onchange="clLoadFields(this.value); loadSubCats('cl-subcategory', this.value)">
                   <option value="">Select category</option>
                   @foreach($categories->get('classifieds', collect()) as $cat)
                     <option value="{{ $cat->id }}" {{ old('category_id')==$cat->id ? 'selected' : '' }}>{{ $cat->icon }} {{ $cat->name }}</option>
                   @endforeach
                 </select>
               </div>
+              <div class="form-group">
+                <label class="form-label">Sub-Category</label>
+                <select name="subcategory_id" id="cl-subcategory" class="form-input">
+                  <option value="">Select sub-category (optional)</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
               <div class="form-group">
                 <label class="form-label">Location</label>
                 <input type="text" name="location" class="form-input" value="{{ old('location', Auth::user()->city) }}" placeholder="City or area">
@@ -1150,8 +1158,11 @@ function clLoadFields(catId) {
 
 // Init on page load if old() category selected
 (function() {
-  var sel = document.querySelector('#form-classified select[name="category_id"]');
-  if (sel && sel.value) clLoadFields(sel.value);
+  var sel = document.getElementById('cl-category');
+  if (sel && sel.value) {
+    clLoadFields(sel.value);
+    loadSubCats('cl-subcategory', sel.value);
+  }
 })();
 
 // ── Sub-category cascade (parent → children) ──────────────────────
