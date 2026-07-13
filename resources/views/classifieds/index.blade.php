@@ -82,6 +82,17 @@
 
 .pagination-wrap{margin-top:20px}
 
+/* ── CATEGORY COLLAPSE ── */
+.cat-parent-row{display:flex;align-items:center;padding:9px 14px;font-size:13px;cursor:pointer;transition:background .12s;gap:9px;color:var(--text);border-left:3px solid transparent;user-select:none}
+.cat-parent-row:hover{background:var(--primary-light);color:var(--primary);border-left-color:var(--primary)}
+.cat-parent-row.active{color:var(--primary);font-weight:600;background:var(--primary-light);border-left-color:var(--primary)}
+.cat-arrow{font-size:10px;color:var(--muted);transition:transform .22s ease;flex-shrink:0}
+.cat-arrow.open{transform:rotate(180deg)}
+.cat-children{max-height:0;overflow:hidden;transition:max-height .28s ease;background:rgba(26,58,143,.025);border-left:3px solid rgba(26,58,143,.12)}
+.cat-children.open{max-height:600px}
+.sub-item{padding:7px 14px 7px 28px;font-size:12.5px}
+.sub-item:hover{background:var(--primary-light)}
+
 /* ── ACTIVE FILTERS ── */
 .active-filters{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px}
 .filter-tag{display:inline-flex;align-items:center;gap:5px;background:var(--primary-light);color:var(--primary);font-size:12px;font-weight:600;padding:4px 10px;border-radius:20px;text-decoration:none;border:1px solid #c5d0ef}
@@ -130,10 +141,40 @@
           <i class="fa-solid fa-border-all" style="width:16px;color:var(--muted);font-size:13px"></i> All Categories
         </a>
         @foreach($categories as $cat)
-          <a href="{{ route('classifieds.index', array_merge(request()->except('categories','page'), ['category' => $cat->id])) }}"
-             class="filter-item {{ request('category') == $cat->id ? 'active' : '' }}">
-            <span style="width:16px;text-align:center">{{ $cat->icon }}</span> {{ $cat->name }}
-          </a>
+          @php
+            $hasChildren   = $cat->children->isNotEmpty();
+            $isParentActive = request('category') == $cat->id;
+            $childActive   = $hasChildren && $cat->children->contains('id', (int) request('category'));
+            $isOpen        = $isParentActive || $childActive;
+          @endphp
+
+          {{-- Parent row --}}
+          <div class="cat-parent-row {{ $isParentActive ? 'active' : '' }}"
+               @if($hasChildren) onclick="toggleCat({{ $cat->id }})" @endif
+               @if(!$hasChildren) onclick="window.location='{{ route('classifieds.index', array_merge(request()->except('categories','page'), ['category' => $cat->id])) }}'" @endif>
+            <span style="width:18px;text-align:center;flex-shrink:0">{{ $cat->icon }}</span>
+            <span style="flex:1">{{ $cat->name }}</span>
+            @if($hasChildren)
+              <i class="fa-solid fa-chevron-down cat-arrow {{ $isOpen ? 'open' : '' }}" id="arrow-{{ $cat->id }}"></i>
+            @endif
+          </div>
+
+          {{-- Children (subcategories) --}}
+          @if($hasChildren)
+          <div class="cat-children {{ $isOpen ? 'open' : '' }}" id="children-{{ $cat->id }}">
+            {{-- "All [Parent]" option --}}
+            <a href="{{ route('classifieds.index', array_merge(request()->except('categories','page'), ['category' => $cat->id])) }}"
+               class="filter-item sub-item {{ $isParentActive && !$childActive ? 'active' : '' }}">
+              <i class="fa-solid fa-layer-group" style="width:14px;font-size:11px;color:var(--muted)"></i> All {{ $cat->name }}
+            </a>
+            @foreach($cat->children as $child)
+              <a href="{{ route('classifieds.index', array_merge(request()->except('categories','page'), ['category' => $child->id])) }}"
+                 class="filter-item sub-item {{ request('category') == $child->id ? 'active' : '' }}">
+                <span style="width:14px;text-align:center;font-size:12px">{{ $child->icon ?: '›' }}</span> {{ $child->name }}
+              </a>
+            @endforeach
+          </div>
+          @endif
         @endforeach
       </div>
     </div>
@@ -302,6 +343,15 @@
 
 @push('scripts')
 <script>
+function toggleCat(id) {
+  var children = document.getElementById('children-' + id);
+  var arrow    = document.getElementById('arrow-' + id);
+  if (!children) return;
+  var isOpen = children.classList.contains('open');
+  children.classList.toggle('open', !isOpen);
+  if (arrow) arrow.classList.toggle('open', !isOpen);
+}
+
 function sbLoadCities(province) {
   var sel = document.getElementById('sb-city');
   if (!sel) return;

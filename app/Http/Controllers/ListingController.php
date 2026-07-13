@@ -16,7 +16,11 @@ class ListingController extends Controller
 {
     public function index(Request $request)
     {
-        $categories = Category::where('type', 'classifieds')->where('is_active', true)->orderBy('sort_order')->get();
+        $categories = Category::where('type', 'classifieds')->where('is_active', true)
+            ->whereNull('parent_id')
+            ->with(['children' => fn ($q) => $q->where('is_active', true)->orderBy('sort_order')])
+            ->orderBy('sort_order')
+            ->get();
 
         // Support single category or multiple (comma-separated via 'categories' param)
         $filterCategoryIds = null;
