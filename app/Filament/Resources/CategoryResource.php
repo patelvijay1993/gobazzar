@@ -114,11 +114,16 @@ class CategoryResource extends Resource
                 Tables\Columns\TextColumn::make('name')
                     ->searchable()
                     ->sortable()
-                    ->formatStateUsing(fn ($state, Category $r) => ($r->parent_id ? '↳ ' : '') . $state),
+                    ->formatStateUsing(fn ($state, Category $r) => $r->parent_id
+                        ? '↳  ' . $state
+                        : $state)
+                    ->color(fn (Category $r) => $r->parent_id ? 'gray' : null)
+                    ->weight(fn (Category $r) => $r->parent_id ? null : 'bold'),
                 Tables\Columns\TextColumn::make('parent.name')
                     ->label('Parent')
                     ->placeholder('—')
-                    ->toggleable(),
+                    ->badge()
+                    ->color('warning'),
                 Tables\Columns\TextColumn::make('type')
                     ->badge()
                     ->color(fn (string $state): string => match($state) {
