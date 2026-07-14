@@ -14,7 +14,7 @@ class Business extends Model
     use Favoritable;
     protected $fillable = [
         'user_id', 'category_id', 'subcategory_id', 'name', 'slug', 'description', 'image', 'images', 'logo',
-        'address', 'city', 'province', 'phone', 'email', 'website', 'map_url',
+        'address', 'city', 'province', 'postal_code', 'phone', 'email', 'website', 'map_url',
         'tags', 'social', 'rating', 'review_count', 'is_verified', 'is_featured',
         'status', 'hours',
     ];

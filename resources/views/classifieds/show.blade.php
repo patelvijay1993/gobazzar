@@ -123,7 +123,7 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
         @endif
       </h1>
       <div class="listing-meta">
-        <span>📍 {{ $listing->location }}</span>
+        <span>📍 {{ $listing->location }}{{ $listing->postal_code ? ' · '.$listing->postal_code : '' }}</span>
         <span>👁 {{ $listing->views }} views</span>
         <span>📅 {{ $listing->created_at->diffForHumans() }}</span>
       </div>

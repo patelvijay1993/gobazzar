@@ -135,7 +135,7 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
           <span class="ev-info-icon">📍</span>
           <div>
             <div class="ev-info-label">City</div>
-            <div class="ev-info-val">{{ $event->city }}{{ $event->province ? ', '.$event->province : '' }}</div>
+            <div class="ev-info-val">{{ $event->city }}{{ $event->province ? ', '.$event->province : '' }}{{ $event->postal_code ? ' '.$event->postal_code : '' }}</div>
           </div>
         </div>
         @endif

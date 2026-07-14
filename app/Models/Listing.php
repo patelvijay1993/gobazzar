@@ -14,7 +14,7 @@ class Listing extends Model
     protected $fillable = [
         'user_id', 'category_id', 'title', 'slug', 'description',
         'custom_fields',
-        'price', 'price_unit', 'location', 'city', 'province', 'image', 'images', 'tags', 'badges',
+        'price', 'price_unit', 'location', 'city', 'province', 'postal_code', 'image', 'images', 'tags', 'badges',
         'status', 'is_featured', 'is_verified', 'expires_at', 'views',
         'contact_name', 'contact_email', 'contact_phone',
     ];

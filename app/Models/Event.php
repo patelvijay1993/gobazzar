@@ -13,7 +13,7 @@ class Event extends Model
     use Favoritable;
     protected $fillable = [
         'user_id', 'category_id', 'title', 'slug', 'description', 'image',
-        'start_date', 'end_date', 'venue', 'city', 'province',
+        'start_date', 'end_date', 'venue', 'city', 'province', 'postal_code',
         'price', 'organizer', 'organizer_phone', 'organizer_email',
         'website', 'tags', 'is_featured', 'status', 'views',
     ];

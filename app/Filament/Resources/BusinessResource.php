@@ -62,6 +62,10 @@ class BusinessResource extends Resource
                     ->searchable()
                     ->placeholder('— Select City —')
                     ->live(),
+                Forms\Components\TextInput::make('postal_code')
+                    ->label('Postal Code')
+                    ->placeholder('M5V 3A8')
+                    ->maxLength(10),
                 Forms\Components\TextInput::make('phone'),
                 Forms\Components\TextInput::make('email')->email(),
                 Forms\Components\TextInput::make('website')->url(),

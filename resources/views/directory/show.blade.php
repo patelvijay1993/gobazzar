@@ -146,7 +146,7 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
       @endif
 
       @if($business->address || $business->city)
-        <div class="info-row"><span class="info-icon">📍</span><span>{{ $business->address }}{{ $business->city ? ', '.$business->city : '' }}{{ $business->province ? ', '.$business->province : '' }}</span></div>
+        <div class="info-row"><span class="info-icon">📍</span><span>{{ $business->address }}{{ $business->city ? ', '.$business->city : '' }}{{ $business->province ? ', '.$business->province : '' }}{{ $business->postal_code ? ' '.$business->postal_code : '' }}</span></div>
       @endif
       @if($business->hours && is_array($business->hours) && count($business->hours))
         <div class="info-row" style="align-items:flex-start">

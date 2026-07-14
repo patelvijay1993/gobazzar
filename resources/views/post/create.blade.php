@@ -211,6 +211,10 @@ textarea.form-input{resize:vertical;min-height:100px}
                   @endforeach
                 </select>
               </div>
+              <div class="form-group">
+                <label class="form-label">Postal Code</label>
+                <input type="text" name="postal_code" class="form-input" value="{{ old('postal_code') }}" placeholder="M5V 3A8" maxlength="10">
+              </div>
             </div>
           </div>
 
@@ -459,6 +463,10 @@ textarea.form-input{resize:vertical;min-height:100px}
                   @endforeach
                 </select>
               </div>
+              <div class="form-group">
+                <label class="form-label">Postal Code</label>
+                <input type="text" name="postal_code" class="form-input" value="{{ old('postal_code') }}" placeholder="M5V 3A8" maxlength="10">
+              </div>
             </div>
           </div>
 
@@ -677,6 +685,10 @@ textarea.form-input{resize:vertical;min-height:100px}
                   <option value="{{ $city }}" {{ old('city', Auth::user()->city) === $city ? 'selected' : '' }}>{{ $city }}</option>
                 @endforeach
               </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Postal Code</label>
+              <input type="text" name="postal_code" class="form-input" value="{{ old('postal_code') }}" placeholder="M5V 3A8" maxlength="10">
             </div>
           </div>
           <div class="form-row" style="margin-bottom:14px">
