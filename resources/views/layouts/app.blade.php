@@ -1490,7 +1490,7 @@ document.addEventListener('click', function(e) {
 @auth
 {{-- ── FLOATING CHAT WIDGET ────────────────────────────────────── --}}
 <style>
-#gb-chat-widget{position:fixed;bottom:18px;right:18px;z-index:9999;display:flex;flex-direction:column;align-items:flex-end;gap:0}
+#gb-chat-widget{position:fixed;bottom:18px;right:18px;z-index:9999;display:flex;flex-direction:column;align-items:flex-end;gap:0;pointer-events:none}
 #gb-chat-box{width:340px;height:480px;background:#fff;border-radius:16px 16px 4px 16px;box-shadow:0 8px 40px rgba(0,0,0,.18);display:flex;flex-direction:column;overflow:hidden;transform:scale(.85) translateY(20px);opacity:0;transition:transform .22s cubic-bezier(.34,1.56,.64,1),opacity .18s;transform-origin:bottom right;pointer-events:none}
 #gb-chat-box.open{transform:scale(1) translateY(0);opacity:1;pointer-events:all}
 .gc-head{background:var(--primary);padding:12px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0}
