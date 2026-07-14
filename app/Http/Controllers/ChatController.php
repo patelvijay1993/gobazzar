@@ -32,6 +32,61 @@ class ChatController extends Controller
         return view('chat.inbox', compact('conversations'));
     }
 
+    // ── Floating widget: open/create conversation and return JSON ────
+    private function openChatJson(object $model, int $ownerId): \Illuminate\Http\JsonResponse
+    {
+        $userId = Auth::id();
+        if ($ownerId === $userId) return response()->json(['error' => 'own'], 403);
+
+        $modelClass = get_class($model);
+        $conversation = Conversation::firstOrCreate(
+            ['conversable_type' => $modelClass, 'conversable_id' => $model->id, 'buyer_id' => $userId],
+            ['seller_id' => $ownerId]
+        );
+        $conversation->markReadFor($userId);
+        $conversation->load(['messages.sender', 'conversable', 'buyer', 'seller']);
+
+        $other = (int)$conversation->buyer_id === $userId ? $conversation->seller : $conversation->buyer;
+        $messages = $conversation->messages->map(fn($m) => [
+            'id'          => $m->id,
+            'sender_id'   => $m->sender_id,
+            'sender_name' => $m->sender->name,
+            'body'        => $m->body,
+            'created_at'  => $m->created_at->toISOString(),
+            'mine'        => (int)$m->sender_id === $userId,
+        ]);
+
+        return response()->json([
+            'conv_id'      => $conversation->id,
+            'send_url'     => route('chat.send', $conversation),
+            'poll_url'     => route('chat.poll', $conversation),
+            'read_url'     => route('chat.read', $conversation),
+            'other_name'   => $other->name,
+            'other_avatar' => $other->avatar_url,
+            'subject'      => $conversation->subject_title,
+            'subject_url'  => $conversation->subject_url,
+            'messages'     => $messages,
+        ]);
+    }
+
+    public function openListing(Listing $listing): \Illuminate\Http\JsonResponse
+    {
+        abort_if(!$listing->user_id, 404);
+        return $this->openChatJson($listing, $listing->user_id);
+    }
+
+    public function openBusiness(Business $business): \Illuminate\Http\JsonResponse
+    {
+        abort_if(!$business->user_id, 404);
+        return $this->openChatJson($business, $business->user_id);
+    }
+
+    public function openEvent(Event $event): \Illuminate\Http\JsonResponse
+    {
+        abort_if(!$event->user_id, 404);
+        return $this->openChatJson($event, $event->user_id);
+    }
+
     // Generic: open/create conversation for any model (Listing, Event, Business)
     private function openChat(object $model, int $ownerId): \Illuminate\Http\Response|\Illuminate\View\View
     {

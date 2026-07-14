@@ -236,9 +236,9 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
         {{-- Chat with Seller button --}}
         @auth
           @if(Auth::id() !== $listing->user_id)
-            <a href="{{ route('chat.show', $listing) }}" class="contact-btn contact-btn-primary" style="background:var(--green);margin-bottom:8px">
+            <button onclick="gcOpen('{{ route('chat.open.listing', $listing) }}')" class="contact-btn contact-btn-primary" style="background:var(--green);margin-bottom:8px;width:100%;border:none;cursor:pointer">
               <i class="fa-solid fa-comments"></i> Chat with Seller
-            </a>
+            </button>
           @endif
         @else
           <a href="{{ route('login') }}" class="contact-btn contact-btn-primary" style="background:var(--green);margin-bottom:8px">

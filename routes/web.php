@@ -182,6 +182,10 @@ Route::middleware('auth')->prefix('chat')->name('chat.')->group(function () {
     Route::post('/conversation/{conversation}/send', [ChatController::class, 'send'])->name('send');
     Route::post('/conversation/{conversation}/read', [ChatController::class, 'markRead'])->name('read');
     Route::get('/unread-count', [ChatController::class, 'unreadCount'])->name('unread');
+    // Floating widget AJAX endpoints
+    Route::post('/open/listing/{listing}',          [ChatController::class, 'openListing'])->name('open.listing');
+    Route::post('/open/business/{business:slug}',   [ChatController::class, 'openBusiness'])->name('open.business');
+    Route::post('/open/event/{event}',              [ChatController::class, 'openEvent'])->name('open.event');
 });
 
 // Account routes (auth required, no email verification needed)

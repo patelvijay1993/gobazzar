@@ -1486,5 +1486,221 @@ document.addEventListener('click', function(e) {
 </script>
 <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id={{ $fbPixel }}&ev=PageView&noscript=1"/></noscript>
 @endif
+
+@auth
+{{-- ── FLOATING CHAT WIDGET ────────────────────────────────────── --}}
+<style>
+#gb-chat-widget{position:fixed;bottom:90px;right:18px;z-index:9999;display:flex;flex-direction:column;align-items:flex-end;gap:0;pointer-events:none}
+#gb-chat-box{width:340px;height:480px;background:#fff;border-radius:16px 16px 4px 16px;box-shadow:0 8px 40px rgba(0,0,0,.18);display:flex;flex-direction:column;overflow:hidden;pointer-events:all;transform:scale(.85) translateY(20px);opacity:0;transition:transform .22s cubic-bezier(.34,1.56,.64,1),opacity .18s;transform-origin:bottom right}
+#gb-chat-box.open{transform:scale(1) translateY(0);opacity:1}
+.gc-head{background:var(--primary);padding:12px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.gc-head-av{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.2);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0;overflow:hidden}
+.gc-head-av img{width:100%;height:100%;object-fit:cover}
+.gc-head-info{flex:1;min-width:0}
+.gc-head-name{color:#fff;font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gc-head-sub{color:rgba(255,255,255,.7);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gc-close{background:none;border:none;color:rgba(255,255,255,.8);cursor:pointer;font-size:18px;padding:4px;flex-shrink:0;line-height:1}
+.gc-close:hover{color:#fff}
+.gc-msgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px;background:#f5f7fb}
+.gc-msg{display:flex;flex-direction:column;max-width:80%}
+.gc-msg-me{align-self:flex-end;align-items:flex-end}
+.gc-msg-other{align-self:flex-start}
+.gc-bubble{padding:9px 13px;border-radius:18px;font-size:13px;line-height:1.45;word-break:break-word}
+.gc-msg-me .gc-bubble{background:var(--primary);color:#fff;border-bottom-right-radius:4px}
+.gc-msg-other .gc-bubble{background:#fff;color:#111;border:1px solid #e5e7eb;border-bottom-left-radius:4px}
+.gc-time{font-size:10px;color:#9ca3af;margin-top:2px;padding:0 4px}
+.gc-foot{padding:10px 12px;border-top:1px solid #e5e7eb;display:flex;gap:8px;align-items:center;background:#fff;flex-shrink:0}
+.gc-input{flex:1;border:1.5px solid #e5e7eb;border-radius:22px;padding:9px 14px;font-size:13px;font-family:inherit;resize:none;height:40px;max-height:100px;overflow-y:auto;outline:none;transition:border-color .15s;line-height:1.4}
+.gc-input:focus{border-color:var(--primary)}
+.gc-send{width:38px;height:38px;border-radius:50%;background:var(--primary);border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;transition:opacity .15s}
+.gc-send:hover{opacity:.85}
+.gc-send:disabled{opacity:.45;cursor:not-allowed}
+.gc-loading{display:flex;align-items:center;justify-content:center;flex:1;color:#9ca3af;font-size:13px;gap:8px}
+.gc-spinner{width:20px;height:20px;border:2px solid #e5e7eb;border-top-color:var(--primary);border-radius:50%;animation:gcSpin .7s linear infinite}
+@keyframes gcSpin{to{transform:rotate(360deg)}}
+.gc-empty{text-align:center;padding:30px 16px;color:#9ca3af;font-size:13px}
+.gc-empty i{font-size:32px;display:block;margin-bottom:8px;opacity:.4}
+@media(max-width:480px){
+  #gb-chat-box{width:calc(100vw - 24px);height:420px;border-radius:16px}
+  #gb-chat-widget{right:12px;bottom:80px}
+}
+</style>
+
+<div id="gb-chat-widget">
+  <div id="gb-chat-box">
+    <div class="gc-head" id="gc-head">
+      <div class="gc-head-av" id="gc-av"><i class="fa-solid fa-comments"></i></div>
+      <div class="gc-head-info">
+        <div class="gc-head-name" id="gc-name">Chat</div>
+        <div class="gc-head-sub" id="gc-sub"></div>
+      </div>
+      <button class="gc-close" onclick="gcClose()"><i class="fa-solid fa-times"></i></button>
+    </div>
+    <div class="gc-msgs" id="gc-msgs">
+      <div class="gc-loading" id="gc-loading"><div class="gc-spinner"></div> Opening chat…</div>
+    </div>
+    <div class="gc-foot">
+      <textarea class="gc-input" id="gc-input" placeholder="Type a message…" rows="1"></textarea>
+      <button class="gc-send" id="gc-send" onclick="gcSend()"><i class="fa-solid fa-paper-plane"></i></button>
+    </div>
+  </div>
+</div>
+
+<script>
+var GC = {
+  open: false, convId: null, sendUrl: null, pollUrl: null, readUrl: null,
+  lastId: 0, polling: false, pollTimer: null, myId: {{ Auth::id() }},
+  csrf: '{{ csrf_token() }}'
+};
+
+function gcOpen(openUrl) {
+  var box = document.getElementById('gb-chat-box');
+  document.getElementById('gc-msgs').innerHTML = '<div class="gc-loading"><div class="gc-spinner"></div> Opening chat…</div>';
+  document.getElementById('gc-input').value = '';
+  box.classList.add('open');
+  GC.open = true;
+  if (GC.pollTimer) clearTimeout(GC.pollTimer);
+  GC.polling = false;
+
+  fetch(openUrl, {
+    method: 'POST',
+    headers: {'X-CSRF-TOKEN': GC.csrf, 'Accept': 'application/json', 'Content-Type': 'application/json'}
+  })
+  .then(function(r) {
+    if (r.status === 403) { gcShowError('You cannot chat with yourself.'); return null; }
+    if (!r.ok) { gcShowError('Could not open chat.'); return null; }
+    return r.json();
+  })
+  .then(function(data) {
+    if (!data) return;
+    GC.convId   = data.conv_id;
+    GC.sendUrl  = data.send_url;
+    GC.pollUrl  = data.poll_url;
+    GC.readUrl  = data.read_url;
+    GC.lastId   = 0;
+
+    // Header
+    var av = document.getElementById('gc-av');
+    if (data.other_avatar) {
+      av.innerHTML = '<img src="'+data.other_avatar+'" alt="">';
+    } else {
+      av.innerHTML = '<span>'+data.other_name.substring(0,2).toUpperCase()+'</span>';
+    }
+    document.getElementById('gc-name').textContent = data.other_name;
+    document.getElementById('gc-sub').textContent  = data.subject;
+
+    // Messages
+    var wrap = document.getElementById('gc-msgs');
+    wrap.innerHTML = '';
+    if (!data.messages || !data.messages.length) {
+      wrap.innerHTML = '<div class="gc-empty"><i class="fa-regular fa-comments"></i>No messages yet.<br>Say hello!</div>';
+    } else {
+      data.messages.forEach(function(m) { gcAppend(m); });
+    }
+    gcScrollBottom(true);
+
+    // Mark read
+    fetch(GC.readUrl, {method:'POST', headers:{'X-CSRF-TOKEN':GC.csrf}});
+
+    // Start polling
+    GC.polling = true;
+    gcPoll();
+  });
+}
+
+function gcClose() {
+  document.getElementById('gb-chat-box').classList.remove('open');
+  GC.open = false;
+  GC.polling = false;
+  if (GC.pollTimer) clearTimeout(GC.pollTimer);
+}
+
+function gcEsc(str) {
+  var d = document.createElement('div');
+  d.appendChild(document.createTextNode(str));
+  return d.innerHTML;
+}
+
+function gcAppend(m) {
+  var mine = m.mine !== undefined ? m.mine : (parseInt(m.sender_id) === GC.myId);
+  var ts = m.created_at ? new Date(m.created_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:true}) : '';
+  var div = document.createElement('div');
+  div.className = 'gc-msg ' + (mine ? 'gc-msg-me' : 'gc-msg-other');
+  div.innerHTML = '<div class="gc-bubble">'+gcEsc(m.body)+'</div><div class="gc-time">'+ts+'</div>';
+  document.getElementById('gc-msgs').appendChild(div);
+  if (m.id && m.id > GC.lastId) GC.lastId = m.id;
+}
+
+function gcScrollBottom(force) {
+  var el = document.getElementById('gc-msgs');
+  var near = el.scrollHeight - el.scrollTop - el.clientHeight < 100;
+  if (force || near) el.scrollTop = el.scrollHeight;
+}
+
+async function gcSend() {
+  var input = document.getElementById('gc-input');
+  var body  = input.value.trim();
+  if (!body || !GC.sendUrl) return;
+  var btn = document.getElementById('gc-send');
+  input.value = ''; input.style.height = '40px'; btn.disabled = true;
+
+  // Optimistic
+  var wrap = document.getElementById('gc-msgs');
+  var empty = wrap.querySelector('.gc-empty');
+  if (empty) empty.remove();
+  gcAppend({body: body, mine: true, created_at: new Date().toISOString()});
+  gcScrollBottom(true);
+
+  try {
+    var res = await fetch(GC.sendUrl, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','X-CSRF-TOKEN':GC.csrf,'Accept':'application/json'},
+      body: JSON.stringify({body: body})
+    });
+    if (res.ok) {
+      var msg = await res.json();
+      if (msg && msg.id && msg.id > GC.lastId) GC.lastId = msg.id;
+    }
+  } catch(e) {}
+  btn.disabled = false;
+  input.focus();
+}
+
+async function gcPoll() {
+  if (!GC.polling || !GC.pollUrl) return;
+  try {
+    var res = await fetch(GC.pollUrl + '?after=' + GC.lastId, {
+      headers: {'Accept':'application/json','X-CSRF-TOKEN':GC.csrf}
+    });
+    if (res.ok) {
+      var msgs = await res.json();
+      if (Array.isArray(msgs)) {
+        msgs.forEach(function(m) {
+          if (parseInt(m.sender_id) !== GC.myId) {
+            gcAppend(m); gcScrollBottom(false);
+          }
+        });
+        if (msgs.length) fetch(GC.readUrl, {method:'POST',headers:{'X-CSRF-TOKEN':GC.csrf}});
+      }
+    }
+  } catch(e) {}
+  if (GC.polling) GC.pollTimer = setTimeout(gcPoll, 3000);
+}
+
+function gcShowError(msg) {
+  document.getElementById('gc-msgs').innerHTML = '<div class="gc-empty"><i class="fa-solid fa-triangle-exclamation"></i>'+msg+'</div>';
+}
+
+// Textarea auto-resize + Enter to send
+document.getElementById('gc-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); gcSend(); return; }
+  setTimeout(function() {
+    var el = document.getElementById('gc-input');
+    el.style.height = '40px';
+    el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+  }, 0);
+});
+</script>
+@endauth
 </body>
 </html>

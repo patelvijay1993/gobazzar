@@ -250,9 +250,9 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
       <div class="sidebar-body">
         @auth
           @if(Auth::id() !== $business->user_id)
-            <a href="{{ route('chat.business', $business) }}" class="biz-btn biz-btn-primary" style="background:var(--green);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:8px">
+            <button onclick="gcOpen('{{ route('chat.open.business', $business) }}')" class="biz-btn biz-btn-primary" style="background:var(--green);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;cursor:pointer;border:none">
               <i class="fa-solid fa-comments"></i> Chat with Business
-            </a>
+            </button>
           @endif
         @else
           <a href="{{ route('login') }}" class="biz-btn biz-btn-primary" style="background:var(--green);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:8px">
