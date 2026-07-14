@@ -36,7 +36,7 @@ class BusinessCategoryResource extends Resource
                     ->required()
                     ->maxLength(100)
                     ->live(onBlur: true)
-                    ->afterStateUpdated(fn ($state, Forms\Set $set) => $set('slug', Str::slug($state))),
+                    ->afterStateUpdated(fn ($state, Forms\Set $set) => $set('slug', 'biz-' . Str::slug($state))),
 
                 Forms\Components\TextInput::make('slug')
                     ->required()
