@@ -53,16 +53,19 @@ class ChatController extends Controller
 
     public function showListing(Listing $listing)
     {
+        abort_if(!$listing->user_id, 404, 'This listing has no owner to chat with.');
         return $this->openChat($listing, $listing->user_id);
     }
 
     public function showEvent(Event $event)
     {
+        abort_if(!$event->user_id, 404, 'This event has no owner to chat with.');
         return $this->openChat($event, $event->user_id);
     }
 
     public function showBusiness(Business $business)
     {
+        abort_if(!$business->user_id, 404, 'This business has no owner to chat with.');
         return $this->openChat($business, $business->user_id);
     }
 
