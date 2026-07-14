@@ -47,6 +47,16 @@ class BusinessCategoryResource extends Resource
                     ->placeholder('🏢')
                     ->helperText('Paste an emoji for the category icon'),
 
+                Forms\Components\Select::make('parent_id')
+                    ->label('Parent Category')
+                    ->placeholder('— None (top-level category) —')
+                    ->options(fn () => Category::where('type', 'directory')
+                        ->whereNull('parent_id')
+                        ->orderBy('name')
+                        ->pluck('name', 'id'))
+                    ->searchable()
+                    ->helperText('Select a parent to make this a subcategory'),
+
                 Forms\Components\Hidden::make('type')->default('directory'),
 
                 Forms\Components\TextInput::make('sort_order')
@@ -63,6 +73,8 @@ class BusinessCategoryResource extends Resource
 
     public static function table(Table $table): Table
     {
+        $isSubpage = request()->routeIs(static::getRouteBaseName() . '.subcategories');
+
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('icon')
@@ -75,6 +87,13 @@ class BusinessCategoryResource extends Resource
                     ->sortable()
                     ->weight('bold'),
 
+                Tables\Columns\TextColumn::make('parent.name')
+                    ->label('Parent Category')
+                    ->badge()
+                    ->color('warning')
+                    ->placeholder('—')
+                    ->visible($isSubpage),
+
                 Tables\Columns\TextColumn::make('slug')
                     ->searchable()
                     ->color('gray')
@@ -85,7 +104,16 @@ class BusinessCategoryResource extends Resource
                     ->counts('businesses')
                     ->sortable()
                     ->badge()
-                    ->color('info'),
+                    ->color('info')
+                    ->visible(! $isSubpage),
+
+                Tables\Columns\TextColumn::make('children_count')
+                    ->label('Subcategories')
+                    ->counts('children')
+                    ->sortable()
+                    ->badge()
+                    ->color('gray')
+                    ->visible(! $isSubpage),
 
                 Tables\Columns\ToggleColumn::make('is_active')
                     ->label('Active'),
@@ -94,11 +122,6 @@ class BusinessCategoryResource extends Resource
                     ->label('Order')
                     ->sortable()
                     ->alignCenter(),
-
-                Tables\Columns\TextColumn::make('created_at')
-                    ->date('M d, Y')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->defaultSort('sort_order')
             ->reorderable('sort_order')
@@ -130,9 +153,34 @@ class BusinessCategoryResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListBusinessCategories::route('/'),
-            'create' => Pages\CreateBusinessCategory::route('/create'),
-            'edit'   => Pages\EditBusinessCategory::route('/{record}/edit'),
+            'index'          => Pages\ListBusinessCategories::route('/'),
+            'subcategories'  => Pages\ListBusinessSubcategories::route('/subcategories'),
+            'create'         => Pages\CreateBusinessCategory::route('/create'),
+            'edit'           => Pages\EditBusinessCategory::route('/{record}/edit'),
+        ];
+    }
+
+    public static function getNavigationItems(): array
+    {
+        return [
+            \Filament\Navigation\NavigationItem::make('Categories')
+                ->icon('heroicon-o-building-storefront')
+                ->group(static::$navigationGroup)
+                ->sort(1)
+                ->url(static::getUrl('index'))
+                ->isActiveWhen(fn () => request()->routeIs(
+                    static::getRouteBaseName() . '.index',
+                    static::getRouteBaseName() . '.create',
+                    static::getRouteBaseName() . '.edit',
+                )),
+            \Filament\Navigation\NavigationItem::make('Subcategories')
+                ->icon('heroicon-o-bars-3-bottom-left')
+                ->group(static::$navigationGroup)
+                ->sort(2)
+                ->url(static::getUrl('subcategories'))
+                ->isActiveWhen(fn () => request()->routeIs(
+                    static::getRouteBaseName() . '.subcategories',
+                )),
         ];
     }
 }
