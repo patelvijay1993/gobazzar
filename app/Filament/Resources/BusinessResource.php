@@ -69,10 +69,10 @@ class BusinessResource extends Resource
                     ->schema(collect(['monday'=>'Mon','tuesday'=>'Tue','wednesday'=>'Wed','thursday'=>'Thu','friday'=>'Fri','saturday'=>'Sat','sunday'=>'Sun'])
                         ->map(fn ($label, $key) => Forms\Components\Group::make([
                             Forms\Components\Placeholder::make("_lbl_{$key}")->label('')->content($label),
-                            Forms\Components\TextInput::make("biz_hours_{$key}_open")
-                                ->label('Open')->placeholder('09:00')->maxLength(5)->extraInputAttributes(['style'=>'font-size:12px;padding:4px 6px']),
-                            Forms\Components\TextInput::make("biz_hours_{$key}_close")
-                                ->label('Close')->placeholder('18:00')->maxLength(5)->extraInputAttributes(['style'=>'font-size:12px;padding:4px 6px']),
+                            Forms\Components\TimePicker::make("biz_hours_{$key}_open")
+                                ->label('Open')->seconds(false),
+                            Forms\Components\TimePicker::make("biz_hours_{$key}_close")
+                                ->label('Close')->seconds(false),
                             Forms\Components\Toggle::make("biz_hours_{$key}_closed")
                                 ->label('Closed')->inline(false),
                         ]))->values()->toArray()
