@@ -1108,16 +1108,21 @@ function bpLoadFields() {
   var id  = sub || cat;
   var section = document.getElementById('bp-custom-section');
   var wrap    = document.getElementById('bp-custom-fields');
-  if (!id) { section.classList.add('hidden'); wrap.innerHTML = ''; return; }
+
+  // Clear immediately
+  wrap.innerHTML = '';
+  section.classList.add('hidden');
+
+  if (!id) return;
 
   fetch('/categories/' + id + '/fields')
     .then(r => r.json())
-    .then(fields => {
-      if (!fields.length) { section.classList.add('hidden'); wrap.innerHTML = ''; return; }
+    .then(function(fields) {
+      if (!fields.length) return;
       wrap.innerHTML = fields.map(bpFieldHtml).join('');
       section.classList.remove('hidden');
     })
-    .catch(() => { section.classList.add('hidden'); wrap.innerHTML = ''; });
+    .catch(function() {});
 }
 
 function bpFieldHtml(f) {
@@ -1145,26 +1150,30 @@ function bpFieldHtml(f) {
 function clLoadFields(catId) {
   var section = document.getElementById('cl-custom-section');
   var wrap    = document.getElementById('cl-custom-fields');
-  if (!catId) { section.classList.add('hidden'); wrap.innerHTML = ''; return; }
 
-  var subId = document.getElementById('cl-subcategory') ? document.getElementById('cl-subcategory').value : '';
+  // Clear immediately so stale fields never stay visible
+  wrap.innerHTML = '';
+  section.classList.add('hidden');
+
+  if (!catId) return;
+
+  var subId   = document.getElementById('cl-subcategory') ? document.getElementById('cl-subcategory').value : '';
   var fetchId = subId || catId;
 
   fetch('/categories/' + fetchId + '/fields')
     .then(r => r.json())
-    .then(fields => {
-      // If subcategory has no own fields, fall back to parent category fields
+    .then(function(fields) {
       if (!fields.length && subId && subId !== catId) {
         return fetch('/categories/' + catId + '/fields').then(r => r.json());
       }
       return fields;
     })
-    .then(fields => {
-      if (!fields.length) { section.classList.add('hidden'); wrap.innerHTML = ''; return; }
+    .then(function(fields) {
+      if (!fields.length) return;
       wrap.innerHTML = fields.map(bpFieldHtml).join('');
       section.classList.remove('hidden');
     })
-    .catch(() => { section.classList.add('hidden'); wrap.innerHTML = ''; });
+    .catch(function() {});
 }
 
 // Init on page load if old() category selected
