@@ -224,9 +224,9 @@ textarea.form-input{resize:vertical;min-height:100px}
             <div class="form-row">
               <div class="form-group">
                 <label class="form-label">Price</label>
-                <div style="display:flex;align-items:center;border:1.5px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;background:#fff">
-                  <span style="padding:0 10px;font-size:14px;font-weight:600;color:var(--muted);background:#f5f5f5;border-right:1.5px solid var(--border);height:100%;display:flex;align-items:center;align-self:stretch">$</span>
-                  <input type="number" name="price" class="form-input" value="{{ old('price') }}" placeholder="0.00" min="0" max="99999999" step="0.01" style="border:none;border-radius:0;flex:1">
+                <div style="position:relative">
+                  <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:14px;font-weight:600;color:#555;pointer-events:none;z-index:1">$</span>
+                  <input type="number" name="price" class="form-input" value="{{ old('price') }}" placeholder="0.00" min="0" max="99999999" step="0.01" style="padding-left:28px">
                 </div>
               </div>
               <div class="form-group">
@@ -257,7 +257,7 @@ textarea.form-input{resize:vertical;min-height:100px}
               </div>
               <div class="form-group">
                 <label class="form-label">Contact Phone</label>
-                <input type="text" name="contact_phone" class="form-input" value="{{ old('contact_phone', Auth::user()->phone) }}" placeholder="+1 647 xxx xxxx">
+                <input type="tel" name="contact_phone" class="form-input" value="{{ old('contact_phone', Auth::user()->phone) }}" placeholder="+1 (647) 000-0000">
               </div>
             </div>
             <div class="form-group" style="margin-bottom:14px">
