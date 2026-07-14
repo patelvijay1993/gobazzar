@@ -177,7 +177,8 @@ textarea.form-input{resize:vertical;min-height:100px}
               </div>
               <div class="form-group">
                 <label class="form-label">Sub-Category</label>
-                <select name="subcategory_id" id="cl-subcategory" class="form-input">
+                <select name="subcategory_id" id="cl-subcategory" class="form-input"
+                  onchange="clLoadFields(this.value || document.getElementById('cl-category').value)">
                   <option value="">Select sub-category (optional)</option>
                 </select>
               </div>
@@ -1140,14 +1141,24 @@ function bpFieldHtml(f) {
   return '<div class="form-group" style="margin-bottom:14px"><label class="form-label">' + f.label + req + '</label>' + inner + '</div>';
 }
 
-// ── Classified: category change → load custom fields ─────────────
+// ── Classified: category/subcategory change → load custom fields ──
 function clLoadFields(catId) {
   var section = document.getElementById('cl-custom-section');
   var wrap    = document.getElementById('cl-custom-fields');
   if (!catId) { section.classList.add('hidden'); wrap.innerHTML = ''; return; }
 
-  fetch('/categories/' + catId + '/fields')
+  var subId = document.getElementById('cl-subcategory') ? document.getElementById('cl-subcategory').value : '';
+  var fetchId = subId || catId;
+
+  fetch('/categories/' + fetchId + '/fields')
     .then(r => r.json())
+    .then(fields => {
+      // If subcategory has no own fields, fall back to parent category fields
+      if (!fields.length && subId && subId !== catId) {
+        return fetch('/categories/' + catId + '/fields').then(r => r.json());
+      }
+      return fields;
+    })
     .then(fields => {
       if (!fields.length) { section.classList.add('hidden'); wrap.innerHTML = ''; return; }
       wrap.innerHTML = fields.map(bpFieldHtml).join('');
