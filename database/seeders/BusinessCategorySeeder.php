@@ -11,91 +11,86 @@ class BusinessCategorySeeder extends Seeder
     public function run(): void
     {
         $data = [
-            ['name' => 'Buy & Sell', 'icon' => '🛍️', 'subs' => [
-                'Electronics', 'Mobile Phones', 'Computers & Tablets', 'TV & Audio', 'Cameras',
-                'Home Appliances', 'Furniture', 'Home Décor', 'Clothing', 'Shoes', 'Jewelry',
-                'Watches', 'Sports Equipment', 'Musical Instruments', 'Books', 'Collectibles',
-                'Toys & Games', 'Baby Items', 'Health & Beauty', 'Office Supplies', 'Free Stuff', 'Other Items',
+            ['name' => 'Automotive', 'icon' => '🚗', 'subs' => [
+                'Auto Repair', 'Car Dealers', 'Used Cars', 'Car Wash', 'Auto Detailing',
+                'Tire Shops', 'Oil Change', 'Auto Glass', 'Towing', 'Auto Parts', 'EV Charging',
             ]],
-            ['name' => 'Vehicles', 'icon' => '🚗', 'subs' => [
-                'Cars', 'SUVs', 'Trucks', 'Vans', 'Motorcycles', 'ATVs & UTVs', 'RVs & Campers',
-                'Boats', 'Trailers', 'Heavy Equipment', 'Commercial Vehicles',
-                'Auto Parts', 'Tires & Wheels', 'Vehicle Accessories',
+            ['name' => 'Home Services', 'icon' => '🏠', 'subs' => [
+                'Electricians', 'Plumbers', 'HVAC', 'Roofing', 'Flooring', 'Painting',
+                'Handyman', 'Landscaping', 'Snow Removal', 'Pest Control', 'Cleaning Services',
+                'Window Cleaning', 'Junk Removal', 'Locksmiths',
             ]],
-            ['name' => 'Real Estate', 'icon' => '🏠', 'subs' => [
-                'Apartments for Rent', 'Houses for Rent', 'Basement Suites', 'Condos', 'Townhouses',
-                'Rooms for Rent', 'Roommates', 'Vacation Rentals', 'Commercial Space',
-                'Office Space', 'Retail Space', 'Land for Sale', 'Houses for Sale', 'Condos for Sale',
+            ['name' => 'Construction & Contractors', 'icon' => '🏗️', 'subs' => [
+                'General Contractors', 'Renovation', 'Basement Development', 'Kitchen Remodeling',
+                'Bathroom Remodeling', 'Deck Builders', 'Concrete', 'Masonry', 'Drywall', 'Excavation',
             ]],
-            ['name' => 'Jobs', 'icon' => '💼', 'subs' => [
-                'Full-Time', 'Part-Time', 'Contract', 'Temporary', 'Internship', 'Remote Jobs',
-                'Government Jobs', 'Healthcare', 'IT & Technology', 'Construction', 'Retail',
-                'Hospitality', 'Drivers', 'Skilled Trades', 'Customer Service',
-                'Education', 'Accounting', 'Sales & Marketing',
+            ['name' => 'Real Estate', 'icon' => '🏡', 'subs' => [
+                'Realtors', 'Property Management', 'Mortgage Brokers', 'Home Inspectors',
+                'Appraisers', 'Real Estate Lawyers', 'Commercial Real Estate',
             ]],
-            ['name' => 'Services', 'icon' => '🔧', 'subs' => [
-                'Home Cleaning', 'Plumbing', 'Electrical', 'HVAC', 'Roofing', 'Painting',
-                'Renovation', 'Landscaping', 'Snow Removal', 'Appliance Repair', 'Auto Repair',
-                'Computer Repair', 'Web Design', 'Graphic Design', 'Photography', 'Videography',
-                'Event Planning', 'Catering', 'DJ Services', 'Moving Services', 'Tutoring',
-                'Tax Preparation', 'Legal Services', 'Immigration Services',
+            ['name' => 'Legal Services', 'icon' => '⚖️', 'subs' => [
+                'Lawyers', 'Notaries', 'Immigration Lawyers', 'Family Law',
+                'Criminal Law', 'Personal Injury', 'Wills & Estates',
             ]],
-            ['name' => 'Community', 'icon' => '🤝', 'subs' => [
-                'Local Events', 'Classes', 'Workshops', 'Volunteers Wanted', 'Lost & Found',
-                'Announcements', 'Local Groups', 'Charity Events', 'Religious Events', 'Cultural Programs',
+            ['name' => 'Financial Services', 'icon' => '💰', 'subs' => [
+                'Accountants', 'Tax Consultants', 'Financial Advisors', 'Mortgage Brokers',
+                'Insurance Agencies', 'Investment Advisors', 'Payroll Services',
             ]],
-            ['name' => 'Pets', 'icon' => '🐾', 'subs' => [
-                'Dogs', 'Cats', 'Birds', 'Fish', 'Small Pets', 'Pet Supplies', 'Pet Food',
-                'Pet Adoption', 'Pet Grooming', 'Pet Boarding', 'Veterinary Services',
+            ['name' => 'Health & Medical', 'icon' => '🏥', 'subs' => [
+                'Family Doctors', 'Dentists', 'Orthodontists', 'Physiotherapy', 'Massage Therapy',
+                'Chiropractors', 'Optometrists', 'Hearing Clinics', 'Pharmacies', 'Walk-in Clinics',
             ]],
-            ['name' => 'Business Directory', 'icon' => '🏢', 'subs' => [
-                'Restaurants', 'Grocery Stores', 'Retail Stores', 'Pharmacies', 'Clinics',
-                'Salons', 'Auto Shops', 'Hotels', 'Travel Agencies', 'Financial Services',
-                'Real Estate Agents', 'Contractors', 'Lawyers', 'Accountants',
+            ['name' => 'Beauty & Personal Care', 'icon' => '💅', 'subs' => [
+                'Hair Salons', 'Barbers', 'Nail Salons', 'Spa', 'Makeup Artists',
+                'Skincare', 'Tattoo Studios', 'Laser Clinics',
             ]],
-            ['name' => 'Deals & Coupons', 'icon' => '🏷️', 'subs' => [
-                'Grocery Deals', 'Restaurant Offers', 'Retail Discounts', 'Clearance Sales', 'Coupons', 'Daily Deals',
+            ['name' => 'Fitness & Wellness', 'icon' => '💪', 'subs' => [
+                'Gyms', 'Yoga Studios', 'Personal Trainers', 'Martial Arts',
+                'Dance Studios', 'Nutritionists', 'Wellness Clinics',
             ]],
-            ['name' => 'Events & Tickets', 'icon' => '🎫', 'subs' => [
-                'Concerts', 'Sports Events', 'Cultural Events', 'Community Festivals',
-                'Theatre', 'Workshops', 'Conferences', 'Tickets Wanted',
+            ['name' => 'Restaurants & Food', 'icon' => '🍽️', 'subs' => [
+                'Restaurants', 'Cafés', 'Bakeries', 'Catering', 'Food Trucks', 'Fast Food',
+                'Pizza', 'Indian Restaurants', 'Chinese Restaurants', 'Grocery Stores', 'Butcher Shops',
+            ]],
+            ['name' => 'Hotels & Travel', 'icon' => '✈️', 'subs' => [
+                'Hotels', 'Motels', 'Bed & Breakfast', 'Travel Agencies',
+                'Tour Operators', 'Car Rentals', 'Airport Shuttle',
             ]],
             ['name' => 'Education', 'icon' => '🎓', 'subs' => [
-                'Schools', 'Colleges', 'Universities', 'Tutors', 'Online Courses',
-                'Driving Schools', 'Music Classes', 'Language Classes',
+                'Schools', 'Colleges', 'Universities', 'Daycares', 'Tutors',
+                'Driving Schools', 'Music Schools', 'Language Schools',
             ]],
-            ['name' => 'Matrimony', 'icon' => '💍', 'subs' => [
-                'Bride', 'Groom', 'Professional Match', 'Community Match', 'NRI Match',
+            ['name' => 'Professional Services', 'icon' => '💼', 'subs' => [
+                'Consultants', 'Business Consultants', 'Marketing Agencies', 'Graphic Designers',
+                'Web Designers', 'Printing Services', 'Translation Services',
             ]],
-            ['name' => 'Travel & Rideshare', 'icon' => '✈️', 'subs' => [
-                'Carpool', 'Airport Ride', 'Ride Sharing', 'Vacation Packages', 'Travel Partners',
+            ['name' => 'Technology', 'icon' => '💻', 'subs' => [
+                'Computer Repair', 'IT Support', 'Software Companies', 'Cybersecurity',
+                'Web Development', 'Mobile App Development', 'Cloud Services',
             ]],
-            ['name' => 'Business Opportunities', 'icon' => '📈', 'subs' => [
-                'Franchise Opportunities', 'Businesses for Sale', 'Investments', 'Partnerships', 'Distributors Wanted',
+            ['name' => 'Retail Stores', 'icon' => '🛍️', 'subs' => [
+                'Clothing Stores', 'Shoe Stores', 'Jewelry Stores', 'Furniture Stores',
+                'Electronics Stores', 'Gift Shops', 'Pet Stores',
+            ]],
+            ['name' => 'Entertainment', 'icon' => '🎉', 'subs' => [
+                'DJs', 'Event Planners', 'Wedding Services', 'Photographers',
+                'Videographers', 'Musicians', 'Party Rentals',
+            ]],
+            ['name' => 'Community & Organizations', 'icon' => '🤝', 'subs' => [
+                'Nonprofits', 'Religious Organizations', 'Cultural Associations',
+                'Community Centers', 'Charities',
+            ]],
+            ['name' => 'Manufacturing & Industrial', 'icon' => '🏭', 'subs' => [
+                'Manufacturers', 'Industrial Equipment', 'Packaging', 'Welding', 'Fabrication', 'Machine Shops',
             ]],
             ['name' => 'Agriculture', 'icon' => '🌾', 'subs' => [
-                'Farm Equipment', 'Livestock', 'Seeds', 'Fertilizers', 'Greenhouses',
+                'Farms', 'Garden Centers', 'Greenhouses', 'Livestock', 'Farm Equipment',
             ]],
-            ['name' => 'Industrial & Commercial', 'icon' => '🏭', 'subs' => [
-                'Machinery', 'Manufacturing Equipment', 'Warehouse Equipment', 'Safety Equipment',
+            ['name' => 'Pet Services', 'icon' => '🐾', 'subs' => [
+                'Veterinarians', 'Grooming', 'Boarding', 'Pet Sitting', 'Dog Walking', 'Pet Training',
             ]],
-            ['name' => 'Health & Fitness', 'icon' => '💪', 'subs' => [
-                'Gym Memberships', 'Personal Trainers', 'Yoga', 'Martial Arts', 'Wellness Services',
-            ]],
-            ['name' => 'Free Stuff', 'icon' => '🎁', 'subs' => [
-                'Furniture', 'Electronics', 'Household Items', 'Building Materials', 'Garden Supplies', 'Miscellaneous',
-            ]],
-            ['name' => 'Wanted', 'icon' => '🔍', 'subs' => [
-                'Wanted to Buy', 'Wanted to Rent', 'Wanted Jobs', 'Wanted Services', 'Wanted Roommate',
-            ]],
-            ['name' => 'Garage Sales', 'icon' => '🏷️', 'subs' => [
-                'Garage Sales', 'Estate Sales', 'Yard Sales', 'Flea Markets',
-            ]],
-            ['name' => 'Announcements', 'icon' => '📢', 'subs' => [
-                'Birthdays', 'Engagements', 'Weddings', 'Birth Announcements', 'Obituaries', 'Public Notices',
-            ]],
-            ['name' => 'Lost & Found', 'icon' => '🔎', 'subs' => [
-                'Lost Pets', 'Lost Items', 'Found Pets', 'Found Items',
+            ['name' => 'Transportation', 'icon' => '🚌', 'subs' => [
+                'Taxi', 'Limousine', 'Courier', 'Freight', 'Moving',
             ]],
         ];
 
