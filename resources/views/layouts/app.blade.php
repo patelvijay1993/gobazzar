@@ -466,7 +466,7 @@ footer.site-footer{background:var(--nav-bg);border-top:2px solid #2a4fa8;margin-
 {{-- AI ASSISTANT FLOATING BUTTON --}}
 @if(\App\Models\Setting::bool('ai_assistant_enabled', true))
 <style>
-.ai-fab{position:fixed;bottom:80px;right:18px;z-index:500;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+.ai-fab{position:fixed;bottom:80px;right:80px;z-index:500;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
 .ai-fab-btn{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#1a3a8f,#2d5be3);color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 4px 16px rgba(26,58,143,.4);transition:transform .2s,box-shadow .2s}
 .ai-fab-btn:hover{transform:scale(1.08);box-shadow:0 6px 24px rgba(26,58,143,.5)}
 .ai-fab-btn .ai-pulse{position:absolute;width:52px;height:52px;border-radius:50%;background:rgba(26,58,143,.3);animation:aiPulse 2s infinite}
@@ -1490,9 +1490,9 @@ document.addEventListener('click', function(e) {
 @auth
 {{-- ── FLOATING CHAT WIDGET ────────────────────────────────────── --}}
 <style>
-#gb-chat-widget{position:fixed;bottom:90px;right:18px;z-index:9999;display:flex;flex-direction:column;align-items:flex-end;gap:0;pointer-events:none}
-#gb-chat-box{width:340px;height:480px;background:#fff;border-radius:16px 16px 4px 16px;box-shadow:0 8px 40px rgba(0,0,0,.18);display:flex;flex-direction:column;overflow:hidden;pointer-events:all;transform:scale(.85) translateY(20px);opacity:0;transition:transform .22s cubic-bezier(.34,1.56,.64,1),opacity .18s;transform-origin:bottom right}
-#gb-chat-box.open{transform:scale(1) translateY(0);opacity:1}
+#gb-chat-widget{position:fixed;bottom:18px;right:18px;z-index:9999;display:flex;flex-direction:column;align-items:flex-end;gap:0}
+#gb-chat-box{width:340px;height:480px;background:#fff;border-radius:16px 16px 4px 16px;box-shadow:0 8px 40px rgba(0,0,0,.18);display:flex;flex-direction:column;overflow:hidden;transform:scale(.85) translateY(20px);opacity:0;transition:transform .22s cubic-bezier(.34,1.56,.64,1),opacity .18s;transform-origin:bottom right;pointer-events:none}
+#gb-chat-box.open{transform:scale(1) translateY(0);opacity:1;pointer-events:all}
 .gc-head{background:var(--primary);padding:12px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0}
 .gc-head-av{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.2);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0;overflow:hidden}
 .gc-head-av img{width:100%;height:100%;object-fit:cover}
