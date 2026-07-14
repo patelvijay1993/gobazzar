@@ -455,8 +455,13 @@ footer.site-footer{background:var(--nav-bg);border-top:2px solid #2a4fa8;margin-
     <a href="{{ route('home') }}">Home</a> &nbsp;·&nbsp;
     <a href="{{ route('classifieds.index') }}">Classifieds</a> &nbsp;·&nbsp;
     <a href="{{ route('jobs.index') }}">Jobs</a>
+    &nbsp;·&nbsp;
+    <a href="//www.dmca.com/Protection/Status.aspx?ID=953e6b61-feb3-49ea-bbf4-4bda7b9526dc" title="DMCA.com Protection Status" target="_blank" rel="noopener">
+      <img src="https://images.dmca.com/Badges/dmca-badge-w100-2x1-03.png?ID=953e6b61-feb3-49ea-bbf4-4bda7b9526dc" alt="DMCA Protected" style="height:18px;width:auto;vertical-align:middle;opacity:.75">
+    </a>
   </div>
 </footer>
+<script src="https://images.dmca.com/Badges/DMCABadgeHelper.min.js"></script>
 
 {{-- AI ASSISTANT FLOATING BUTTON --}}
 @if(\App\Models\Setting::bool('ai_assistant_enabled', true))
