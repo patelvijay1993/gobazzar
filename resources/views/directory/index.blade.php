@@ -15,6 +15,14 @@
 .filter-item{display:flex;align-items:center;padding:9px 14px;font-size:13px;transition:background .12s;gap:9px;color:var(--text);text-decoration:none;border-left:3px solid transparent}
 .filter-item:hover{background:var(--primary-light);color:var(--primary);border-left-color:var(--primary)}
 .filter-item.active{color:var(--primary);font-weight:600;background:var(--primary-light);border-left-color:var(--primary)}
+/* collapsible */
+.cat-group{}
+.cat-parent-row{display:flex;align-items:center;cursor:pointer;user-select:none}
+.cat-parent-row .filter-item{flex:1;pointer-events:none}
+.cat-toggle-btn{padding:8px 10px;color:var(--muted);background:none;border:none;cursor:pointer;font-size:10px;flex-shrink:0;transition:transform .2s}
+.cat-toggle-btn.open{transform:rotate(90deg)}
+.cat-subs{overflow:hidden;max-height:0;transition:max-height .25s ease}
+.cat-subs.open{max-height:600px}
 
 /* ── MOBILE TOGGLE ── */
 .mobile-filter-toggle{display:none;width:100%;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-sm);padding:11px 16px;font-size:13px;font-weight:600;margin-bottom:12px;cursor:pointer;align-items:center;gap:8px}
@@ -105,18 +113,39 @@
           <i class="fa-solid fa-building-columns" style="width:16px;font-size:12px;color:var(--muted)"></i> All Businesses
         </a>
         @foreach($categories as $cat)
-          <a href="{{ route('directory.category', $cat->slug) }}"
-             class="filter-item {{ request('category') == $cat->id ? 'active' : '' }}">
-            <span style="width:16px;text-align:center">{{ $cat->icon }}</span> {{ $cat->name }}
-            @if($cat->children->count())<i class="fa-solid fa-chevron-right" style="margin-left:auto;font-size:10px;color:var(--muted)"></i>@endif
-          </a>
-          @foreach($cat->children as $sub)
-            <a href="{{ route('directory.index', ['category' => $sub->id]) }}"
-               class="filter-item {{ request('category') == $sub->id ? 'active' : '' }}"
-               style="padding-left:38px;font-size:12.5px">
-              <span style="width:14px;text-align:center">{{ $sub->icon ?: '•' }}</span> {{ $sub->name }}
+          @php
+            $hasSubs   = $cat->children->count() > 0;
+            $subActive = $cat->children->contains('id', request('category'));
+            $isOpen    = $subActive;
+          @endphp
+          @if($hasSubs)
+            <div class="cat-group" data-open="{{ $isOpen ? 'true' : 'false' }}">
+              <div class="cat-parent-row" onclick="toggleCat(this)">
+                <a href="{{ route('directory.category', $cat->slug) }}"
+                   class="filter-item {{ request('category') == $cat->id ? 'active' : '' }}"
+                   onclick="event.stopPropagation()">
+                  <span style="width:16px;text-align:center">{{ $cat->icon }}</span> {{ $cat->name }}
+                </a>
+                <button class="cat-toggle-btn {{ $isOpen ? 'open' : '' }}" tabindex="-1">
+                  <i class="fa-solid fa-chevron-right"></i>
+                </button>
+              </div>
+              <div class="cat-subs {{ $isOpen ? 'open' : '' }}">
+                @foreach($cat->children as $sub)
+                  <a href="{{ route('directory.index', ['category' => $sub->id]) }}"
+                     class="filter-item {{ request('category') == $sub->id ? 'active' : '' }}"
+                     style="padding-left:36px;font-size:12.5px">
+                    <span style="width:14px;text-align:center;opacity:.5">•</span> {{ $sub->name }}
+                  </a>
+                @endforeach
+              </div>
+            </div>
+          @else
+            <a href="{{ route('directory.category', $cat->slug) }}"
+               class="filter-item {{ request('category') == $cat->id ? 'active' : '' }}">
+              <span style="width:16px;text-align:center">{{ $cat->icon }}</span> {{ $cat->name }}
             </a>
-          @endforeach
+          @endif
         @endforeach
       </div>
     </div>
@@ -279,4 +308,17 @@
 </div>
 @endif
 
+@push('scripts')
+<script>
+function toggleCat(row) {
+  var group = row.closest('.cat-group');
+  var subs  = group.querySelector('.cat-subs');
+  var btn   = group.querySelector('.cat-toggle-btn');
+  var isOpen = group.dataset.open === 'true';
+  group.dataset.open = isOpen ? 'false' : 'true';
+  subs.classList.toggle('open', !isOpen);
+  btn.classList.toggle('open', !isOpen);
+}
+</script>
+@endpush
 @endsection
