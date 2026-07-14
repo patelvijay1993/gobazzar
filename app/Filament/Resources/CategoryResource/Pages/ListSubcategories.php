@@ -7,25 +7,25 @@ use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
 use Illuminate\Database\Eloquent\Builder;
 
-class ListCategories extends ListRecords
+class ListSubcategories extends ListRecords
 {
     protected static string $resource = CategoryResource::class;
 
     public function getTitle(): string
     {
-        return 'Categories';
+        return 'Subcategories';
     }
 
     protected function getHeaderActions(): array
     {
         return [
             Actions\CreateAction::make()
-                ->label('New Category'),
+                ->label('New Subcategory'),
         ];
     }
 
     protected function getTableQuery(): Builder
     {
-        return parent::getTableQuery()->whereNull('parent_id');
+        return parent::getTableQuery()->whereNotNull('parent_id');
     }
 }

@@ -15,6 +15,7 @@ class CategoryResource extends Resource
 {
     protected static ?string $model = Category::class;
     protected static ?string $navigationIcon = 'heroicon-o-tag';
+    protected static ?string $navigationLabel = 'Categories';
     protected static ?string $navigationGroup = 'Classified';
     protected static ?int $navigationSort = 2;
 
@@ -106,6 +107,8 @@ class CategoryResource extends Resource
 
     public static function table(Table $table): Table
     {
+        $isSubpage = request()->routeIs(static::getRouteBaseName() . '.subcategories');
+
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('icon')
@@ -114,16 +117,19 @@ class CategoryResource extends Resource
                 Tables\Columns\TextColumn::make('name')
                     ->searchable()
                     ->sortable()
-                    ->formatStateUsing(fn ($state, Category $r) => $r->parent_id
-                        ? '↳  ' . $state
-                        : $state)
-                    ->color(fn (Category $r) => $r->parent_id ? 'gray' : null)
-                    ->weight(fn (Category $r) => $r->parent_id ? null : 'bold'),
+                    ->weight('bold'),
                 Tables\Columns\TextColumn::make('parent.name')
-                    ->label('Parent')
+                    ->label('Parent Category')
                     ->placeholder('—')
                     ->badge()
-                    ->color('warning'),
+                    ->color('warning')
+                    ->visible($isSubpage),
+                Tables\Columns\TextColumn::make('children_count')
+                    ->label('Subcategories')
+                    ->counts('children')
+                    ->badge()
+                    ->color('gray')
+                    ->visible(! $isSubpage),
                 Tables\Columns\TextColumn::make('type')
                     ->badge()
                     ->color(fn (string $state): string => match($state) {
@@ -165,9 +171,34 @@ class CategoryResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListCategories::route('/'),
-            'create' => Pages\CreateCategory::route('/create'),
-            'edit'   => Pages\EditCategory::route('/{record}/edit'),
+            'index'          => Pages\ListCategories::route('/'),
+            'subcategories'  => Pages\ListSubcategories::route('/subcategories'),
+            'create'         => Pages\CreateCategory::route('/create'),
+            'edit'           => Pages\EditCategory::route('/{record}/edit'),
+        ];
+    }
+
+    public static function getNavigationItems(): array
+    {
+        return [
+            \Filament\Navigation\NavigationItem::make('Categories')
+                ->icon('heroicon-o-tag')
+                ->group(static::$navigationGroup)
+                ->sort(2)
+                ->url(static::getUrl('index'))
+                ->isActiveWhen(fn () => request()->routeIs(
+                    static::getRouteBaseName() . '.index',
+                    static::getRouteBaseName() . '.create',
+                    static::getRouteBaseName() . '.edit',
+                )),
+            \Filament\Navigation\NavigationItem::make('Subcategories')
+                ->icon('heroicon-o-bars-3-bottom-left')
+                ->group(static::$navigationGroup)
+                ->sort(3)
+                ->url(static::getUrl('subcategories'))
+                ->isActiveWhen(fn () => request()->routeIs(
+                    static::getRouteBaseName() . '.subcategories',
+                )),
         ];
     }
 }
