@@ -3,7 +3,6 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\BusinessResource\Pages;
-use App\Filament\Forms\Components\BusinessHoursInput;
 use App\Models\Business;
 use App\Models\Category;
 use App\Models\Location;
@@ -66,8 +65,26 @@ class BusinessResource extends Resource
                 Forms\Components\TextInput::make('phone'),
                 Forms\Components\TextInput::make('email')->email(),
                 Forms\Components\TextInput::make('website')->url(),
-                BusinessHoursInput::make('hours')
-                    ->label('Business Hours')
+                Forms\Components\Fieldset::make('Business Hours')
+                    ->schema(array_map(fn ($day, $key) => Forms\Components\Fieldset::make($day)
+                        ->schema([
+                            Forms\Components\TimePicker::make("hours.{$key}.open")
+                                ->label('Open')
+                                ->seconds(false)
+                                ->native(false),
+                            Forms\Components\TimePicker::make("hours.{$key}.close")
+                                ->label('Close')
+                                ->seconds(false)
+                                ->native(false),
+                            Forms\Components\Toggle::make("hours.{$key}.closed")
+                                ->label('Closed')
+                                ->inline(false),
+                        ])
+                        ->columns(3),
+                        array_keys(['monday'=>'Monday','tuesday'=>'Tuesday','wednesday'=>'Wednesday','thursday'=>'Thursday','friday'=>'Friday','saturday'=>'Saturday','sunday'=>'Sunday']),
+                        ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']
+                    ))
+                    ->columns(1)
                     ->columnSpanFull(),
                 Forms\Components\TextInput::make('map_url')->label('Map Embed URL')->url()->columnSpanFull()->placeholder('https://maps.google.com/embed?...'),
             ])->columns(3),
