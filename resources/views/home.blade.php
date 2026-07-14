@@ -368,10 +368,10 @@ $heroLocLabel = request('city') ?: request('province');
       </div>
 
       <div class="hero-stats">
-        <div><div class="hero-stat-num">{{ $stats['businesses']>0?number_format($stats['businesses']):'8' }}+</div><div class="hero-stat-lbl">Businesses</div></div>
-        <div><div class="hero-stat-num">{{ $stats['listings']>0?number_format($stats['listings']):'9' }}+</div><div class="hero-stat-lbl">Free Ads</div></div>
-        <div><div class="hero-stat-num">{{ $stats['events']>0?number_format($stats['events']):'50' }}+</div><div class="hero-stat-lbl">Events</div></div>
-        <div><div class="hero-stat-num">1.6M+</div><div class="hero-stat-lbl">Indian-Canadians</div></div>
+        <div><div class="hero-stat-num">{{ number_format($stats['businesses']) }}+</div><div class="hero-stat-lbl">Businesses</div></div>
+        <div><div class="hero-stat-num">{{ number_format($stats['listings']) }}+</div><div class="hero-stat-lbl">Free Ads</div></div>
+        <div><div class="hero-stat-num">{{ number_format($stats['events']) }}+</div><div class="hero-stat-lbl">Events</div></div>
+        <div><div class="hero-stat-num">{{ number_format(\App\Models\User::count()) }}+</div><div class="hero-stat-lbl">Members</div></div>
       </div>
     </div>
 
