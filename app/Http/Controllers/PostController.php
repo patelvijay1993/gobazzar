@@ -254,7 +254,7 @@ class PostController extends Controller
             'contact_name'  => 'nullable|string|max:100',
             'contact_email' => 'nullable|email|max:150',
             'contact_phone' => 'nullable|string|max:30',
-            'images'        => "nullable|array|max:{$maxImg}",
+            'images'        => "required|array|min:2|max:{$maxImg}",
             'images.*'      => self::imgRules(),
         ]);
         if (!$user->canPostListing()) {
@@ -444,7 +444,7 @@ class PostController extends Controller
             'social.twitter'    => 'nullable|'.self::urlRules(255),
             'social.linkedin'   => 'nullable|'.self::urlRules(255),
             'hours'             => 'nullable|array',
-            'images'            => "nullable|array|max:{$maxImg}",
+            'images'            => "required|array|min:2|max:{$maxImg}",
             'images.*'          => self::imgRules(),
             'logo'              => 'nullable|'.self::imgRules(),
         ]);
@@ -527,7 +527,7 @@ class PostController extends Controller
             'description'    => 'nullable|string',
             'price'         => 'nullable|numeric|min:0|max:99999999',
             'price_unit'     => 'nullable|string|max:20',
-            'images'         => "nullable|array|max:{$maxImg}",
+            'images'         => "required|array|min:2|max:{$maxImg}",
             'images.*'       => self::imgRules(),
         ]);
 

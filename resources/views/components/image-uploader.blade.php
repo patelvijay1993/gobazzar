@@ -2,6 +2,7 @@
     'name'     => 'images',
     'multiple' => true,
     'max'      => 5,
+    'min'      => 0,
     'label'    => 'Photos',
     'hint'     => null,
 ])
@@ -24,7 +25,7 @@
       <div class="img-dropzone-icon">🖼️</div>
       <div class="img-dropzone-text">
         <strong>Click to upload</strong> or drag & drop<br>
-        <span>JPG, PNG, WEBP · Max 1 MB each{{ $multiple ? ' · Up to '.$max.' photos' : '' }}</span>
+        <span>JPG, PNG, WEBP · Max 1 MB each{{ $multiple ? ' · Up to '.$max.' photos' : '' }}{{ $min > 0 ? ' · Min '.$min.' required' : '' }}</span>
       </div>
     </div>
   </div>
@@ -245,6 +246,7 @@ window._iuReg['{{ $uid }}'] = {
   files:    [],
   isMulti:  {{ $multiple ? 'true' : 'false' }},
   maxFiles: {{ $max }},
+  minFiles: {{ $min }},
   maxBytes: {{ $maxBytes }}
 };
 
@@ -255,13 +257,26 @@ window._iuReg['{{ $uid }}'] = {
   if (!form || form._iuHooked) return;
   form._iuHooked = true;
   form.addEventListener('submit', function(e) {
-    // Block submit if any uploader on this form has oversize files
     var hasError = false;
     Object.keys(window._iuReg).forEach(function(u) {
       var inp = document.getElementById(u + '_input');
       if (!inp || !inp.closest || inp.closest('form') !== form) return;
-      var oversize = window._iuReg[u].files.filter(function(f){ return !f.valid; });
-      if (oversize.length > 0) hasError = true;
+      var cfg = window._iuReg[u];
+      var validFiles = cfg.files.filter(function(f){ return f.valid; });
+
+      // Oversize check
+      var oversize = cfg.files.filter(function(f){ return !f.valid; });
+      if (oversize.length > 0) { hasError = true; }
+
+      // Minimum images check
+      if (cfg.minFiles > 0 && validFiles.length < cfg.minFiles) {
+        var errDiv = document.getElementById(u + '_errors');
+        if (errDiv) _iu_err(errDiv, 'Please upload at least ' + cfg.minFiles + ' photo' + (cfg.minFiles > 1 ? 's' : '') + '.');
+        // Highlight dropzone
+        var zone = document.getElementById(u + '_zone');
+        if (zone) { zone.style.borderColor = '#E74C3C'; setTimeout(function(){ zone.style.borderColor = ''; }, 3000); }
+        hasError = true;
+      }
     });
     if (hasError) { e.preventDefault(); return; }
     _iu_injectFiles(form);

@@ -264,7 +264,7 @@ textarea.form-input{resize:vertical;min-height:100px}
               <label class="form-label">Contact Email</label>
               <input type="email" name="contact_email" class="form-input" value="{{ old('contact_email', Auth::user()->email) }}">
             </div>
-            <x-image-uploader name="images" :multiple="true" :max="$maxImages" :label="'Photos (up to '.$maxImages.')'" :hint="'Your '.$user->planName().' plan allows '.$maxImages.' photos per listing'" />
+            <x-image-uploader name="images" :multiple="true" :max="$maxImages" :min="2" :label="'Photos (up to '.$maxImages.')'" :hint="'Your '.$user->planName().' plan allows '.$maxImages.' photos · Min 2 required'" />
           </div>
 
           <button type="submit" class="btn-submit">Submit Ad →</button>
@@ -792,7 +792,7 @@ textarea.form-input{resize:vertical;min-height:100px}
             <span>The <strong>first photo</strong> you upload becomes your main banner on the directory listing. Use a high-quality landscape image (1200×628 recommended).</span>
           </div>
           <div style="margin-bottom:20px">
-            <x-image-uploader name="images" :multiple="true" :max="$maxImages" :label="'Business Photos (up to '.$maxImages.')'" :hint="'First photo = main banner · '.$user->planName().' plan allows '.$maxImages.' photos'" />
+            <x-image-uploader name="images" :multiple="true" :max="$maxImages" :min="2" :label="'Business Photos (up to '.$maxImages.')'" :hint="'First photo = main banner · '.$user->planName().' plan allows '.$maxImages.' photos · Min 2 required'" />
           </div>
           <x-image-uploader name="logo" :multiple="false" :max="1" label="Business Logo" hint="Square image preferred (200×200 minimum). Shows in search results and listings." />
         </div>
@@ -900,7 +900,7 @@ textarea.form-input{resize:vertical;min-height:100px}
 
             <div class="form-section">
               <div class="form-section-title">Photos</div>
-              <x-image-uploader name="images" :multiple="true" :max="$maxImages" :label="'Post Photos (up to '.$maxImages.')'" :hint="'First photo will be the main image · '.$user->planName().' plan: '.$maxImages.' photos'" />
+              <x-image-uploader name="images" :multiple="true" :max="$maxImages" :min="2" :label="'Post Photos (up to '.$maxImages.')'" :hint="'First photo will be the main image · '.$user->planName().' plan: '.$maxImages.' photos · Min 2 required'" />
             </div>
 
             <button type="submit" class="btn-submit">Publish Post →</button>
