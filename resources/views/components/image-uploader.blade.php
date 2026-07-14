@@ -25,7 +25,7 @@
       <div class="img-dropzone-icon">🖼️</div>
       <div class="img-dropzone-text">
         <strong>Click to upload</strong> or drag & drop<br>
-        <span>JPG, PNG, WEBP · Max 1 MB each{{ $multiple ? ' · Up to '.$max.' photos' : '' }}{{ $min > 0 ? ' · Min '.$min.' required' : '' }}</span>
+        <span>JPG, PNG, WEBP · Auto-compressed to WebP{{ $multiple ? ' · Up to '.$max.' photos' : '' }}{{ $min > 0 ? ' · Min '.$min.' required' : '' }}</span>
       </div>
     </div>
   </div>
@@ -71,7 +71,27 @@
 {{-- Shared JS engine — only emit once per page --}}
 @once
 <script>
-window._iuReg = {};   // uid → { files:[{file,url,valid}], isMulti, maxFiles, maxBytes }
+window._iuReg = {};   // uid → { files:[{file,blob,url,w,h,valid,converting}], isMulti, maxFiles, minFiles, maxBytes }
+
+var _IU_MAX_W    = 1600;  // max dimension before downscale
+var _IU_QUALITY  = 0.82;  // WebP quality
+
+// Convert a raw File → compressed WebP Blob via Canvas, then call cb(blob)
+function _iu_compress(file, cb) {
+  var img = new Image();
+  var objUrl = URL.createObjectURL(file);
+  img.onload = function() {
+    var w = img.naturalWidth, h = img.naturalHeight;
+    if (w > _IU_MAX_W) { h = Math.round(h * _IU_MAX_W / w); w = _IU_MAX_W; }
+    var canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+    URL.revokeObjectURL(objUrl);
+    canvas.toBlob(function(blob) { cb(blob, w, h); }, 'image/webp', _IU_QUALITY);
+  };
+  img.onerror = function() { URL.revokeObjectURL(objUrl); cb(null, 0, 0); };
+  img.src = objUrl;
+}
 
 function _iu_handle(input, uid) {
   _iu_process(Array.from(input.files), uid);
@@ -88,7 +108,7 @@ function _iu_drop(e, uid) {
 }
 
 function _iu_process(incoming, uid) {
-  var cfg  = window._iuReg[uid];
+  var cfg    = window._iuReg[uid];
   if (!cfg) return;
   var errDiv = document.getElementById(uid + '_errors');
   errDiv.innerHTML = '';
@@ -96,8 +116,7 @@ function _iu_process(incoming, uid) {
   var toAdd = cfg.isMulti ? incoming : incoming.slice(0, 1);
 
   if (!cfg.isMulti) {
-    // single-mode: replace existing
-    cfg.files.forEach(function(e){ URL.revokeObjectURL(e.url); });
+    cfg.files.forEach(function(e){ if (e.url) URL.revokeObjectURL(e.url); });
     cfg.files = [];
   } else if (cfg.files.length + toAdd.length > cfg.maxFiles) {
     toAdd = toAdd.slice(0, cfg.maxFiles - cfg.files.length);
@@ -105,12 +124,28 @@ function _iu_process(incoming, uid) {
   }
 
   toAdd.forEach(function(file) {
-    var valid = file.size <= cfg.maxBytes;
-    cfg.files.push({ file: file, url: URL.createObjectURL(file), valid: valid });
-  });
+    var entry = { file: file, blob: null, url: null, w: 0, h: 0, valid: false, converting: true };
+    cfg.files.push(entry);
+    var idx = cfg.files.length - 1;
 
-  _iu_render(uid);
-  _iu_sync(uid);
+    // Show placeholder immediately
+    _iu_render(uid);
+
+    _iu_compress(file, function(blob, w, h) {
+      if (!blob) {
+        // compression failed — fall back to original
+        blob = file; w = 0; h = 0;
+      }
+      entry.blob       = blob;
+      entry.w          = w;
+      entry.h          = h;
+      entry.valid      = blob.size <= cfg.maxBytes;
+      entry.converting = false;
+      entry.url        = URL.createObjectURL(blob);
+      _iu_render(uid);
+      _iu_sync(uid);
+    });
+  });
 }
 
 function _iu_render(uid) {
@@ -120,12 +155,21 @@ function _iu_render(uid) {
 
   cfg.files.forEach(function(entry, idx) {
     var item = document.createElement('div');
-    item.className = 'img-preview-item' + (entry.valid ? '' : ' has-error');
+    item.className = 'img-preview-item' + (!entry.converting && !entry.valid ? ' has-error' : '');
+
+    if (entry.converting) {
+      // Spinner placeholder while compressing
+      var spin = document.createElement('div');
+      spin.style.cssText = 'height:96px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--hint)';
+      spin.textContent = 'Compressing…';
+      item.appendChild(spin);
+      grid.appendChild(item);
+      return;
+    }
 
     var img = document.createElement('img');
     img.src = entry.url;
 
-    // Remove button — uses data-uid + data-idx so it's always fresh
     var rm = document.createElement('button');
     rm.type = 'button';
     rm.className = 'img-rm';
@@ -140,27 +184,14 @@ function _iu_render(uid) {
 
     var meta = document.createElement('div');
     meta.className = 'img-preview-meta';
-    meta.setAttribute('data-uid', uid);
-    meta.setAttribute('data-idx', idx);
 
-    var sizeKB = Math.round(entry.file.size / 1024);
-    var sizeMB = (entry.file.size / (1024 * 1024)).toFixed(2);
-    meta.innerHTML = '<span class="ratio">Loading…</span><br>'
+    var sizeKB = Math.round(entry.blob.size / 1024);
+    var sizeMB = (entry.blob.size / (1024 * 1024)).toFixed(2);
+    var dimStr = entry.w && entry.h ? entry.w + '×' + entry.h : 'WebP';
+    meta.innerHTML = '<span class="ratio">' + dimStr + '</span><br>'
       + '<span class="sz' + (entry.valid ? '' : ' oversize') + '">'
-      + (entry.valid ? sizeKB + ' KB' : '⚠ ' + sizeMB + ' MB — over 1 MB')
+      + (entry.valid ? sizeKB + ' KB · WebP' : '⚠ ' + sizeMB + ' MB — over 1 MB')
       + '</span>';
-
-    img.onload = function() {
-      var w = img.naturalWidth, h = img.naturalHeight;
-      var ratio = w + '×' + h + ' (' + _iu_ratio(w, h) + ')';
-      // Find the meta by data attrs (index may have shifted if removed, but onload fires once)
-      var sK = Math.round(entry.file.size / 1024);
-      var sM = (entry.file.size / (1024 * 1024)).toFixed(2);
-      meta.innerHTML = '<span class="ratio">' + ratio + '</span><br>'
-        + '<span class="sz' + (entry.valid ? '' : ' oversize') + '">'
-        + (entry.valid ? sK + ' KB' : '⚠ ' + sM + ' MB — over 1 MB')
-        + '</span>';
-    };
 
     item.appendChild(img);
     item.appendChild(rm);
@@ -172,7 +203,8 @@ function _iu_render(uid) {
 function _iu_remove(uid, idx) {
   var cfg = window._iuReg[uid];
   if (!cfg || !cfg.files[idx]) return;
-  URL.revokeObjectURL(cfg.files[idx].url);
+  var e = cfg.files[idx];
+  if (e.url) URL.revokeObjectURL(e.url);
   cfg.files.splice(idx, 1);
   _iu_render(uid);
   _iu_sync(uid);
@@ -183,30 +215,32 @@ function _iu_sync(uid) {
   var errDiv = document.getElementById(uid + '_errors');
   errDiv.innerHTML = '';
 
-  var oversize = cfg.files.filter(function(e){ return !e.valid; });
+  var oversize = cfg.files.filter(function(e){ return !e.converting && !e.valid; });
   if (oversize.length > 0) {
-    _iu_err(errDiv, oversize.length + ' photo(s) exceed 1 MB and cannot be uploaded.');
+    _iu_err(errDiv, oversize.length + ' photo(s) exceed 1 MB even after compression and cannot be uploaded.');
   }
 }
 
-// On form submit: inject valid files into the form via DataTransfer
+// On form submit: inject compressed WebP blobs into the form via DataTransfer
 function _iu_injectFiles(form) {
   Object.keys(window._iuReg).forEach(function(uid) {
     var cfg   = window._iuReg[uid];
     var input = document.getElementById(uid + '_input');
     if (!input || !input.closest('form') || input.closest('form') !== form) return;
 
-    var validFiles = cfg.files.filter(function(e){ return e.valid; });
+    var validFiles = cfg.files.filter(function(e){ return !e.converting && e.valid; });
 
-    // Build a DataTransfer with all valid files and assign to the existing input
     try {
       var dt = new DataTransfer();
-      validFiles.forEach(function(entry) { dt.items.add(entry.file); });
+      validFiles.forEach(function(entry, i) {
+        var ext  = entry.file.name.replace(/\.[^.]+$/, '');
+        var name = ext + '.webp';
+        var webpFile = new File([entry.blob], name, { type: 'image/webp' });
+        dt.items.add(webpFile);
+      });
       input.files = dt.files;
-      // Make the input visible to the browser's multipart encoder
       input.style.display = 'none';
     } catch(ex) {
-      // DataTransfer not supported — fallback: create one input per file
       var inputName = input.name;
       input.parentNode.removeChild(input);
       validFiles.forEach(function(entry) {
@@ -215,8 +249,9 @@ function _iu_injectFiles(form) {
         fresh.name  = inputName;
         fresh.style.display = 'none';
         try {
-          var dt2 = new DataTransfer();
-          dt2.items.add(entry.file);
+          var ext  = entry.file.name.replace(/\.[^.]+$/, '');
+          var dt2  = new DataTransfer();
+          dt2.items.add(new File([entry.blob], ext + '.webp', { type: 'image/webp' }));
           fresh.files = dt2.files;
         } catch(e2) {}
         form.appendChild(fresh);
@@ -262,9 +297,19 @@ window._iuReg['{{ $uid }}'] = {
       var inp = document.getElementById(u + '_input');
       if (!inp || !inp.closest || inp.closest('form') !== form) return;
       var cfg = window._iuReg[u];
+
+      // Still compressing — block submit
+      var converting = cfg.files.filter(function(f){ return f.converting; });
+      if (converting.length > 0) {
+        var errDiv = document.getElementById(u + '_errors');
+        if (errDiv) _iu_err(errDiv, 'Photos are still being compressed. Please wait a moment.');
+        hasError = true;
+        return;
+      }
+
       var validFiles = cfg.files.filter(function(f){ return f.valid; });
 
-      // Oversize check
+      // Oversize check (after compression)
       var oversize = cfg.files.filter(function(f){ return !f.valid; });
       if (oversize.length > 0) { hasError = true; }
 
@@ -272,7 +317,6 @@ window._iuReg['{{ $uid }}'] = {
       if (cfg.minFiles > 0 && validFiles.length < cfg.minFiles) {
         var errDiv = document.getElementById(u + '_errors');
         if (errDiv) _iu_err(errDiv, 'Please upload at least ' + cfg.minFiles + ' photo' + (cfg.minFiles > 1 ? 's' : '') + '.');
-        // Highlight dropzone
         var zone = document.getElementById(u + '_zone');
         if (zone) { zone.style.borderColor = '#E74C3C'; setTimeout(function(){ zone.style.borderColor = ''; }, 3000); }
         hasError = true;
