@@ -65,23 +65,18 @@ class BusinessResource extends Resource
                 Forms\Components\TextInput::make('phone'),
                 Forms\Components\TextInput::make('email')->email(),
                 Forms\Components\TextInput::make('website')->url(),
-                Forms\Components\Fieldset::make('Business Hours')
-                    ->schema([
-                        // Flat fields: biz_hours_{day}_{open|close|closed}
-                        // mutateFormDataBeforeSave assembles them into hours JSON
-                        ...collect(['monday'=>'Monday','tuesday'=>'Tuesday','wednesday'=>'Wednesday','thursday'=>'Thursday','friday'=>'Friday','saturday'=>'Saturday','sunday'=>'Sunday'])
-                            ->map(fn ($label, $key) => Forms\Components\Fieldset::make($label)
-                                ->schema([
-                                    Forms\Components\TextInput::make("biz_hours_{$key}_open")
-                                        ->label('Open')->placeholder('09:00')->maxLength(5),
-                                    Forms\Components\TextInput::make("biz_hours_{$key}_close")
-                                        ->label('Close')->placeholder('18:00')->maxLength(5),
-                                    Forms\Components\Toggle::make("biz_hours_{$key}_closed")
-                                        ->label('Closed')->inline(false),
-                                ])->columns(3)
-                            )->values()->toArray(),
-                    ])
-                    ->columns(1)
+                Forms\Components\Grid::make(7)
+                    ->schema(collect(['monday'=>'Mon','tuesday'=>'Tue','wednesday'=>'Wed','thursday'=>'Thu','friday'=>'Fri','saturday'=>'Sat','sunday'=>'Sun'])
+                        ->map(fn ($label, $key) => Forms\Components\Group::make([
+                            Forms\Components\Placeholder::make("_lbl_{$key}")->label('')->content($label),
+                            Forms\Components\TextInput::make("biz_hours_{$key}_open")
+                                ->label('Open')->placeholder('09:00')->maxLength(5)->extraInputAttributes(['style'=>'font-size:12px;padding:4px 6px']),
+                            Forms\Components\TextInput::make("biz_hours_{$key}_close")
+                                ->label('Close')->placeholder('18:00')->maxLength(5)->extraInputAttributes(['style'=>'font-size:12px;padding:4px 6px']),
+                            Forms\Components\Toggle::make("biz_hours_{$key}_closed")
+                                ->label('Closed')->inline(false),
+                        ]))->values()->toArray()
+                    )
                     ->columnSpanFull(),
                 Forms\Components\TextInput::make('map_url')->label('Map Embed URL')->url()->columnSpanFull()->placeholder('https://maps.google.com/embed?...'),
             ])->columns(3),
