@@ -452,10 +452,8 @@ class PostController extends Controller
         $data['name'] = strip_tags($data['name']);
         $this->moderate($request, 'name', 'business');
 
-        if (!empty($data['subcategory_id'])) {
-            $data['category_id'] = $data['subcategory_id'];
-        }
-        unset($data['subcategory_id'], $data['images']);
+        $data['subcategory_id'] = $data['subcategory_id'] ?: null;
+        unset($data['images']);
 
         // Parse tags from comma-separated string
         $tagsRaw = $data['tags_input'] ?? '';
@@ -794,6 +792,7 @@ class PostController extends Controller
         }
 
         $this->moderate($request, 'name', 'business');
+        $data['subcategory_id'] = $data['subcategory_id'] ?: null;
         unset($data['images']);
 
         // Handle individual photo removals

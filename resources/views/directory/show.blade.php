@@ -126,7 +126,12 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
         @if($business->is_verified)<span class="badge-ver">✓ Verified</span>@endif
         @if($business->is_featured)<span class="badge-feat">★ Featured</span>@endif
       </div>
-      <div class="biz-cat-label">{{ $business->category->name ?? '' }}</div>
+      <div class="biz-cat-label">
+        {{ $business->category->name ?? '' }}
+        @if($business->subcategory)
+          <span style="opacity:.5;margin:0 4px">›</span>{{ $business->subcategory->name }}
+        @endif
+      </div>
 
       @if($business->rating > 0)
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">

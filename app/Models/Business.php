@@ -13,7 +13,7 @@ class Business extends Model
 {
     use Favoritable;
     protected $fillable = [
-        'user_id', 'category_id', 'name', 'slug', 'description', 'image', 'images', 'logo',
+        'user_id', 'category_id', 'subcategory_id', 'name', 'slug', 'description', 'image', 'images', 'logo',
         'address', 'city', 'province', 'phone', 'email', 'website', 'map_url',
         'tags', 'social', 'rating', 'review_count', 'is_verified', 'is_featured',
         'status', 'hours',
@@ -32,6 +32,11 @@ class Business extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function subcategory(): BelongsTo
+    {
+        return $this->belongsTo(Category::class, 'subcategory_id');
     }
 
     public function user(): BelongsTo

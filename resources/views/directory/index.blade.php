@@ -227,7 +227,7 @@
                 @if($biz->is_verified)<span class="badge-ver"><i class="fa-solid fa-circle-check" style="font-size:9px"></i> Verified</span>@endif
                 @if($biz->is_featured)<span class="badge-feat">★ Featured</span>@endif
               </div>
-              <div class="biz-cat">{{ $biz->category->icon ?? '' }} {{ $biz->category->name ?? '' }}</div>
+              <div class="biz-cat">{{ $biz->category->icon ?? '' }} {{ $biz->category->name ?? '' }}@if($biz->subcategory) <span style="opacity:.5">›</span> {{ $biz->subcategory->name }}@endif</div>
               @if($biz->city)
                 <div class="biz-loc"><i class="fa-solid fa-location-dot"></i> {{ $biz->city }}{{ $biz->province ? ', '.$biz->province : '' }}</div>
               @endif

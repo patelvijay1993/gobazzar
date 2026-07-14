@@ -22,7 +22,7 @@ class BusinessController extends Controller
             ->with('children')
             ->orderBy('sort_order')->get();
 
-        $businesses = Business::with('category')
+        $businesses = Business::with(['category', 'subcategory'])
             ->where('status', 'active')
             ->when($request->category, function ($q) use ($request) {
                 // Match the category itself OR any of its sub-categories
@@ -88,7 +88,7 @@ class BusinessController extends Controller
             ->orWhere('parent_id', $category->id)
             ->pluck('id');
 
-        $businesses = Business::with('category')
+        $businesses = Business::with(['category', 'subcategory'])
             ->where('status', 'active')
             ->whereIn('category_id', $catIds)
             ->orderByDesc('is_featured')
