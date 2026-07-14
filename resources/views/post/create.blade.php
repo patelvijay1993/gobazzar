@@ -163,7 +163,7 @@ textarea.form-input{resize:vertical;min-height:100px}
             <div class="form-section-title">Basic Info</div>
             <div class="form-group" style="margin-bottom:14px">
               <label class="form-label">Title <span>*</span></label>
-              <input type="text" name="title" class="form-input" value="{{ old('title') }}" required placeholder="e.g. 2BHK Apartment for Rent in Brampton">
+              <input type="text" name="title" id="cl-title" class="form-input" value="{{ old('title') }}" required placeholder="e.g. iPhone 15 Pro 256GB — Like New">
             </div>
             <div class="form-row">
               <div class="form-group">
@@ -224,7 +224,10 @@ textarea.form-input{resize:vertical;min-height:100px}
             <div class="form-row">
               <div class="form-group">
                 <label class="form-label">Price</label>
-                <input type="number" name="price" class="form-input" value="{{ old('price') }}" placeholder="500" min="0" max="99999999" step="any">
+                <div style="display:flex;align-items:center;border:1.5px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;background:#fff">
+                  <span style="padding:0 10px;font-size:14px;font-weight:600;color:var(--muted);background:#f5f5f5;border-right:1.5px solid var(--border);height:100%;display:flex;align-items:center;align-self:stretch">$</span>
+                  <input type="number" name="price" class="form-input" value="{{ old('price') }}" placeholder="0.00" min="0" max="99999999" step="0.01" style="border:none;border-radius:0;flex:1">
+                </div>
               </div>
               <div class="form-group">
                 <label class="form-label">Price Unit</label>
@@ -1146,10 +1149,38 @@ function bpFieldHtml(f) {
   return '<div class="form-group" style="margin-bottom:14px"><label class="form-label">' + f.label + req + '</label>' + inner + '</div>';
 }
 
+// Category-specific title placeholders
+var _clTitlePlaceholders = {
+  'real estate': 'e.g. 2BHK Apartment for Rent in Brampton',
+  'furniture':   'e.g. Solid Wood Dining Table — 6 Seater',
+  'electronics': 'e.g. iPhone 15 Pro 256GB — Like New',
+  'auto':        'e.g. 2019 Honda Civic LX — 80,000 km',
+  'jobs':        'e.g. Full Stack Developer — Toronto (Remote)',
+  'services':    'e.g. House Cleaning Service — GTA Area',
+  'default':     'e.g. iPhone 15 Pro 256GB — Like New',
+};
+
+function clUpdatePlaceholder(catName) {
+  var titleEl = document.getElementById('cl-title');
+  if (!titleEl || titleEl.value) return;
+  var key = (catName || '').toLowerCase();
+  var ph = _clTitlePlaceholders['default'];
+  Object.keys(_clTitlePlaceholders).forEach(function(k) {
+    if (key.indexOf(k) !== -1) ph = _clTitlePlaceholders[k];
+  });
+  titleEl.placeholder = ph;
+}
+
 // ── Classified: category/subcategory change → load custom fields ──
 function clLoadFields(catId) {
   var section = document.getElementById('cl-custom-section');
   var wrap    = document.getElementById('cl-custom-fields');
+
+  // Update title placeholder based on selected category name
+  var catSel = document.getElementById('cl-category');
+  if (catSel && catSel.selectedIndex > 0) {
+    clUpdatePlaceholder(catSel.options[catSel.selectedIndex].text);
+  }
 
   // Clear immediately so stale fields never stay visible
   wrap.innerHTML = '';
