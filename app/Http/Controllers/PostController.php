@@ -55,7 +55,12 @@ class PostController extends Controller
 
     private function getCategories(): \Illuminate\Support\Collection
     {
-        return Category::where('is_active', true)->orderBy('sort_order')->get()->groupBy('type');
+        // Only top-level (parent) categories — subcategories load via AJAX (loadSubCats)
+        return Category::where('is_active', true)
+            ->whereNull('parent_id')
+            ->orderBy('sort_order')
+            ->get()
+            ->groupBy('type');
     }
 
     /** Calculate expires_at based on user plan. Null = permanent (power_seller auto-renew). */
