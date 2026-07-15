@@ -55,7 +55,7 @@ class SiteSettings extends Page implements HasForms
     public string $seo_site_title         = '';
     public string $seo_tagline            = '';
     public string $seo_meta_description   = '';
-    public string $seo_og_image           = '';
+    public mixed $seo_og_image            = '';
     public string $seo_google_verification = '';
     public string $seo_google_analytics   = '';
     public string $seo_facebook_pixel     = '';
@@ -122,14 +122,18 @@ class SiteSettings extends Page implements HasForms
         $this->seo_site_title          = Setting::get('seo_site_title', 'GoBazaar');
         $this->seo_tagline             = Setting::get('seo_tagline', "Canada's #1 Community Marketplace");
         $this->seo_meta_description    = Setting::get('seo_meta_description', '');
-        // FileUpload needs the S3 path, not the full URL
+        // FileUpload expects array of relative paths
         $ogUrl = Setting::get('seo_og_image', '');
         if ($ogUrl && str_starts_with($ogUrl, 'http')) {
-            // Extract path after bucket domain: .../seo/filename.jpg → seo/filename.jpg
             $parsed = parse_url($ogUrl);
-            $this->seo_og_image = ltrim($parsed['path'] ?? '', '/');
+            $path = ltrim($parsed['path'] ?? '', '/');
+            $bucket = config('filesystems.disks.s3.bucket', '');
+            if ($bucket && str_starts_with($path, $bucket . '/')) {
+                $path = substr($path, strlen($bucket) + 1);
+            }
+            $this->seo_og_image = $path ? [$path] : [];
         } else {
-            $this->seo_og_image = $ogUrl;
+            $this->seo_og_image = $ogUrl ? [$ogUrl] : [];
         }
         $this->seo_google_verification = Setting::get('seo_google_verification', '');
         $this->seo_google_analytics    = Setting::get('seo_google_analytics', '');
@@ -744,8 +748,12 @@ class SiteSettings extends Page implements HasForms
         Setting::set('seo_site_title',          $this->seo_site_title);
         Setting::set('seo_tagline',             $this->seo_tagline);
         Setting::set('seo_meta_description',    $this->seo_meta_description);
-        // If FileUpload returned a path (not full URL), convert to URL
-        $ogImage = $this->seo_og_image;
+        // FileUpload returns array of paths; extract first item
+        $ogRaw = $this->seo_og_image;
+        if (is_array($ogRaw)) {
+            $ogRaw = array_values(array_filter($ogRaw))[0] ?? '';
+        }
+        $ogImage = (string) $ogRaw;
         if ($ogImage && !str_starts_with($ogImage, 'http')) {
             $ogImage = Storage::disk(config('filesystems.default'))->url($ogImage);
         }
