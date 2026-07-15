@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Models\Setting;
+use Filament\Forms;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Section;
@@ -15,6 +16,7 @@ use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Illuminate\Support\Facades\Storage;
 
 class SiteSettings extends Page implements HasForms
 {
@@ -111,7 +113,15 @@ class SiteSettings extends Page implements HasForms
         $this->seo_site_title          = Setting::get('seo_site_title', 'GoBazaar');
         $this->seo_tagline             = Setting::get('seo_tagline', "Canada's #1 Community Marketplace");
         $this->seo_meta_description    = Setting::get('seo_meta_description', '');
-        $this->seo_og_image            = Setting::get('seo_og_image', '');
+        // FileUpload needs the S3 path, not the full URL
+        $ogUrl = Setting::get('seo_og_image', '');
+        if ($ogUrl && str_starts_with($ogUrl, 'http')) {
+            // Extract path after bucket domain: .../seo/filename.jpg → seo/filename.jpg
+            $parsed = parse_url($ogUrl);
+            $this->seo_og_image = ltrim($parsed['path'] ?? '', '/');
+        } else {
+            $this->seo_og_image = $ogUrl;
+        }
         $this->seo_google_verification = Setting::get('seo_google_verification', '');
         $this->seo_google_analytics    = Setting::get('seo_google_analytics', '');
         $this->seo_facebook_pixel      = Setting::get('seo_facebook_pixel', '');
@@ -322,12 +332,27 @@ class SiteSettings extends Page implements HasForms
                             ->rows(2)
                             ->maxLength(200),
 
-                        TextInput::make('seo_og_image')
-                            ->label('Default OG Image URL')
-                            ->placeholder('https://your-bucket.s3.amazonaws.com/og-image.jpg')
-                            ->helperText('Image shown when pages are shared on Facebook/WhatsApp. Recommended: 1200×630px.')
-                            ->url()
-                            ->maxLength(500),
+                        Forms\Components\FileUpload::make('seo_og_image')
+                            ->label('Default OG Image')
+                            ->helperText('Recommended size: 1200×630px (Facebook/WhatsApp share preview). Min: 600×315px.')
+                            ->image()
+                            ->disk(config('filesystems.default'))
+                            ->directory('seo')
+                            ->visibility('public')
+                            ->imageResizeMode('contain')
+                            ->imageCropAspectRatio('1.91:1')
+                            ->imageResizeTargetWidth('1200')
+                            ->imageResizeTargetHeight('630')
+                            ->maxSize(2048)
+                            ->acceptedFileTypes(['image/jpeg','image/png','image/webp'])
+                            ->helperText('Upload JPG/PNG/WebP · Max 2MB · Will be resized to 1200×630px · Stored on S3')
+                            ->afterStateUpdated(function ($state, Forms\Set $set) {
+                                if ($state && !str_starts_with($state, 'http')) {
+                                    $url = \Illuminate\Support\Facades\Storage::disk(config('filesystems.default'))->url($state);
+                                    $set('seo_og_image', $url);
+                                }
+                            })
+                            ->columnSpanFull(),
 
                         TextInput::make('seo_google_verification')
                             ->label('Google Search Console Verification Code')
@@ -593,7 +618,12 @@ class SiteSettings extends Page implements HasForms
         Setting::set('seo_site_title',          $this->seo_site_title);
         Setting::set('seo_tagline',             $this->seo_tagline);
         Setting::set('seo_meta_description',    $this->seo_meta_description);
-        Setting::set('seo_og_image',            $this->seo_og_image);
+        // If FileUpload returned a path (not full URL), convert to URL
+        $ogImage = $this->seo_og_image;
+        if ($ogImage && !str_starts_with($ogImage, 'http')) {
+            $ogImage = Storage::disk(config('filesystems.default'))->url($ogImage);
+        }
+        Setting::set('seo_og_image', $ogImage);
         Setting::set('seo_google_verification', $this->seo_google_verification);
         Setting::set('seo_google_analytics',    $this->seo_google_analytics);
         Setting::set('seo_facebook_pixel',      $this->seo_facebook_pixel);
