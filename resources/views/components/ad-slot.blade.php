@@ -33,7 +33,7 @@ $durationMs   = ($slotAds->first()->slide_duration ?? 3) * 1000;
   {{-- slider --}}
   <div id="{{ $sliderId }}"
        class="ad-slider ad-slot--{{ $position }} {{ $class }}"
-       style="position:relative;overflow:hidden;border-radius:8px;height:{{ $size['height'] }}px">
+       style="position:relative;overflow:hidden;border-radius:8px;width:100%;max-width:100%">
 
     <span class="ad-label" style="z-index:10">Ad</span>
 

@@ -148,17 +148,17 @@ footer.site-footer{background:var(--nav-bg);border-top:2px solid #2a4fa8;margin-
 /* ── AD SLOTS ── */
 .ad-slot{display:block;position:relative;text-decoration:none;margin-bottom:12px}
 .ad-slot:last-child{margin-bottom:0}
-.ad-slot img{border-radius:8px;border:1px solid var(--border)}
+.ad-slot img{border-radius:8px;border:1px solid var(--border);max-width:100%}
 .ad-label{position:absolute;top:6px;left:6px;background:rgba(0,0,0,.45);color:#fff;font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;letter-spacing:.5px;z-index:1}
-.ad-slot--home-banner{display:block;width:100%;max-width:1200px;margin:0 auto 18px}
-.ad-slot--home-banner img{height:120px;border-radius:10px}
-.ad-slot--sidebar img{height:250px}
-.ad-slot--inline{display:block;width:100%;margin:14px 0}
-.ad-slot--inline img{height:120px;border-radius:8px}
+.ad-slot--home-banner{display:block;width:100%;max-width:1200px;margin:0 auto 18px;overflow:hidden}
+.ad-slot--home-banner img{width:100%;height:120px;object-fit:cover;border-radius:10px}
+.ad-slot--sidebar img{height:250px;width:100%;object-fit:cover}
+.ad-slot--inline{display:block;width:100%;margin:14px 0;overflow:hidden}
+.ad-slot--inline img{width:100%;height:120px;object-fit:cover;border-radius:8px}
 @media(max-width:600px){
-  .ad-slot--home-banner img{height:70px}
-  .ad-slot--inline img{height:80px}
-  .ad-slot--sidebar img{height:200px}
+  .ad-slot--home-banner img{height:70px;width:100%;object-fit:cover}
+  .ad-slot--inline img{height:80px;width:100%;object-fit:cover}
+  .ad-slot--sidebar img{height:200px;width:100%;object-fit:cover}
 }
 
 /* ── FLASH ── */
