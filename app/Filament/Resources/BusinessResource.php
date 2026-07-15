@@ -86,12 +86,12 @@ class BusinessResource extends Resource
             ])->columns(3),
 
             Forms\Components\Section::make('Media & Tags')->schema([
-                Forms\Components\FileUpload::make('image')->image()->disk('s3')->directory('businesses')->columnSpanFull(),
-                Forms\Components\FileUpload::make('logo')->image()->disk('s3')->directory('businesses/logos'),
+                Forms\Components\FileUpload::make('image')->image()->disk(config('filesystems.default'))->directory('businesses')->columnSpanFull(),
+                Forms\Components\FileUpload::make('logo')->image()->disk(config('filesystems.default'))->directory('businesses/logos'),
                 Forms\Components\FileUpload::make('images')
                     ->label('Gallery Images')
                     ->image()
-                    ->disk('s3')
+                    ->disk(config('filesystems.default'))
                     ->directory('businesses')
                     ->multiple()
                     ->reorderable()
@@ -130,8 +130,14 @@ class BusinessResource extends Resource
                 Tables\Columns\TextColumn::make('rating')->sortable()
                     ->formatStateUsing(fn ($state) => '⭐ '.$state),
                 Tables\Columns\TextColumn::make('review_count')->label('Reviews')->sortable(),
-                Tables\Columns\BadgeColumn::make('status')
-                    ->colors(['warning' => 'pending', 'success' => 'active', 'gray' => 'inactive']),
+                Tables\Columns\TextColumn::make('status')->badge()
+                    ->color(fn ($state) => match($state) {
+                        'active'   => 'success',
+                        'pending'  => 'warning',
+                        'inactive' => 'gray',
+                        'flagged'  => 'danger',
+                        default    => 'gray',
+                    }),
                 Tables\Columns\IconColumn::make('is_verified')->boolean(),
                 Tables\Columns\IconColumn::make('is_featured')->boolean(),
             ])
