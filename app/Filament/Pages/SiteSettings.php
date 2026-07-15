@@ -16,6 +16,7 @@ use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 
 class SiteSettings extends Page implements HasForms
@@ -396,7 +397,25 @@ class SiteSettings extends Page implements HasForms
                             ->placeholder('sk-proj-...')
                             ->password()
                             ->revealable()
-                            ->maxLength(200),
+                            ->maxLength(200)
+                            ->suffixAction(
+                                Forms\Components\Actions\Action::make('verify_openai')
+                                    ->label('Verify')
+                                    ->icon('heroicon-o-check-circle')
+                                    ->action(function (Forms\Get $get) {
+                                        $key = $get('openai_api_key');
+                                        if (!$key) { Notification::make()->title('No key entered')->warning()->send(); return; }
+                                        try {
+                                            $r = \Illuminate\Support\Facades\Http::withToken($key)->timeout(8)
+                                                ->get('https://api.openai.com/v1/models');
+                                            $r->status() === 200
+                                                ? Notification::make()->title('OpenAI ✅ Valid')->success()->send()
+                                                : Notification::make()->title('OpenAI ❌ Invalid')->body('HTTP '.$r->status())->danger()->send();
+                                        } catch (\Exception $e) {
+                                            Notification::make()->title('OpenAI ❌ Error')->body($e->getMessage())->danger()->send();
+                                        }
+                                    })
+                            ),
 
                         TextInput::make('google_vision_api_key')
                             ->label('Google Vision API Key')
@@ -404,7 +423,27 @@ class SiteSettings extends Page implements HasForms
                             ->placeholder('AIzaSy...')
                             ->password()
                             ->revealable()
-                            ->maxLength(200),
+                            ->maxLength(200)
+                            ->suffixAction(
+                                Forms\Components\Actions\Action::make('verify_vision')
+                                    ->label('Verify')
+                                    ->icon('heroicon-o-check-circle')
+                                    ->action(function (Forms\Get $get) {
+                                        $key = $get('google_vision_api_key');
+                                        if (!$key) { Notification::make()->title('No key entered')->warning()->send(); return; }
+                                        try {
+                                            $r = \Illuminate\Support\Facades\Http::timeout(8)
+                                                ->post("https://vision.googleapis.com/v1/images:annotate?key={$key}", [
+                                                    'requests' => [['image' => ['source' => ['imageUri' => 'https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png']], 'features' => [['type' => 'LABEL_DETECTION', 'maxResults' => 1]]]],
+                                                ]);
+                                            !isset($r->json()['error'])
+                                                ? Notification::make()->title('Google Vision ✅ Valid')->success()->send()
+                                                : Notification::make()->title('Google Vision ❌ Invalid')->body($r->json()['error']['message'] ?? '')->danger()->send();
+                                        } catch (\Exception $e) {
+                                            Notification::make()->title('Google Vision ❌ Error')->body($e->getMessage())->danger()->send();
+                                        }
+                                    })
+                            ),
 
                         TextInput::make('gemini_api_key')
                             ->label('Gemini API Key')
@@ -412,7 +451,27 @@ class SiteSettings extends Page implements HasForms
                             ->placeholder('AIzaSy...')
                             ->password()
                             ->revealable()
-                            ->maxLength(200),
+                            ->maxLength(200)
+                            ->suffixAction(
+                                Forms\Components\Actions\Action::make('verify_gemini')
+                                    ->label('Verify')
+                                    ->icon('heroicon-o-check-circle')
+                                    ->action(function (Forms\Get $get) {
+                                        $key = $get('gemini_api_key');
+                                        if (!$key) { Notification::make()->title('No key entered')->warning()->send(); return; }
+                                        try {
+                                            $r = \Illuminate\Support\Facades\Http::timeout(10)
+                                                ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={$key}", [
+                                                    'contents' => [['parts' => [['text' => 'Say OK']]]],
+                                                ]);
+                                            isset($r->json()['candidates'])
+                                                ? Notification::make()->title('Gemini ✅ Valid')->success()->send()
+                                                : Notification::make()->title('Gemini ❌ Invalid')->body($r->json()['error']['message'] ?? 'Unknown error')->danger()->send();
+                                        } catch (\Exception $e) {
+                                            Notification::make()->title('Gemini ❌ Error')->body($e->getMessage())->danger()->send();
+                                        }
+                                    })
+                            ),
 
                         TextInput::make('groq_api_key')
                             ->label('Groq API Key')
@@ -420,7 +479,25 @@ class SiteSettings extends Page implements HasForms
                             ->placeholder('gsk_...')
                             ->password()
                             ->revealable()
-                            ->maxLength(200),
+                            ->maxLength(200)
+                            ->suffixAction(
+                                Forms\Components\Actions\Action::make('verify_groq')
+                                    ->label('Verify')
+                                    ->icon('heroicon-o-check-circle')
+                                    ->action(function (Forms\Get $get) {
+                                        $key = $get('groq_api_key');
+                                        if (!$key) { Notification::make()->title('No key entered')->warning()->send(); return; }
+                                        try {
+                                            $r = \Illuminate\Support\Facades\Http::withToken($key)->timeout(8)
+                                                ->get('https://api.groq.com/openai/v1/models');
+                                            $r->status() === 200
+                                                ? Notification::make()->title('Groq ✅ Valid')->success()->send()
+                                                : Notification::make()->title('Groq ❌ Invalid')->body('HTTP '.$r->status())->danger()->send();
+                                        } catch (\Exception $e) {
+                                            Notification::make()->title('Groq ❌ Error')->body($e->getMessage())->danger()->send();
+                                        }
+                                    })
+                            ),
 
                         TextInput::make('groq_api_key1')
                             ->label('Groq API Key (Backup)')
@@ -428,7 +505,25 @@ class SiteSettings extends Page implements HasForms
                             ->placeholder('gsk_...')
                             ->password()
                             ->revealable()
-                            ->maxLength(200),
+                            ->maxLength(200)
+                            ->suffixAction(
+                                Forms\Components\Actions\Action::make('verify_groq1')
+                                    ->label('Verify')
+                                    ->icon('heroicon-o-check-circle')
+                                    ->action(function (Forms\Get $get) {
+                                        $key = $get('groq_api_key1');
+                                        if (!$key) { Notification::make()->title('No key entered')->warning()->send(); return; }
+                                        try {
+                                            $r = \Illuminate\Support\Facades\Http::withToken($key)->timeout(8)
+                                                ->get('https://api.groq.com/openai/v1/models');
+                                            $r->status() === 200
+                                                ? Notification::make()->title('Groq Backup ✅ Valid')->success()->send()
+                                                : Notification::make()->title('Groq Backup ❌ Invalid')->body('HTTP '.$r->status())->danger()->send();
+                                        } catch (\Exception $e) {
+                                            Notification::make()->title('Groq Backup ❌ Error')->body($e->getMessage())->danger()->send();
+                                        }
+                                    })
+                            ),
 
                         TextInput::make('google_places_api_key')
                             ->label('Google Places API Key')
@@ -436,7 +531,25 @@ class SiteSettings extends Page implements HasForms
                             ->placeholder('AIzaSy...')
                             ->password()
                             ->revealable()
-                            ->maxLength(200),
+                            ->maxLength(200)
+                            ->suffixAction(
+                                Forms\Components\Actions\Action::make('verify_places')
+                                    ->label('Verify')
+                                    ->icon('heroicon-o-check-circle')
+                                    ->action(function (Forms\Get $get) {
+                                        $key = $get('google_places_api_key');
+                                        if (!$key) { Notification::make()->title('No key entered')->warning()->send(); return; }
+                                        try {
+                                            $r = \Illuminate\Support\Facades\Http::timeout(8)
+                                                ->get("https://maps.googleapis.com/maps/api/place/textsearch/json?query=restaurants&key={$key}");
+                                            $r->json()['status'] === 'OK' || $r->json()['status'] === 'ZERO_RESULTS'
+                                                ? Notification::make()->title('Google Places ✅ Valid')->success()->send()
+                                                : Notification::make()->title('Google Places ❌ Invalid')->body($r->json()['error_message'] ?? $r->json()['status'] ?? '')->danger()->send();
+                                        } catch (\Exception $e) {
+                                            Notification::make()->title('Google Places ❌ Error')->body($e->getMessage())->danger()->send();
+                                        }
+                                    })
+                            ),
                     ]),
 
                 Section::make('Stripe Payments')
