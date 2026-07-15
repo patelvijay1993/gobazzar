@@ -366,27 +366,36 @@ footer.site-footer{background:var(--nav-bg);border-top:2px solid #2a4fa8;margin-
       </div>
     </div>
     <a href="{{ route('home') }}" class="drawer-link {{ request()->routeIs('home') ? 'active' : '' }}"><i class="fa-solid fa-house" style="width:18px"></i> Home</a>
-    <a href="{{ route('classifieds.index') }}" class="drawer-link {{ request()->routeIs('classifieds.*') ? 'active' : '' }}"><i class="fa-solid fa-tag" style="width:18px"></i> Classifieds</a>
-    @foreach($navClassifiedCats as $navCat)
-      @if($navCat->children->isNotEmpty())
-        <div class="drawer-link" style="cursor:pointer;justify-content:space-between" onclick="toggleDrawerCat({{ $navCat->id }},this)">
-          <span>{{ $navCat->icon }} {{ $navCat->name }}</span>
-          <i class="fa-solid fa-chevron-right" style="font-size:10px;color:var(--muted);transition:transform .2s" id="dcat-arrow-{{ $navCat->id }}"></i>
-        </div>
-        <div id="dcat-{{ $navCat->id }}" style="max-height:0;overflow:hidden;transition:max-height .3s ease">
-          <a href="{{ route('classifieds.index', ['category' => $navCat->id]) }}" class="drawer-link" style="padding-left:44px;font-size:12.5px;color:var(--muted);padding-top:7px;padding-bottom:7px">
-            — All {{ $navCat->name }}
-          </a>
-          @foreach($navCat->children as $child)
-            <a href="{{ route('classifieds.index', ['category' => $child->id]) }}" class="drawer-link" style="padding-left:44px;font-size:12.5px;color:var(--muted);padding-top:7px;padding-bottom:7px">
-              {{ $child->icon ?: '›' }} {{ $child->name }}
+    @php $classifiedsOpen = request()->routeIs('classifieds.*'); @endphp
+    <div class="drawer-link" style="cursor:pointer;justify-content:space-between" onclick="toggleDrawerCat('classifieds',this)">
+      <span><i class="fa-solid fa-tag" style="width:18px"></i> Classifieds</span>
+      <i class="fa-solid fa-chevron-right" style="font-size:10px;color:var(--muted);transition:transform .2s{{ $classifiedsOpen ? ';transform:rotate(90deg)' : '' }}" id="dcat-arrow-classifieds"></i>
+    </div>
+    <div id="dcat-classifieds" style="max-height:{{ $classifiedsOpen ? '5000px' : '0' }};overflow:hidden;transition:max-height .3s ease">
+      <a href="{{ route('classifieds.index') }}" class="drawer-link" style="padding-left:36px;font-size:13px;font-weight:600;color:var(--primary)">
+        <i class="fa-solid fa-grip" style="width:14px;font-size:11px"></i> All Classifieds
+      </a>
+      @foreach($navClassifiedCats as $navCat)
+        @if($navCat->children->isNotEmpty())
+          <div class="drawer-link" style="cursor:pointer;justify-content:space-between;padding-left:36px" onclick="toggleDrawerCat({{ $navCat->id }},this)">
+            <span style="font-size:13.5px">{{ $navCat->icon }} {{ $navCat->name }}</span>
+            <i class="fa-solid fa-chevron-right" style="font-size:9px;color:var(--muted);transition:transform .2s" id="dcat-arrow-{{ $navCat->id }}"></i>
+          </div>
+          <div id="dcat-{{ $navCat->id }}" style="max-height:0;overflow:hidden;transition:max-height .3s ease">
+            <a href="{{ route('classifieds.index', ['category' => $navCat->id]) }}" class="drawer-link" style="padding-left:56px;font-size:12px;color:var(--muted);padding-top:6px;padding-bottom:6px">
+              — All {{ $navCat->name }}
             </a>
-          @endforeach
-        </div>
-      @else
-        <a href="{{ route('classifieds.index', ['category' => $navCat->id]) }}" class="drawer-link" style="padding-left:44px;font-size:13px;color:var(--muted);padding-top:8px;padding-bottom:8px">{{ $navCat->icon }} {{ $navCat->name }}</a>
-      @endif
-    @endforeach
+            @foreach($navCat->children as $child)
+              <a href="{{ route('classifieds.index', ['category' => $child->id]) }}" class="drawer-link" style="padding-left:56px;font-size:12px;color:var(--muted);padding-top:6px;padding-bottom:6px">
+                {{ $child->icon ?: '›' }} {{ $child->name }}
+              </a>
+            @endforeach
+          </div>
+        @else
+          <a href="{{ route('classifieds.index', ['category' => $navCat->id]) }}" class="drawer-link" style="padding-left:36px;font-size:13.5px;color:var(--text);padding-top:8px;padding-bottom:8px">{{ $navCat->icon }} {{ $navCat->name }}</a>
+        @endif
+      @endforeach
+    </div>
     <a href="{{ route('jobs.index') }}" class="drawer-link {{ request()->routeIs('jobs.*') ? 'active' : '' }}"><i class="fa-solid fa-briefcase" style="width:18px"></i> Jobs</a>
     <a href="{{ route('events.index') }}" class="drawer-link {{ request()->routeIs('events.*') ? 'active' : '' }}"><i class="fa-solid fa-calendar-days" style="width:18px"></i> Events</a>
     <a href="{{ route('directory.index') }}" class="drawer-link {{ request()->routeIs('directory.*') ? 'active' : '' }}"><i class="fa-solid fa-building-columns" style="width:18px"></i> Directory</a>
