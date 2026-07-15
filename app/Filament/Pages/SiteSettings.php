@@ -34,6 +34,13 @@ class SiteSettings extends Page implements HasForms
     public string $coming_soon_date            = '';
     public string $coming_soon_start_date      = '';
 
+    // Contact Info
+    public string $contact_support_email  = '';
+    public string $contact_ads_email      = '';
+    public string $contact_whatsapp       = '';
+    public string $contact_hours          = '';
+    public string $contact_response_time  = '';
+
     // SEO settings
     public string $seo_site_title         = '';
     public string $seo_tagline            = '';
@@ -78,6 +85,13 @@ class SiteSettings extends Page implements HasForms
         $this->maintenance_mode            = Setting::bool('maintenance_mode', false);
         $this->coming_soon_date            = Setting::get('coming_soon_date', '');
         $this->coming_soon_start_date      = Setting::get('coming_soon_start_date', '');
+
+        // Contact Info
+        $this->contact_support_email = Setting::get('contact_support_email', 'support@gobazaar.ca');
+        $this->contact_ads_email     = Setting::get('contact_ads_email', 'ads@gobazaar.ca');
+        $this->contact_whatsapp      = Setting::get('contact_whatsapp', '+1 (437) 000-0000');
+        $this->contact_hours         = Setting::get('contact_hours', 'Mon–Fri, 9am–6pm EST');
+        $this->contact_response_time = Setting::get('contact_response_time', '1–2 Business Days');
 
         // SEO
         $this->seo_site_title          = Setting::get('seo_site_title', 'GoBazaar');
@@ -200,6 +214,41 @@ class SiteSettings extends Page implements HasForms
                             ->helperText('When ON — floating 🤖 button appears on all pages. Users can search listings, jobs, events by natural language.')
                             ->onColor('success')
                             ->offColor('danger'),
+                    ]),
+
+                Section::make('Contact Information')
+                    ->description('Details shown on the Contact Us page.')
+                    ->icon('heroicon-o-phone')
+                    ->collapsible()
+                    ->schema([
+                        Grid::make(2)->schema([
+                            TextInput::make('contact_support_email')
+                                ->label('Support Email')
+                                ->placeholder('support@gobazaar.ca')
+                                ->email()
+                                ->maxLength(100),
+
+                            TextInput::make('contact_ads_email')
+                                ->label('Advertising Email')
+                                ->placeholder('ads@gobazaar.ca')
+                                ->email()
+                                ->maxLength(100),
+                        ]),
+                        Grid::make(2)->schema([
+                            TextInput::make('contact_whatsapp')
+                                ->label('WhatsApp Number')
+                                ->placeholder('+1 (437) 000-0000')
+                                ->maxLength(30),
+
+                            TextInput::make('contact_hours')
+                                ->label('Business Hours')
+                                ->placeholder('Mon–Fri, 9am–6pm EST')
+                                ->maxLength(60),
+                        ]),
+                        TextInput::make('contact_response_time')
+                            ->label('Response Time')
+                            ->placeholder('1–2 Business Days')
+                            ->maxLength(60),
                     ]),
 
                 Section::make('SEO & Google')
@@ -480,6 +529,13 @@ class SiteSettings extends Page implements HasForms
         Setting::set('maintenance_mode', $this->maintenance_mode ? '1' : '0');
         Setting::set('coming_soon_date', $this->coming_soon_date ?? '');
         Setting::set('coming_soon_start_date', $this->coming_soon_start_date ?? '');
+
+        // Contact Info
+        Setting::set('contact_support_email', $this->contact_support_email);
+        Setting::set('contact_ads_email',     $this->contact_ads_email);
+        Setting::set('contact_whatsapp',      $this->contact_whatsapp);
+        Setting::set('contact_hours',         $this->contact_hours);
+        Setting::set('contact_response_time', $this->contact_response_time);
 
         // SEO settings
         Setting::set('seo_site_title',          $this->seo_site_title);

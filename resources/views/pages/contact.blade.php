@@ -90,12 +90,19 @@
     </div>
 
     {{-- Info cards --}}
+    @php
+      $supportEmail  = \App\Models\Setting::get('contact_support_email', 'support@gobazaar.ca');
+      $adsEmail      = \App\Models\Setting::get('contact_ads_email', 'ads@gobazaar.ca');
+      $whatsapp      = \App\Models\Setting::get('contact_whatsapp', '+1 (437) 000-0000');
+      $hours         = \App\Models\Setting::get('contact_hours', 'Mon–Fri, 9am–6pm EST');
+      $responseTime  = \App\Models\Setting::get('contact_response_time', '1–2 Business Days');
+    @endphp
     <div class="contact-info">
       <div class="ci-card">
         <div class="ci-icon"><i class="fa-solid fa-envelope"></i></div>
         <div>
           <div class="ci-label">Email</div>
-          <div class="ci-value">support@gobazaar.ca</div>
+          <div class="ci-value"><a href="mailto:{{ $supportEmail }}" style="color:inherit">{{ $supportEmail }}</a></div>
           <div class="ci-sub">For general queries &amp; support</div>
         </div>
       </div>
@@ -103,23 +110,25 @@
         <div class="ci-icon"><i class="fa-solid fa-envelope-open-text"></i></div>
         <div>
           <div class="ci-label">Advertising</div>
-          <div class="ci-value">ads@gobazaar.ca</div>
+          <div class="ci-value"><a href="mailto:{{ $adsEmail }}" style="color:inherit">{{ $adsEmail }}</a></div>
           <div class="ci-sub">For advertising &amp; sponsorships</div>
         </div>
       </div>
+      @if($whatsapp)
       <div class="ci-card">
         <div class="ci-icon"><i class="fa-brands fa-whatsapp"></i></div>
         <div>
           <div class="ci-label">WhatsApp</div>
-          <div class="ci-value">+1 (437) 000-0000</div>
-          <div class="ci-sub">Mon–Fri, 9am–6pm EST</div>
+          <div class="ci-value"><a href="https://wa.me/{{ preg_replace('/\D/','',$whatsapp) }}" target="_blank" style="color:inherit">{{ $whatsapp }}</a></div>
+          <div class="ci-sub">{{ $hours }}</div>
         </div>
       </div>
+      @endif
       <div class="ci-card">
         <div class="ci-icon"><i class="fa-solid fa-clock"></i></div>
         <div>
           <div class="ci-label">Response Time</div>
-          <div class="ci-value">1–2 Business Days</div>
+          <div class="ci-value">{{ $responseTime }}</div>
           <div class="ci-sub">We try to respond faster when possible</div>
         </div>
       </div>
