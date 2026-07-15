@@ -9,6 +9,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 
 class CategoryResource extends Resource
@@ -18,6 +19,11 @@ class CategoryResource extends Resource
     protected static ?string $navigationLabel = 'Categories';
     protected static ?string $navigationGroup = 'Classified';
     protected static ?int $navigationSort = 2;
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->where('type', '!=', 'directory');
+    }
 
     public static function form(Form $form): Form
     {
@@ -34,7 +40,6 @@ class CategoryResource extends Resource
                         'classifieds' => 'Classifieds',
                         'jobs'        => 'Jobs',
                         'events'      => 'Events',
-                        'directory'   => 'Business Directory',
                     ])
                     ->required()
                     ->live(),
@@ -153,7 +158,6 @@ class CategoryResource extends Resource
                         'classifieds' => '🏷️ Classifieds',
                         'jobs'        => '💼 Jobs',
                         'events'      => '🎉 Events',
-                        'directory'   => '🏢 Business Directory',
                     ])
                     ->placeholder('All Types'),
             ])
