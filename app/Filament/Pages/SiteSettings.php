@@ -343,24 +343,16 @@ class SiteSettings extends Page implements HasForms
 
                         Forms\Components\FileUpload::make('seo_og_image')
                             ->label('Default OG Image')
-                            ->helperText('Recommended size: 1200×630px (Facebook/WhatsApp share preview). Min: 600×315px.')
+                            ->helperText('Upload JPG/PNG/WebP · Max 2MB · Recommended 1200×630px · Stored on S3')
                             ->image()
                             ->disk(config('filesystems.default'))
                             ->directory('seo')
                             ->visibility('public')
-                            ->imageResizeMode('contain')
                             ->imageCropAspectRatio('1.91:1')
                             ->imageResizeTargetWidth('1200')
                             ->imageResizeTargetHeight('630')
                             ->maxSize(2048)
                             ->acceptedFileTypes(['image/jpeg','image/png','image/webp'])
-                            ->helperText('Upload JPG/PNG/WebP · Max 2MB · Will be resized to 1200×630px · Stored on S3')
-                            ->afterStateUpdated(function ($state, Forms\Set $set) {
-                                if ($state && !str_starts_with($state, 'http')) {
-                                    $url = \Illuminate\Support\Facades\Storage::disk(config('filesystems.default'))->url($state);
-                                    $set('seo_og_image', $url);
-                                }
-                            })
                             ->columnSpanFull(),
 
                         TextInput::make('seo_google_verification')
@@ -399,130 +391,178 @@ class SiteSettings extends Page implements HasForms
                     ->collapsible()
                     ->collapsed()
                     ->schema([
-                        TextInput::make('openai_api_key')
-                            ->label('OpenAI API Key')
-                            ->helperText('Used for content moderation (text flagging). Get from platform.openai.com')
-                            ->placeholder('sk-proj-...')
-                            ->password()->revealable()->maxLength(200)
-                            ->hint(fn () => match($this->status_openai) { 'valid' => '✅ Valid', 'invalid' => '❌ Invalid', default => '' })
-                            ->hintColor(fn () => match($this->status_openai) { 'valid' => 'success', 'invalid' => 'danger', default => 'gray' })
-                            ->suffixAction(
-                                Forms\Components\Actions\Action::make('verify_openai')
-                                    ->label('Verify')->icon('heroicon-o-check-circle')
-                                    ->action(function (Forms\Get $get) {
-                                        $key = $get('openai_api_key');
-                                        if (!$key) { Notification::make()->title('No key entered')->warning()->send(); return; }
-                                        try {
-                                            $r = Http::withToken($key)->timeout(8)->get('https://api.openai.com/v1/models');
-                                            $this->status_openai = $r->status() === 200 ? 'valid' : 'invalid';
-                                        } catch (\Exception $e) { $this->status_openai = 'invalid'; }
-                                    })
-                            ),
+                        Forms\Components\Grid::make(2)->schema([
+                            TextInput::make('openai_api_key')
+                                ->label('OpenAI API Key')
+                                ->helperText('Used for content moderation (text flagging). Get from platform.openai.com')
+                                ->placeholder('sk-proj-...')
+                                ->password()->revealable()->maxLength(200),
+                            Forms\Components\Placeholder::make('status_openai')
+                                ->label('Status')
+                                ->content(fn () => match($this->status_openai) {
+                                    'valid'   => new \Illuminate\Support\HtmlString('<span style="color:#16a34a;font-weight:700">✅ Valid</span>'),
+                                    'invalid' => new \Illuminate\Support\HtmlString('<span style="color:#dc2626;font-weight:700">❌ Invalid / Failed</span>'),
+                                    default   => new \Illuminate\Support\HtmlString('<span style="color:#6b7280">— not tested</span>'),
+                                })
+                                ->extraAttributes(['style' => 'padding-top:28px']),
+                        ])->columnSpanFull(),
+                        Forms\Components\Actions::make([
+                            Forms\Components\Actions\Action::make('verify_openai')
+                                ->label('Verify OpenAI Key')->icon('heroicon-o-check-circle')->color('gray')->size('sm')
+                                ->action(function (Forms\Get $get) {
+                                    $key = $get('openai_api_key');
+                                    if (!$key) { Notification::make()->title('No key entered')->warning()->send(); return; }
+                                    try {
+                                        $r = Http::withToken($key)->timeout(8)->get('https://api.openai.com/v1/models');
+                                        $this->status_openai = $r->status() === 200 ? 'valid' : 'invalid';
+                                    } catch (\Exception $e) { $this->status_openai = 'invalid'; }
+                                }),
+                        ])->columnSpanFull(),
 
-                        TextInput::make('google_vision_api_key')
-                            ->label('Google Vision API Key')
-                            ->helperText('Used for image moderation. Get from console.cloud.google.com')
-                            ->placeholder('AIzaSy...')
-                            ->password()->revealable()->maxLength(200)
-                            ->hint(fn () => match($this->status_vision) { 'valid' => '✅ Valid', 'invalid' => '❌ Invalid', default => '' })
-                            ->hintColor(fn () => match($this->status_vision) { 'valid' => 'success', 'invalid' => 'danger', default => 'gray' })
-                            ->suffixAction(
-                                Forms\Components\Actions\Action::make('verify_vision')
-                                    ->label('Verify')->icon('heroicon-o-check-circle')
-                                    ->action(function (Forms\Get $get) {
-                                        $key = $get('google_vision_api_key');
-                                        if (!$key) { Notification::make()->title('No key entered')->warning()->send(); return; }
-                                        try {
-                                            $r = Http::timeout(8)->post("https://vision.googleapis.com/v1/images:annotate?key={$key}", [
-                                                'requests' => [['image' => ['source' => ['imageUri' => 'https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png']], 'features' => [['type' => 'LABEL_DETECTION', 'maxResults' => 1]]]],
-                                            ]);
-                                            $this->status_vision = !isset($r->json()['error']) ? 'valid' : 'invalid';
-                                        } catch (\Exception $e) { $this->status_vision = 'invalid'; }
-                                    })
-                            ),
+                        Forms\Components\Grid::make(2)->schema([
+                            TextInput::make('google_vision_api_key')
+                                ->label('Google Vision API Key')
+                                ->helperText('Used for image moderation. Get from console.cloud.google.com')
+                                ->placeholder('AIzaSy...')
+                                ->password()->revealable()->maxLength(200),
+                            Forms\Components\Placeholder::make('status_vision')
+                                ->label('Status')
+                                ->content(fn () => match($this->status_vision) {
+                                    'valid'   => new \Illuminate\Support\HtmlString('<span style="color:#16a34a;font-weight:700">✅ Valid</span>'),
+                                    'invalid' => new \Illuminate\Support\HtmlString('<span style="color:#dc2626;font-weight:700">❌ Invalid / Failed</span>'),
+                                    default   => new \Illuminate\Support\HtmlString('<span style="color:#6b7280">— not tested</span>'),
+                                })
+                                ->extraAttributes(['style' => 'padding-top:28px']),
+                        ])->columnSpanFull(),
+                        Forms\Components\Actions::make([
+                            Forms\Components\Actions\Action::make('verify_vision')
+                                ->label('Verify Google Vision Key')->icon('heroicon-o-check-circle')->color('gray')->size('sm')
+                                ->action(function (Forms\Get $get) {
+                                    $key = $get('google_vision_api_key');
+                                    if (!$key) { Notification::make()->title('No key entered')->warning()->send(); return; }
+                                    try {
+                                        $r = Http::timeout(8)->post("https://vision.googleapis.com/v1/images:annotate?key={$key}", [
+                                            'requests' => [['image' => ['source' => ['imageUri' => 'https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png']], 'features' => [['type' => 'LABEL_DETECTION', 'maxResults' => 1]]]],
+                                        ]);
+                                        $this->status_vision = !isset($r->json()['error']) ? 'valid' : 'invalid';
+                                    } catch (\Exception $e) { $this->status_vision = 'invalid'; }
+                                }),
+                        ])->columnSpanFull(),
 
-                        TextInput::make('gemini_api_key')
-                            ->label('Gemini API Key')
-                            ->helperText('Used for AI content generation (business descriptions). Get from aistudio.google.com')
-                            ->placeholder('AIzaSy...')
-                            ->password()->revealable()->maxLength(200)
-                            ->hint(fn () => match($this->status_gemini) { 'valid' => '✅ Valid', 'invalid' => '❌ Invalid', default => '' })
-                            ->hintColor(fn () => match($this->status_gemini) { 'valid' => 'success', 'invalid' => 'danger', default => 'gray' })
-                            ->suffixAction(
-                                Forms\Components\Actions\Action::make('verify_gemini')
-                                    ->label('Verify')->icon('heroicon-o-check-circle')
-                                    ->action(function (Forms\Get $get) {
-                                        $key = $get('gemini_api_key');
-                                        if (!$key) { Notification::make()->title('No key entered')->warning()->send(); return; }
-                                        try {
-                                            $r = Http::timeout(10)->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={$key}", [
-                                                'contents' => [['parts' => [['text' => 'Say OK']]]],
-                                            ]);
-                                            $this->status_gemini = isset($r->json()['candidates']) ? 'valid' : 'invalid';
-                                        } catch (\Exception $e) { $this->status_gemini = 'invalid'; }
-                                    })
-                            ),
+                        Forms\Components\Grid::make(2)->schema([
+                            TextInput::make('gemini_api_key')
+                                ->label('Gemini API Key')
+                                ->helperText('Used for AI content generation (business descriptions). Get from aistudio.google.com')
+                                ->placeholder('AIzaSy...')
+                                ->password()->revealable()->maxLength(200),
+                            Forms\Components\Placeholder::make('status_gemini')
+                                ->label('Status')
+                                ->content(fn () => match($this->status_gemini) {
+                                    'valid'   => new \Illuminate\Support\HtmlString('<span style="color:#16a34a;font-weight:700">✅ Valid</span>'),
+                                    'invalid' => new \Illuminate\Support\HtmlString('<span style="color:#dc2626;font-weight:700">❌ Invalid / Failed</span>'),
+                                    default   => new \Illuminate\Support\HtmlString('<span style="color:#6b7280">— not tested</span>'),
+                                })
+                                ->extraAttributes(['style' => 'padding-top:28px']),
+                        ])->columnSpanFull(),
+                        Forms\Components\Actions::make([
+                            Forms\Components\Actions\Action::make('verify_gemini')
+                                ->label('Verify Gemini Key')->icon('heroicon-o-check-circle')->color('gray')->size('sm')
+                                ->action(function (Forms\Get $get) {
+                                    $key = $get('gemini_api_key');
+                                    if (!$key) { Notification::make()->title('No key entered')->warning()->send(); return; }
+                                    try {
+                                        $r = Http::timeout(10)->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={$key}", [
+                                            'contents' => [['parts' => [['text' => 'Say OK']]]],
+                                        ]);
+                                        $this->status_gemini = isset($r->json()['candidates']) ? 'valid' : 'invalid';
+                                    } catch (\Exception $e) { $this->status_gemini = 'invalid'; }
+                                }),
+                        ])->columnSpanFull(),
 
-                        TextInput::make('groq_api_key')
-                            ->label('Groq API Key')
-                            ->helperText('Used for fast AI content generation (business descriptions fallback). Get from console.groq.com')
-                            ->placeholder('gsk_...')
-                            ->password()->revealable()->maxLength(200)
-                            ->hint(fn () => match($this->status_groq) { 'valid' => '✅ Valid', 'invalid' => '❌ Invalid', default => '' })
-                            ->hintColor(fn () => match($this->status_groq) { 'valid' => 'success', 'invalid' => 'danger', default => 'gray' })
-                            ->suffixAction(
-                                Forms\Components\Actions\Action::make('verify_groq')
-                                    ->label('Verify')->icon('heroicon-o-check-circle')
-                                    ->action(function (Forms\Get $get) {
-                                        $key = $get('groq_api_key');
-                                        if (!$key) { Notification::make()->title('No key entered')->warning()->send(); return; }
-                                        try {
-                                            $r = Http::withToken($key)->timeout(8)->get('https://api.groq.com/openai/v1/models');
-                                            $this->status_groq = $r->status() === 200 ? 'valid' : 'invalid';
-                                        } catch (\Exception $e) { $this->status_groq = 'invalid'; }
-                                    })
-                            ),
+                        Forms\Components\Grid::make(2)->schema([
+                            TextInput::make('groq_api_key')
+                                ->label('Groq API Key')
+                                ->helperText('Used for fast AI content generation (business descriptions fallback). Get from console.groq.com')
+                                ->placeholder('gsk_...')
+                                ->password()->revealable()->maxLength(200),
+                            Forms\Components\Placeholder::make('status_groq')
+                                ->label('Status')
+                                ->content(fn () => match($this->status_groq) {
+                                    'valid'   => new \Illuminate\Support\HtmlString('<span style="color:#16a34a;font-weight:700">✅ Valid</span>'),
+                                    'invalid' => new \Illuminate\Support\HtmlString('<span style="color:#dc2626;font-weight:700">❌ Invalid / Failed</span>'),
+                                    default   => new \Illuminate\Support\HtmlString('<span style="color:#6b7280">— not tested</span>'),
+                                })
+                                ->extraAttributes(['style' => 'padding-top:28px']),
+                        ])->columnSpanFull(),
+                        Forms\Components\Actions::make([
+                            Forms\Components\Actions\Action::make('verify_groq')
+                                ->label('Verify Groq Key')->icon('heroicon-o-check-circle')->color('gray')->size('sm')
+                                ->action(function (Forms\Get $get) {
+                                    $key = $get('groq_api_key');
+                                    if (!$key) { Notification::make()->title('No key entered')->warning()->send(); return; }
+                                    try {
+                                        $r = Http::withToken($key)->timeout(8)->get('https://api.groq.com/openai/v1/models');
+                                        $this->status_groq = $r->status() === 200 ? 'valid' : 'invalid';
+                                    } catch (\Exception $e) { $this->status_groq = 'invalid'; }
+                                }),
+                        ])->columnSpanFull(),
 
-                        TextInput::make('groq_api_key1')
-                            ->label('Groq API Key (Backup)')
-                            ->helperText('Backup Groq key used when primary key hits rate limit.')
-                            ->placeholder('gsk_...')
-                            ->password()->revealable()->maxLength(200)
-                            ->hint(fn () => match($this->status_groq1) { 'valid' => '✅ Valid', 'invalid' => '❌ Invalid', default => '' })
-                            ->hintColor(fn () => match($this->status_groq1) { 'valid' => 'success', 'invalid' => 'danger', default => 'gray' })
-                            ->suffixAction(
-                                Forms\Components\Actions\Action::make('verify_groq1')
-                                    ->label('Verify')->icon('heroicon-o-check-circle')
-                                    ->action(function (Forms\Get $get) {
-                                        $key = $get('groq_api_key1');
-                                        if (!$key) { Notification::make()->title('No key entered')->warning()->send(); return; }
-                                        try {
-                                            $r = Http::withToken($key)->timeout(8)->get('https://api.groq.com/openai/v1/models');
-                                            $this->status_groq1 = $r->status() === 200 ? 'valid' : 'invalid';
-                                        } catch (\Exception $e) { $this->status_groq1 = 'invalid'; }
-                                    })
-                            ),
+                        Forms\Components\Grid::make(2)->schema([
+                            TextInput::make('groq_api_key1')
+                                ->label('Groq API Key (Backup)')
+                                ->helperText('Backup Groq key used when primary key hits rate limit.')
+                                ->placeholder('gsk_...')
+                                ->password()->revealable()->maxLength(200),
+                            Forms\Components\Placeholder::make('status_groq1')
+                                ->label('Status')
+                                ->content(fn () => match($this->status_groq1) {
+                                    'valid'   => new \Illuminate\Support\HtmlString('<span style="color:#16a34a;font-weight:700">✅ Valid</span>'),
+                                    'invalid' => new \Illuminate\Support\HtmlString('<span style="color:#dc2626;font-weight:700">❌ Invalid / Failed</span>'),
+                                    default   => new \Illuminate\Support\HtmlString('<span style="color:#6b7280">— not tested</span>'),
+                                })
+                                ->extraAttributes(['style' => 'padding-top:28px']),
+                        ])->columnSpanFull(),
+                        Forms\Components\Actions::make([
+                            Forms\Components\Actions\Action::make('verify_groq1')
+                                ->label('Verify Groq Backup Key')->icon('heroicon-o-check-circle')->color('gray')->size('sm')
+                                ->action(function (Forms\Get $get) {
+                                    $key = $get('groq_api_key1');
+                                    if (!$key) { Notification::make()->title('No key entered')->warning()->send(); return; }
+                                    try {
+                                        $r = Http::withToken($key)->timeout(8)->get('https://api.groq.com/openai/v1/models');
+                                        $this->status_groq1 = $r->status() === 200 ? 'valid' : 'invalid';
+                                    } catch (\Exception $e) { $this->status_groq1 = 'invalid'; }
+                                }),
+                        ])->columnSpanFull(),
 
-                        TextInput::make('google_places_api_key')
-                            ->label('Google Places API Key')
-                            ->helperText('Used for Lead Finder — search businesses on Google Maps. Enable "Places API" in console.cloud.google.com')
-                            ->placeholder('AIzaSy...')
-                            ->password()->revealable()->maxLength(200)
-                            ->hint(fn () => match($this->status_places) { 'valid' => '✅ Valid', 'invalid' => '❌ Invalid', default => '' })
-                            ->hintColor(fn () => match($this->status_places) { 'valid' => 'success', 'invalid' => 'danger', default => 'gray' })
-                            ->suffixAction(
-                                Forms\Components\Actions\Action::make('verify_places')
-                                    ->label('Verify')->icon('heroicon-o-check-circle')
-                                    ->action(function (Forms\Get $get) {
-                                        $key = $get('google_places_api_key');
-                                        if (!$key) { Notification::make()->title('No key entered')->warning()->send(); return; }
-                                        try {
-                                            $r = Http::timeout(8)->get("https://maps.googleapis.com/maps/api/place/textsearch/json?query=restaurants&key={$key}");
-                                            $s = $r->json()['status'] ?? '';
-                                            $this->status_places = in_array($s, ['OK', 'ZERO_RESULTS']) ? 'valid' : 'invalid';
-                                        } catch (\Exception $e) { $this->status_places = 'invalid'; }
-                                    })
-                            ),
+                        Forms\Components\Grid::make(2)->schema([
+                            TextInput::make('google_places_api_key')
+                                ->label('Google Places API Key')
+                                ->helperText('Used for Lead Finder — search businesses on Google Maps. Enable "Places API" in console.cloud.google.com')
+                                ->placeholder('AIzaSy...')
+                                ->password()->revealable()->maxLength(200),
+                            Forms\Components\Placeholder::make('status_places')
+                                ->label('Status')
+                                ->content(fn () => match($this->status_places) {
+                                    'valid'   => new \Illuminate\Support\HtmlString('<span style="color:#16a34a;font-weight:700">✅ Valid</span>'),
+                                    'invalid' => new \Illuminate\Support\HtmlString('<span style="color:#dc2626;font-weight:700">❌ Invalid / Failed</span>'),
+                                    default   => new \Illuminate\Support\HtmlString('<span style="color:#6b7280">— not tested</span>'),
+                                })
+                                ->extraAttributes(['style' => 'padding-top:28px']),
+                        ])->columnSpanFull(),
+                        Forms\Components\Actions::make([
+                            Forms\Components\Actions\Action::make('verify_places')
+                                ->label('Verify Google Places Key')->icon('heroicon-o-check-circle')->color('gray')->size('sm')
+                                ->action(function (Forms\Get $get) {
+                                    $key = $get('google_places_api_key');
+                                    if (!$key) { Notification::make()->title('No key entered')->warning()->send(); return; }
+                                    try {
+                                        $r = Http::timeout(8)->get("https://maps.googleapis.com/maps/api/place/textsearch/json?query=restaurants&key={$key}");
+                                        $s = $r->json()['status'] ?? '';
+                                        $this->status_places = in_array($s, ['OK', 'ZERO_RESULTS']) ? 'valid' : 'invalid';
+                                    } catch (\Exception $e) { $this->status_places = 'invalid'; }
+                                }),
+                        ])->columnSpanFull(),
                     ]),
 
                 Section::make('Stripe Payments')
