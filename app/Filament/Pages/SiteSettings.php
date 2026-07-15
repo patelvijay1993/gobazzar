@@ -762,14 +762,13 @@ class SiteSettings extends Page implements HasForms
         $ogImage = $this->seo_og_image_url; // default: keep existing
 
         if ($ogPath && !str_starts_with($ogPath, 'http')) {
-            if (str_starts_with($ogPath, 'tmp/')) {
-                // Move from livewire temp dir to permanent seo/ directory
-                $ext     = pathinfo($ogPath, PATHINFO_EXTENSION) ?: 'png';
-                $newPath = 'seo/' . Str::uuid() . '.' . $ext;
-                Storage::disk($disk)->move($ogPath, $newPath);
-                $ogPath = $newPath;
-            }
-            $ogImage = Storage::disk($disk)->url($ogPath);
+            // Move from livewire temp dir to permanent seo/ directory with public visibility
+            $ext     = pathinfo($ogPath, PATHINFO_EXTENSION) ?: 'png';
+            $newPath = 'seo/' . Str::uuid() . '.' . $ext;
+            $contents = Storage::disk($disk)->get($ogPath);
+            Storage::disk($disk)->put($newPath, $contents, 'public');
+            Storage::disk($disk)->delete($ogPath);
+            $ogImage = Storage::disk($disk)->url($newPath);
         }
 
         Setting::set('seo_og_image', $ogImage);
