@@ -123,7 +123,10 @@ class BusinessResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\ImageColumn::make('image')->circular(),
+                Tables\Columns\ImageColumn::make('image')
+                    ->circular()
+                    ->disk(config('filesystems.default'))
+                    ->defaultImageUrl(fn () => null),
                 Tables\Columns\TextColumn::make('name')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('category.name')->badge()->color('info'),
                 Tables\Columns\TextColumn::make('city'),
