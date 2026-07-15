@@ -22,7 +22,7 @@
 .cat-toggle-btn{padding:8px 10px;color:var(--muted);background:none;border:none;cursor:pointer;font-size:10px;flex-shrink:0;transition:transform .2s}
 .cat-toggle-btn.open{transform:rotate(90deg)}
 .cat-subs{overflow:hidden;max-height:0;transition:max-height .25s ease}
-.cat-subs.open{max-height:600px}
+.cat-subs.open{max-height:2000px}
 
 /* ── MOBILE TOGGLE ── */
 .mobile-filter-toggle{display:none;width:100%;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-sm);padding:11px 16px;font-size:13px;font-weight:600;margin-bottom:12px;cursor:pointer;align-items:center;gap:8px}

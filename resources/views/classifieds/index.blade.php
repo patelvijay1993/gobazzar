@@ -88,8 +88,8 @@
 .cat-parent-row.active{color:var(--primary);font-weight:600;background:var(--primary-light);border-left-color:var(--primary)}
 .cat-arrow{font-size:10px;color:var(--muted);transition:transform .22s ease;flex-shrink:0}
 .cat-arrow.open{transform:rotate(180deg)}
-.cat-children{max-height:0;overflow:hidden;transition:max-height .28s ease;background:rgba(26,58,143,.025);border-left:3px solid rgba(26,58,143,.12)}
-.cat-children.open{max-height:600px}
+.cat-children{max-height:0;overflow:hidden;transition:max-height .4s ease;background:rgba(26,58,143,.025);border-left:3px solid rgba(26,58,143,.12)}
+.cat-children.open{max-height:2000px}
 .sub-item{padding:7px 14px 7px 28px;font-size:12.5px}
 .sub-item:hover{background:var(--primary-light)}
 
