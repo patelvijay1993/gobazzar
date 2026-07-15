@@ -327,7 +327,7 @@ footer.site-footer{background:var(--nav-bg);border-top:2px solid #2a4fa8;margin-
 <!-- SUBNAV -->
 <div class="subnav">
   <div class="subnav-inner">
-    @php $navClassifiedCats = \App\Models\Category::where('type','classifieds')->where('is_active',true)->orderBy('sort_order')->get(); @endphp
+    @php $navClassifiedCats = \App\Models\Category::where('type','classifieds')->where('is_active',true)->whereNull('parent_id')->with(['children'=>fn($q)=>$q->where('is_active',true)->orderBy('sort_order')])->orderBy('sort_order')->get(); @endphp
     <a href="{{ route('home') }}" class="{{ request()->routeIs('home') ? 'active' : '' }}">
       <i class="fa-solid fa-house"></i> Home
     </a>
@@ -368,7 +368,24 @@ footer.site-footer{background:var(--nav-bg);border-top:2px solid #2a4fa8;margin-
     <a href="{{ route('home') }}" class="drawer-link {{ request()->routeIs('home') ? 'active' : '' }}"><i class="fa-solid fa-house" style="width:18px"></i> Home</a>
     <a href="{{ route('classifieds.index') }}" class="drawer-link {{ request()->routeIs('classifieds.*') ? 'active' : '' }}"><i class="fa-solid fa-tag" style="width:18px"></i> Classifieds</a>
     @foreach($navClassifiedCats as $navCat)
-      <a href="{{ route('classifieds.index', ['category' => $navCat->id]) }}" class="drawer-link" style="padding-left:44px;font-size:13px;color:var(--muted);padding-top:8px;padding-bottom:8px">{{ $navCat->icon }} {{ $navCat->name }}</a>
+      @if($navCat->children->isNotEmpty())
+        <div class="drawer-link" style="cursor:pointer;justify-content:space-between" onclick="toggleDrawerCat({{ $navCat->id }},this)">
+          <span>{{ $navCat->icon }} {{ $navCat->name }}</span>
+          <i class="fa-solid fa-chevron-right" style="font-size:10px;color:var(--muted);transition:transform .2s" id="dcat-arrow-{{ $navCat->id }}"></i>
+        </div>
+        <div id="dcat-{{ $navCat->id }}" style="max-height:0;overflow:hidden;transition:max-height .3s ease">
+          <a href="{{ route('classifieds.index', ['category' => $navCat->id]) }}" class="drawer-link" style="padding-left:44px;font-size:12.5px;color:var(--muted);padding-top:7px;padding-bottom:7px">
+            — All {{ $navCat->name }}
+          </a>
+          @foreach($navCat->children as $child)
+            <a href="{{ route('classifieds.index', ['category' => $child->id]) }}" class="drawer-link" style="padding-left:44px;font-size:12.5px;color:var(--muted);padding-top:7px;padding-bottom:7px">
+              {{ $child->icon ?: '›' }} {{ $child->name }}
+            </a>
+          @endforeach
+        </div>
+      @else
+        <a href="{{ route('classifieds.index', ['category' => $navCat->id]) }}" class="drawer-link" style="padding-left:44px;font-size:13px;color:var(--muted);padding-top:8px;padding-bottom:8px">{{ $navCat->icon }} {{ $navCat->name }}</a>
+      @endif
     @endforeach
     <a href="{{ route('jobs.index') }}" class="drawer-link {{ request()->routeIs('jobs.*') ? 'active' : '' }}"><i class="fa-solid fa-briefcase" style="width:18px"></i> Jobs</a>
     <a href="{{ route('events.index') }}" class="drawer-link {{ request()->routeIs('events.*') ? 'active' : '' }}"><i class="fa-solid fa-calendar-days" style="width:18px"></i> Events</a>
@@ -1090,6 +1107,15 @@ function toggleDrawer() {
   drawer.classList.toggle('open', !isOpen);
   toggle.classList.toggle('open', !isOpen);
   document.body.style.overflow = isOpen ? '' : 'hidden';
+}
+
+function toggleDrawerCat(id, row) {
+  var panel = document.getElementById('dcat-' + id);
+  var arrow = document.getElementById('dcat-arrow-' + id);
+  if (!panel) return;
+  var isOpen = panel.style.maxHeight && panel.style.maxHeight !== '0px';
+  panel.style.maxHeight = isOpen ? '0px' : '2000px';
+  if (arrow) arrow.style.transform = isOpen ? '' : 'rotate(90deg)';
 }
 
 function navSearch() {
