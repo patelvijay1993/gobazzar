@@ -18,6 +18,7 @@ use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class SiteSettings extends Page implements HasForms
 {
@@ -751,22 +752,29 @@ class SiteSettings extends Page implements HasForms
         Setting::set('seo_site_title',          $this->seo_site_title);
         Setting::set('seo_tagline',             $this->seo_tagline);
         Setting::set('seo_meta_description',    $this->seo_meta_description);
-        // FileUpload returns array of paths; extract first item
+        // FileUpload returns array of temp paths — move to permanent location
         $ogRaw = $this->seo_og_image;
         if (is_array($ogRaw)) {
             $ogRaw = array_values(array_filter($ogRaw))[0] ?? '';
         }
-        $ogImage = (string) $ogRaw;
-        if ($ogImage && !str_starts_with($ogImage, 'http')) {
-            $ogImage = Storage::disk(config('filesystems.default'))->url($ogImage);
+        $ogPath = (string) $ogRaw;
+        $disk   = config('filesystems.default');
+        $ogImage = $this->seo_og_image_url; // default: keep existing
+
+        if ($ogPath && !str_starts_with($ogPath, 'http')) {
+            if (str_starts_with($ogPath, 'tmp/')) {
+                // Move from livewire temp dir to permanent seo/ directory
+                $ext     = pathinfo($ogPath, PATHINFO_EXTENSION) ?: 'png';
+                $newPath = 'seo/' . Str::uuid() . '.' . $ext;
+                Storage::disk($disk)->move($ogPath, $newPath);
+                $ogPath = $newPath;
+            }
+            $ogImage = Storage::disk($disk)->url($ogPath);
         }
-        // If nothing new uploaded, keep existing saved URL
-        if (!$ogImage) {
-            $ogImage = $this->seo_og_image_url;
-        }
+
         Setting::set('seo_og_image', $ogImage);
-        $this->seo_og_image     = []; // reset FileUpload to empty
-        $this->seo_og_image_url = $ogImage; // update preview
+        $this->seo_og_image     = [];
+        $this->seo_og_image_url = $ogImage;
         Setting::set('seo_google_verification', $this->seo_google_verification);
         Setting::set('seo_google_analytics',    $this->seo_google_analytics);
         Setting::set('seo_facebook_pixel',      $this->seo_facebook_pixel);
