@@ -758,6 +758,16 @@ class SiteSettings extends Page implements HasForms
             $ogImage = Storage::disk(config('filesystems.default'))->url($ogImage);
         }
         Setting::set('seo_og_image', $ogImage);
+        // Re-populate FileUpload state so it shows the saved image after save
+        if ($ogImage && str_starts_with($ogImage, 'http')) {
+            $parsed = parse_url($ogImage);
+            $path = ltrim($parsed['path'] ?? '', '/');
+            $bucket = config('filesystems.disks.s3.bucket', '');
+            if ($bucket && str_starts_with($path, $bucket . '/')) {
+                $path = substr($path, strlen($bucket) + 1);
+            }
+            $this->seo_og_image = $path ? [$path] : [];
+        }
         Setting::set('seo_google_verification', $this->seo_google_verification);
         Setting::set('seo_google_analytics',    $this->seo_google_analytics);
         Setting::set('seo_facebook_pixel',      $this->seo_facebook_pixel);
