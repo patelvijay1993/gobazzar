@@ -34,6 +34,13 @@ class SiteSettings extends Page implements HasForms
     public string $coming_soon_date            = '';
     public string $coming_soon_start_date      = '';
 
+    // Social Links
+    public string $social_facebook  = '';
+    public string $social_instagram = '';
+    public string $social_twitter   = '';
+    public string $social_whatsapp  = '';
+    public string $social_youtube   = '';
+
     // Contact Info
     public string $contact_support_email  = '';
     public string $contact_ads_email      = '';
@@ -85,6 +92,13 @@ class SiteSettings extends Page implements HasForms
         $this->maintenance_mode            = Setting::bool('maintenance_mode', false);
         $this->coming_soon_date            = Setting::get('coming_soon_date', '');
         $this->coming_soon_start_date      = Setting::get('coming_soon_start_date', '');
+
+        // Social Links
+        $this->social_facebook  = Setting::get('social_facebook', '');
+        $this->social_instagram = Setting::get('social_instagram', '');
+        $this->social_twitter   = Setting::get('social_twitter', '');
+        $this->social_whatsapp  = Setting::get('social_whatsapp', '');
+        $this->social_youtube   = Setting::get('social_youtube', '');
 
         // Contact Info
         $this->contact_support_email = Setting::get('contact_support_email', 'support@gobazaar.ca');
@@ -214,6 +228,37 @@ class SiteSettings extends Page implements HasForms
                             ->helperText('When ON — floating 🤖 button appears on all pages. Users can search listings, jobs, events by natural language.')
                             ->onColor('success')
                             ->offColor('danger'),
+                    ]),
+
+                Section::make('Social Media Links')
+                    ->description('Footer social media icons. Leave blank to hide.')
+                    ->icon('heroicon-o-share')
+                    ->collapsible()
+                    ->schema([
+                        Grid::make(2)->schema([
+                            TextInput::make('social_facebook')
+                                ->label('Facebook URL')
+                                ->placeholder('https://facebook.com/gobazaar')
+                                ->url()->maxLength(200),
+                            TextInput::make('social_instagram')
+                                ->label('Instagram URL')
+                                ->placeholder('https://instagram.com/gobazaar')
+                                ->url()->maxLength(200),
+                        ]),
+                        Grid::make(2)->schema([
+                            TextInput::make('social_twitter')
+                                ->label('Twitter / X URL')
+                                ->placeholder('https://x.com/gobazaar')
+                                ->url()->maxLength(200),
+                            TextInput::make('social_whatsapp')
+                                ->label('WhatsApp Number')
+                                ->placeholder('+1 437 000 0000')
+                                ->maxLength(20),
+                        ]),
+                        TextInput::make('social_youtube')
+                            ->label('YouTube URL')
+                            ->placeholder('https://youtube.com/@gobazaar')
+                            ->url()->maxLength(200),
                     ]),
 
                 Section::make('Contact Information')
@@ -529,6 +574,13 @@ class SiteSettings extends Page implements HasForms
         Setting::set('maintenance_mode', $this->maintenance_mode ? '1' : '0');
         Setting::set('coming_soon_date', $this->coming_soon_date ?? '');
         Setting::set('coming_soon_start_date', $this->coming_soon_start_date ?? '');
+
+        // Social Links
+        Setting::set('social_facebook',  $this->social_facebook);
+        Setting::set('social_instagram', $this->social_instagram);
+        Setting::set('social_twitter',   $this->social_twitter);
+        Setting::set('social_whatsapp',  $this->social_whatsapp);
+        Setting::set('social_youtube',   $this->social_youtube);
 
         // Contact Info
         Setting::set('contact_support_email', $this->contact_support_email);

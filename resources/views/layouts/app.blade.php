@@ -418,10 +418,24 @@ footer.site-footer{background:var(--nav-bg);border-top:2px solid #2a4fa8;margin-
       </div>
       <p>Canada's #1 Community Marketplace. Classifieds · Yellow Pages · Events · Jobs · Blog — everything your community needs, in one place.</p>
       <div class="footer-socials">
-        <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
-        <a href="#"><i class="fa-brands fa-instagram"></i></a>
-        <a href="#"><i class="fa-brands fa-twitter"></i></a>
-        <a href="#"><i class="fa-brands fa-whatsapp"></i></a>
+        @php
+          $sf = \App\Models\Setting::get('social_facebook','');
+          $si = \App\Models\Setting::get('social_instagram','');
+          $st = \App\Models\Setting::get('social_twitter','');
+          $sw = \App\Models\Setting::get('social_whatsapp','');
+          $sy = \App\Models\Setting::get('social_youtube','');
+        @endphp
+        @if($sf)<a href="{{ $sf }}" target="_blank" rel="noopener"><i class="fa-brands fa-facebook-f"></i></a>@endif
+        @if($si)<a href="{{ $si }}" target="_blank" rel="noopener"><i class="fa-brands fa-instagram"></i></a>@endif
+        @if($st)<a href="{{ $st }}" target="_blank" rel="noopener"><i class="fa-brands fa-twitter"></i></a>@endif
+        @if($sw)<a href="https://wa.me/{{ preg_replace('/\D/','',$sw) }}" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i></a>@endif
+        @if($sy)<a href="{{ $sy }}" target="_blank" rel="noopener"><i class="fa-brands fa-youtube"></i></a>@endif
+        @if(!$sf && !$si && !$st && !$sw && !$sy)
+          <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
+          <a href="#"><i class="fa-brands fa-instagram"></i></a>
+          <a href="#"><i class="fa-brands fa-twitter"></i></a>
+          <a href="#"><i class="fa-brands fa-whatsapp"></i></a>
+        @endif
       </div>
     </div>
     <div class="footer-col">
