@@ -55,7 +55,8 @@ class SiteSettings extends Page implements HasForms
     public string $seo_site_title         = '';
     public string $seo_tagline            = '';
     public string $seo_meta_description   = '';
-    public mixed $seo_og_image            = '';
+    public mixed  $seo_og_image            = '';
+    public string $seo_og_image_url        = ''; // saved URL shown as preview
     public string $seo_google_verification = '';
     public string $seo_google_analytics   = '';
     public string $seo_facebook_pixel     = '';
@@ -122,19 +123,8 @@ class SiteSettings extends Page implements HasForms
         $this->seo_site_title          = Setting::get('seo_site_title', 'GoBazaar');
         $this->seo_tagline             = Setting::get('seo_tagline', "Canada's #1 Community Marketplace");
         $this->seo_meta_description    = Setting::get('seo_meta_description', '');
-        // FileUpload expects array of relative paths
-        $ogUrl = Setting::get('seo_og_image', '');
-        if ($ogUrl && str_starts_with($ogUrl, 'http')) {
-            $parsed = parse_url($ogUrl);
-            $path = ltrim($parsed['path'] ?? '', '/');
-            $bucket = config('filesystems.disks.s3.bucket', '');
-            if ($bucket && str_starts_with($path, $bucket . '/')) {
-                $path = substr($path, strlen($bucket) + 1);
-            }
-            $this->seo_og_image = $path ? [$path] : [];
-        } else {
-            $this->seo_og_image = $ogUrl ? [$ogUrl] : [];
-        }
+        $this->seo_og_image     = []; // FileUpload always starts empty; preview shown via seo_og_image_url
+        $this->seo_og_image_url = Setting::get('seo_og_image', '');
         $this->seo_google_verification = Setting::get('seo_google_verification', '');
         $this->seo_google_analytics    = Setting::get('seo_google_analytics', '');
         $this->seo_facebook_pixel      = Setting::get('seo_facebook_pixel', '');
@@ -345,8 +335,17 @@ class SiteSettings extends Page implements HasForms
                             ->rows(2)
                             ->maxLength(200),
 
+                        Forms\Components\Placeholder::make('og_image_preview')
+                            ->label('Current OG Image')
+                            ->content(fn () => $this->seo_og_image_url
+                                ? new \Illuminate\Support\HtmlString('<img src="'.$this->seo_og_image_url.'" style="max-width:100%;height:auto;border-radius:8px;border:1px solid #e5e7eb">')
+                                : new \Illuminate\Support\HtmlString('<span style="color:#9ca3af;font-size:13px">No image set</span>')
+                            )
+                            ->columnSpanFull()
+                            ->visible(fn () => !empty($this->seo_og_image_url)),
+
                         Forms\Components\FileUpload::make('seo_og_image')
-                            ->label('Default OG Image')
+                            ->label(fn () => $this->seo_og_image_url ? 'Replace OG Image' : 'Upload OG Image')
                             ->helperText('Upload JPG/PNG/WebP · Max 2MB · Recommended 1200×630px · Stored on S3')
                             ->image()
                             ->disk(config('filesystems.default'))
@@ -757,17 +756,13 @@ class SiteSettings extends Page implements HasForms
         if ($ogImage && !str_starts_with($ogImage, 'http')) {
             $ogImage = Storage::disk(config('filesystems.default'))->url($ogImage);
         }
-        Setting::set('seo_og_image', $ogImage);
-        // Re-populate FileUpload state so it shows the saved image after save
-        if ($ogImage && str_starts_with($ogImage, 'http')) {
-            $parsed = parse_url($ogImage);
-            $path = ltrim($parsed['path'] ?? '', '/');
-            $bucket = config('filesystems.disks.s3.bucket', '');
-            if ($bucket && str_starts_with($path, $bucket . '/')) {
-                $path = substr($path, strlen($bucket) + 1);
-            }
-            $this->seo_og_image = $path ? [$path] : [];
+        // If nothing new uploaded, keep existing saved URL
+        if (!$ogImage) {
+            $ogImage = $this->seo_og_image_url;
         }
+        Setting::set('seo_og_image', $ogImage);
+        $this->seo_og_image     = []; // reset FileUpload to empty
+        $this->seo_og_image_url = $ogImage; // update preview
         Setting::set('seo_google_verification', $this->seo_google_verification);
         Setting::set('seo_google_analytics',    $this->seo_google_analytics);
         Setting::set('seo_facebook_pixel',      $this->seo_facebook_pixel);
