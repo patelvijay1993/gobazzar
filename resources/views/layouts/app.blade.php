@@ -467,7 +467,7 @@ footer.site-footer{background:var(--nav-bg);border-top:2px solid #2a4fa8;margin-
 {{-- AI ASSISTANT FLOATING BUTTON --}}
 @if(\App\Models\Setting::bool('ai_assistant_enabled', true))
 <style>
-.ai-fab{position:fixed;bottom:80px;right:80px;z-index:500;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+.ai-fab{position:fixed;bottom:80px;right:16px;z-index:500;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
 .ai-fab-btn{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#1a3a8f,#2d5be3);color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 4px 16px rgba(26,58,143,.4);transition:transform .2s,box-shadow .2s}
 .ai-fab-btn:hover{transform:scale(1.08);box-shadow:0 6px 24px rgba(26,58,143,.5)}
 .ai-fab-btn .ai-pulse{position:absolute;width:52px;height:52px;border-radius:50%;background:rgba(26,58,143,.3);animation:aiPulse 2s infinite}
