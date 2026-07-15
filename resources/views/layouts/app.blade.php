@@ -59,7 +59,7 @@
   --fh:'Baloo 2',sans-serif;--fb:'Noto Sans',sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--fb);background:var(--bg);color:var(--text);font-size:14px;line-height:1.5}
+body{font-family:var(--fb);background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;overflow-x:hidden}
 a{text-decoration:none;color:inherit}
 button{cursor:pointer;font-family:var(--fb)}
 input,select,textarea{font-family:var(--fb);outline:none}
@@ -101,7 +101,8 @@ input,select,textarea{font-family:var(--fb);outline:none}
 
 /* ── SUBNAV ── */
 .subnav{background:#fff;border-bottom:2px solid var(--border)}
-.subnav-inner{max-width:1280px;margin:0 auto;padding:0 20px;display:flex;gap:0;overflow-x:auto}
+.subnav-inner{max-width:1280px;margin:0 auto;padding:0 20px;display:flex;gap:0;overflow-x:auto;scrollbar-width:none}
+.subnav-inner::-webkit-scrollbar{display:none}
 .subnav a{display:flex;align-items:center;gap:6px;padding:11px 14px;font-size:13px;color:#555;white-space:nowrap;border-bottom:3px solid transparent;font-weight:500;transition:color .15s,border-color .15s}
 .subnav a:hover{color:var(--primary)}
 .subnav a.active{color:var(--primary);border-bottom-color:var(--primary)}
