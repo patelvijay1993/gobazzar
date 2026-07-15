@@ -15,6 +15,18 @@
 .filter-item{display:flex;align-items:center;padding:9px 14px;font-size:13px;transition:background .12s;gap:9px;color:var(--text);text-decoration:none;border-left:3px solid transparent}
 .filter-item:hover{background:var(--primary-light);color:var(--primary);border-left-color:var(--primary)}
 .filter-item.active{color:var(--primary);font-weight:600;background:var(--primary-light);border-left-color:var(--primary)}
+.cat-group{border-bottom:1px solid var(--border)}
+.cat-group:last-child{border-bottom:none}
+.cat-parent-row{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;font-size:13px;cursor:pointer;gap:9px;color:var(--text);border-left:3px solid transparent;transition:background .12s}
+.cat-parent-row:hover{background:var(--primary-light);color:var(--primary);border-left-color:var(--primary)}
+.cat-parent-row.active{color:var(--primary);font-weight:600;background:var(--primary-light);border-left-color:var(--primary)}
+.cat-toggle-btn{background:none;border:none;padding:0;color:var(--muted);font-size:10px;cursor:pointer;transition:transform .2s;flex-shrink:0}
+.cat-toggle-btn.open{transform:rotate(90deg)}
+.cat-subs{max-height:0;overflow:hidden;transition:max-height .3s ease;background:var(--bg)}
+.cat-subs.open{max-height:2000px}
+.cat-sub-item{display:flex;align-items:center;padding:7px 14px 7px 36px;font-size:12px;color:var(--muted);text-decoration:none;border-left:3px solid transparent;transition:background .12s}
+.cat-sub-item:hover{background:var(--primary-light);color:var(--primary);border-left-color:var(--primary)}
+.cat-sub-item.active{color:var(--primary);font-weight:600;background:var(--primary-light);border-left-color:var(--primary)}
 
 /* ── MOBILE TOGGLE ── */
 .mobile-filter-toggle{display:none;width:100%;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-sm);padding:11px 16px;font-size:13px;font-weight:600;margin-bottom:12px;cursor:pointer;align-items:center;gap:8px}
@@ -105,10 +117,36 @@
           <i class="fa-solid fa-briefcase" style="width:16px;font-size:12px;color:var(--muted)"></i> All Jobs
         </a>
         @foreach($categories as $cat)
-          <a href="{{ route('jobs.index', array_merge(request()->except('page'), ['category' => $cat->id])) }}"
-             class="filter-item {{ request('category') == $cat->id ? 'active' : '' }}">
-            <span style="width:16px;text-align:center">{{ $cat->icon }}</span> {{ $cat->name }}
-          </a>
+          @php
+            $catActive = request('category') == $cat->id || $cat->children->contains('id', (int)request('category'));
+          @endphp
+          @if($cat->children->isNotEmpty())
+            <div class="cat-group">
+              <div class="cat-parent-row {{ $catActive ? 'active' : '' }}" onclick="toggleCat({{ $cat->id }})">
+                <a href="{{ route('jobs.index', array_merge(request()->except('page'), ['category' => $cat->id])) }}"
+                   style="display:flex;align-items:center;gap:9px;flex:1;color:inherit;text-decoration:none"
+                   onclick="event.stopPropagation()">
+                  <span style="width:16px;text-align:center">{{ $cat->icon }}</span> {{ $cat->name }}
+                </a>
+                <button class="cat-toggle-btn {{ $catActive ? 'open' : '' }}" id="cat-btn-{{ $cat->id }}">
+                  <i class="fa-solid fa-chevron-right"></i>
+                </button>
+              </div>
+              <div class="cat-subs {{ $catActive ? 'open' : '' }}" id="cat-subs-{{ $cat->id }}">
+                @foreach($cat->children as $sub)
+                  <a href="{{ route('jobs.index', array_merge(request()->except('page'), ['category' => $sub->id])) }}"
+                     class="cat-sub-item {{ request('category') == $sub->id ? 'active' : '' }}">
+                    › {{ $sub->name }}
+                  </a>
+                @endforeach
+              </div>
+            </div>
+          @else
+            <a href="{{ route('jobs.index', array_merge(request()->except('page'), ['category' => $cat->id])) }}"
+               class="filter-item {{ $catActive ? 'active' : '' }}">
+              <span style="width:16px;text-align:center">{{ $cat->icon }}</span> {{ $cat->name }}
+            </a>
+          @endif
         @endforeach
       </div>
     </div>
@@ -291,5 +329,26 @@
   <x-ad-slot position="sidebar" :ads="$ads" />
 </div>
 @endif
+
+@push('scripts')
+<script>
+function toggleCat(id) {
+  var subs = document.getElementById('cat-subs-' + id);
+  var btn  = document.getElementById('cat-btn-' + id);
+  if (!subs) return;
+  var open = subs.classList.contains('open');
+  subs.classList.toggle('open', !open);
+  if (btn) btn.classList.toggle('open', !open);
+}
+function clearLocation() {
+  var url = new URL(window.location.href);
+  url.searchParams.delete('province');
+  url.searchParams.delete('city');
+  url.searchParams.delete('page');
+  window.location.href = url.toString();
+}
+function clearAllFilters() { window.location.href = '{{ route("jobs.index") }}'; }
+</script>
+@endpush
 
 @endsection

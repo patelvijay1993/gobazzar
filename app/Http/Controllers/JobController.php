@@ -15,7 +15,9 @@ class JobController extends Controller
 {
     public function index(Request $request)
     {
-        $categories = Category::where('type', 'jobs')->where('is_active', true)->orderBy('sort_order')->get();
+        $categories = Category::where('type', 'jobs')->where('is_active', true)->whereNull('parent_id')
+            ->with(['children' => fn ($q) => $q->where('is_active', true)->orderBy('sort_order')])
+            ->orderBy('sort_order')->get();
 
         $jobs = Job::with('category')
             ->live()
