@@ -338,7 +338,11 @@ class SiteSettings extends Page implements HasForms
                         Forms\Components\Placeholder::make('og_image_preview')
                             ->label('Current OG Image')
                             ->content(fn () => $this->seo_og_image_url
-                                ? new \Illuminate\Support\HtmlString('<img src="'.$this->seo_og_image_url.'" style="max-width:100%;height:auto;border-radius:8px;border:1px solid #e5e7eb">')
+                                ? new \Illuminate\Support\HtmlString(
+                                    '<img src="'.e($this->seo_og_image_url).'" style="max-width:100%;height:auto;border-radius:8px;border:1px solid #e5e7eb" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'block\'">'
+                                    .'<div style="display:none;padding:10px;background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;font-size:12px;color:#dc2626;word-break:break-all">'
+                                    .'⚠️ Image could not load. Saved URL:<br><code>'.e($this->seo_og_image_url).'</code></div>'
+                                )
                                 : new \Illuminate\Support\HtmlString('<span style="color:#9ca3af;font-size:13px">No image set</span>')
                             )
                             ->columnSpanFull()
