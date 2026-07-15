@@ -762,13 +762,29 @@ class SiteSettings extends Page implements HasForms
         $ogImage = $this->seo_og_image_url; // default: keep existing
 
         if ($ogPath && !str_starts_with($ogPath, 'http')) {
-            // Move from livewire temp dir to permanent seo/ directory with public visibility
-            $ext     = pathinfo($ogPath, PATHINFO_EXTENSION) ?: 'png';
-            $newPath = 'seo/' . Str::uuid() . '.' . $ext;
-            $contents = Storage::disk($disk)->get($ogPath);
-            Storage::disk($disk)->put($newPath, $contents, 'public');
-            Storage::disk($disk)->delete($ogPath);
-            $ogImage = Storage::disk($disk)->url($newPath);
+            try {
+                $ext     = pathinfo($ogPath, PATHINFO_EXTENSION) ?: 'png';
+                $newPath = 'seo/' . Str::uuid() . '.' . $ext;
+
+                // Livewire stores tmp files on local disk; final dest is $disk (s3 or public)
+                if (Storage::disk($disk)->exists($ogPath)) {
+                    // Already on target disk (local/public flow)
+                    $contents = Storage::disk($disk)->get($ogPath);
+                    Storage::disk($disk)->put($newPath, $contents, 'public');
+                    Storage::disk($disk)->delete($ogPath);
+                } else {
+                    // Tmp file is on local disk (livewire default)
+                    $localPath = storage_path('app/' . $ogPath);
+                    if (file_exists($localPath)) {
+                        Storage::disk($disk)->put($newPath, file_get_contents($localPath), 'public');
+                        @unlink($localPath);
+                    }
+                }
+                $ogImage = Storage::disk($disk)->url($newPath);
+            } catch (\Exception $e) {
+                // Log but don't crash — keep existing image
+                \Log::error('OG image move failed: ' . $e->getMessage());
+            }
         }
 
         Setting::set('seo_og_image', $ogImage);
