@@ -768,15 +768,15 @@ class SiteSettings extends Page implements HasForms
 
                 // Livewire stores tmp files on local disk; final dest is $disk (s3 or public)
                 if (Storage::disk($disk)->exists($ogPath)) {
-                    // Already on target disk (local/public flow)
+                    // Already on target disk — copy to permanent path
                     $contents = Storage::disk($disk)->get($ogPath);
-                    Storage::disk($disk)->put($newPath, $contents, 'public');
+                    Storage::disk($disk)->put($newPath, $contents, ['visibility' => 'public']);
                     Storage::disk($disk)->delete($ogPath);
                 } else {
                     // Tmp file is on local disk (livewire default)
                     $localPath = storage_path('app/' . $ogPath);
                     if (file_exists($localPath)) {
-                        Storage::disk($disk)->put($newPath, file_get_contents($localPath), 'public');
+                        Storage::disk($disk)->put($newPath, file_get_contents($localPath), ['visibility' => 'public']);
                         @unlink($localPath);
                     }
                 }
