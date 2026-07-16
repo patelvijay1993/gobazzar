@@ -129,4 +129,11 @@ class BusinessController extends Controller
 
         return view('directory.post', compact('business', 'post', 'morePosts', 'fieldLabels'));
     }
+
+    public function toggleChat(Request $request, Business $business)
+    {
+        abort_if($request->user()->id !== $business->user_id, 403);
+        $business->update(['chat_enabled' => !$business->chat_enabled]);
+        return back()->with('success', $business->chat_enabled ? 'Chat enabled for your business.' : 'Chat disabled for your business.');
+    }
 }

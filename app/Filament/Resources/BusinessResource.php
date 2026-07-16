@@ -115,6 +115,10 @@ class BusinessResource extends Resource
                     ->helperText('Auto-calculated. Edit only to override.'),
                 Forms\Components\Toggle::make('is_verified'),
                 Forms\Components\Toggle::make('is_featured'),
+                Forms\Components\Toggle::make('chat_enabled')
+                    ->label('Chat Enabled')
+                    ->helperText('Allow visitors to chat with this business. Business owner can also toggle this.')
+                    ->default(false),
             ])->columns(4),
         ]);
     }
@@ -143,6 +147,7 @@ class BusinessResource extends Resource
                     }),
                 Tables\Columns\IconColumn::make('is_verified')->boolean(),
                 Tables\Columns\IconColumn::make('is_featured')->boolean(),
+                Tables\Columns\ToggleColumn::make('chat_enabled')->label('Chat'),
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([

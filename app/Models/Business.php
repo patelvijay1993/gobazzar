@@ -16,17 +16,18 @@ class Business extends Model
         'user_id', 'category_id', 'subcategory_id', 'name', 'slug', 'description', 'image', 'images', 'logo',
         'address', 'city', 'province', 'postal_code', 'phone', 'email', 'website', 'map_url',
         'tags', 'social', 'rating', 'review_count', 'is_verified', 'is_featured',
-        'status', 'hours',
+        'status', 'hours', 'chat_enabled',
     ];
 
     protected $casts = [
-        'tags'        => 'array',
-        'images'      => 'array',
-        'social'      => 'array',
-        'hours'       => 'array',
-        'is_verified' => 'boolean',
-        'is_featured' => 'boolean',
-        'rating'      => 'decimal:1',
+        'tags'         => 'array',
+        'images'       => 'array',
+        'social'       => 'array',
+        'hours'        => 'array',
+        'is_verified'  => 'boolean',
+        'is_featured'  => 'boolean',
+        'chat_enabled' => 'boolean',
+        'rating'       => 'decimal:1',
     ];
 
     public function category(): BelongsTo

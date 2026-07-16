@@ -229,12 +229,14 @@ Route::get('/seller/{user}', [ListingController::class, 'sellerProfile'])->name(
 
 Route::prefix('directory')->name('directory.')->group(function () {
     Route::get('/', [BusinessController::class, 'index'])->name('index');
-    // Sub-category listing of businesses under a category
     Route::get('/category/{category:slug}', [BusinessController::class, 'category'])->name('category');
     Route::get('/{business:slug}', [BusinessController::class, 'show'])->name('show');
-    // Single business post (Home › Category › Sub › Business › Post)
     Route::get('/{business:slug}/{post:slug}', [BusinessController::class, 'showPost'])->name('post');
 });
+
+Route::patch('/business/{business}/toggle-chat', [BusinessController::class, 'toggleChat'])
+    ->name('business.toggle-chat')
+    ->middleware('auth');
 
 Route::prefix('events')->name('events.')->group(function () {
     Route::get('/', [EventController::class, 'index'])->name('index');

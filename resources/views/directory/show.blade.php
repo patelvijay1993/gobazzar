@@ -253,16 +253,32 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
     <div class="sidebar-card">
       <div class="sidebar-head">Contact</div>
       <div class="sidebar-body">
-        @auth
-          @if(Auth::id() !== $business->user_id)
-            <button onclick="gcOpen('{{ route('chat.open.business', $business) }}')" class="biz-btn biz-btn-primary" style="background:var(--green);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;cursor:pointer;border:none">
+        {{-- Chat button: only show if chat_enabled --}}
+        @if($business->chat_enabled)
+          @auth
+            @if(Auth::id() !== $business->user_id)
+              <button onclick="gcOpen('{{ route('chat.open.business', $business) }}')" class="biz-btn biz-btn-primary" style="background:var(--green);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;cursor:pointer;border:none">
+                <i class="fa-solid fa-comments"></i> Chat with Business
+              </button>
+            @endif
+          @else
+            <a href="{{ route('login') }}" class="biz-btn biz-btn-primary" style="background:var(--green);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:8px">
               <i class="fa-solid fa-comments"></i> Chat with Business
-            </button>
+            </a>
+          @endauth
+        @endif
+
+        {{-- Owner toggle for chat --}}
+        @auth
+          @if(Auth::id() === $business->user_id)
+            <form method="POST" action="{{ route('business.toggle-chat', $business) }}" style="margin-bottom:8px">
+              @csrf @method('PATCH')
+              <button type="submit" class="biz-btn {{ $business->chat_enabled ? 'biz-btn-outline' : 'biz-btn-primary' }}" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;font-size:12.5px">
+                <i class="fa-solid fa-comments"></i>
+                {{ $business->chat_enabled ? '💬 Chat ON — Click to Disable' : '💬 Chat OFF — Click to Enable' }}
+              </button>
+            </form>
           @endif
-        @else
-          <a href="{{ route('login') }}" class="biz-btn biz-btn-primary" style="background:var(--green);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:8px">
-            <i class="fa-solid fa-comments"></i> Chat with Business
-          </a>
         @endauth
         @if($business->phone && !optional($business->user)->hide_phone)
           <a href="tel:{{ $business->phone }}" class="biz-btn biz-btn-primary"><i class="fa-solid fa-phone"></i> {{ $business->phone }}</a>
