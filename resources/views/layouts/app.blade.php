@@ -16,8 +16,10 @@
 <meta property="og:description" content="@yield('og_description', 'GoBazaar — Canada\'s #1 Community Marketplace. Find classifieds, jobs, events, businesses and more.')">
 <meta property="og:url"         content="@yield('canonical', url()->current())">
 <meta property="og:image"       content="@yield('og_image', \App\Models\Setting::get('seo_og_image') ?: asset('images/og-default.jpg'))">
+<meta property="og:image:url"    content="@yield('og_image', \App\Models\Setting::get('seo_og_image') ?: asset('images/og-default.jpg'))">
 <meta property="og:image:width"  content="1200">
 <meta property="og:image:height" content="630">
+<meta property="og:image:type"   content="image/jpeg">
 <meta property="og:locale"      content="en_CA">
 
 {{-- Twitter Card --}}
