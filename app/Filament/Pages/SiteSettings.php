@@ -361,18 +361,14 @@ class SiteSettings extends Page implements HasForms
                             ->columnSpanFull()
                             ->visible(fn () => !empty($this->seo_og_image_url)),
 
-                        Forms\Components\FileUpload::make('seo_og_image')
-                            ->label(fn () => $this->seo_og_image_url ? 'Replace OG Image' : 'Upload OG Image')
-                            ->helperText('Upload JPG/PNG/WebP · Max 2MB · Recommended 1200×630px · Saved to local storage')
-                            ->image()
-                            ->disk('public')
-                            ->directory('seo')
-                            ->visibility('public')
-                            ->imageCropAspectRatio('1.91:1')
-                            ->imageResizeTargetWidth('1200')
-                            ->imageResizeTargetHeight('630')
-                            ->maxSize(2048)
-                            ->acceptedFileTypes(['image/jpeg','image/png','image/webp'])
+                        Forms\Components\Placeholder::make('og_image_upload_notice')
+                            ->label('Upload / Replace OG Image')
+                            ->content(new \Illuminate\Support\HtmlString(
+                                '<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:12px 16px;font-size:13px;color:#1d4ed8">'
+                                .'<strong>👇 Use the OG Image Upload form below the Save button</strong> to upload a new image. '
+                                .'It saves directly to local server storage — no S3 required.'
+                                .'</div>'
+                            ))
                             ->columnSpanFull(),
 
                         TextInput::make('seo_google_verification')
@@ -811,44 +807,9 @@ class SiteSettings extends Page implements HasForms
         Setting::set('seo_site_title',          $this->seo_site_title);
         Setting::set('seo_tagline',             $this->seo_tagline);
         Setting::set('seo_meta_description',    $this->seo_meta_description);
-        // FileUpload returns array of temp paths — move to permanent location
-        $ogRaw = $this->seo_og_image;
-        if (is_array($ogRaw)) {
-            $ogRaw = array_values(array_filter($ogRaw))[0] ?? '';
-        }
-        $ogPath  = (string) $ogRaw;
-        $ogImage = $this->seo_og_image_url; // default: keep existing
-
-        if ($ogPath && !str_starts_with($ogPath, 'http')) {
-            try {
-                $ext     = pathinfo($ogPath, PATHINFO_EXTENSION) ?: 'png';
-                $newPath = 'seo/' . Str::uuid() . '.' . $ext;
-
-                // Always save OG image to local public disk regardless of FILESYSTEM_DISK
-                $contents = null;
-                if (Storage::disk('public')->exists($ogPath)) {
-                    $contents = Storage::disk('public')->get($ogPath);
-                    Storage::disk('public')->delete($ogPath);
-                } elseif (file_exists(storage_path('app/' . $ogPath))) {
-                    $contents = file_get_contents(storage_path('app/' . $ogPath));
-                    @unlink(storage_path('app/' . $ogPath));
-                } elseif (file_exists(storage_path('app/public/' . $ogPath))) {
-                    $contents = file_get_contents(storage_path('app/public/' . $ogPath));
-                    @unlink(storage_path('app/public/' . $ogPath));
-                }
-
-                if ($contents) {
-                    Storage::disk('public')->put($newPath, $contents);
-                    $ogImage = Storage::disk('public')->url($newPath);
-                }
-            } catch (\Exception $e) {
-                \Log::error('OG image save failed: ' . $e->getMessage());
-            }
-        }
-
-        Setting::set('seo_og_image', $ogImage);
-        $this->seo_og_image     = [];
-        $this->seo_og_image_url = $ogImage;
+        // OG image is handled by the standalone upload form (route admin.og-image.upload)
+        // Just reload the current saved URL so the preview stays fresh
+        $this->seo_og_image_url = Setting::get('seo_og_image', '');
         Setting::set('seo_google_verification', $this->seo_google_verification);
         Setting::set('seo_google_analytics',    $this->seo_google_analytics);
         Setting::set('seo_facebook_pixel',      $this->seo_facebook_pixel);

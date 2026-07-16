@@ -258,6 +258,18 @@ Route::prefix('blog')->name('blog.')->group(function () {
     Route::get('/{post:slug}', [BlogController::class, 'show'])->name('show');
 });
 
+// Admin OG image upload (separate from Livewire form)
+Route::post('/admin/og-image/upload', function (\Illuminate\Http\Request $request) {
+    abort_unless(auth()->check() && auth()->user()->is_admin, 403);
+    $request->validate(['og_image' => 'required|image|max:2048|mimes:jpeg,png,webp']);
+    $file    = $request->file('og_image');
+    $newPath = 'seo/' . \Illuminate\Support\Str::uuid() . '.' . $file->getClientOriginalExtension();
+    \Illuminate\Support\Facades\Storage::disk('public')->put($newPath, file_get_contents($file->getRealPath()));
+    $url = \Illuminate\Support\Facades\Storage::disk('public')->url($newPath);
+    \App\Models\Setting::set('seo_og_image', $url);
+    return back()->with('og_success', 'OG image updated successfully.');
+})->name('admin.og-image.upload')->middleware('auth');
+
 // Admin listing image remove (used inside Filament edit form)
 Route::delete('/admin/listing/{id}/remove-image', function (\Illuminate\Http\Request $request, $id) {
     abort_unless(auth()->check() && auth()->user()->is_admin, 403);
