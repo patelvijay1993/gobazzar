@@ -304,7 +304,7 @@ footer.site-footer{background:var(--nav-bg);border-top:2px solid #2a4fa8;margin-
           <i class="fa-solid fa-comments"></i>
           <span class="nav-badge" id="nav-chat-badge" style="display:none">0</span>
         </a>
-        <a href="{{ route('post.create') }}" class="nav-post-btn"><i class="fa-solid fa-plus"></i> Post Free Ad</a>
+        <a href="{{ route('post.create') }}" class="nav-post-btn"><i class="fa-solid fa-plus"></i> Post Your Ad</a>
         <a href="{{ route('account') }}" class="nav-user">
           @if(Auth::user()->avatar_url)
             <img src="{{ Auth::user()->avatar_url }}" class="nav-avatar" style="object-fit:cover;padding:0" alt="{{ Auth::user()->name }}">
@@ -320,7 +320,7 @@ footer.site-footer{background:var(--nav-bg);border-top:2px solid #2a4fa8;margin-
         <button type="submit" form="nav-logout-form" class="nav-auth-link" style="background:none;border:none;padding:0;cursor:pointer">Logout</button>
       @else
         <a href="{{ route('login') }}" class="nav-auth-link">Login</a>
-        <a href="{{ route('post.create') }}" class="nav-post-btn"><i class="fa-solid fa-plus"></i> Post Free Ad</a>
+        <a href="{{ route('post.create') }}" class="nav-post-btn"><i class="fa-solid fa-plus"></i> Post Your Ad</a>
       @endauth
     </div>
   </div>
@@ -492,14 +492,14 @@ footer.site-footer{background:var(--nav-bg);border-top:2px solid #2a4fa8;margin-
     <div class="drawer-divider"></div>
     <div class="drawer-actions">
       @auth
-        <a href="{{ route('post.create') }}" class="drawer-btn drawer-btn-primary"><i class="fa-solid fa-plus"></i> Post Free Ad</a>
+        <a href="{{ route('post.create') }}" class="drawer-btn drawer-btn-primary"><i class="fa-solid fa-plus"></i> Post Your Ad</a>
         <a href="{{ route('account') }}" class="drawer-btn drawer-btn-outline">👤 My Account</a>
         <form id="drawer-logout-form" action="{{ route('logout') }}" method="POST">
           @csrf
         </form>
         <button type="submit" form="drawer-logout-form" class="drawer-btn drawer-btn-outline" style="width:100%;border:1.5px solid var(--border);border-radius:var(--radius-sm)">Logout</button>
       @else
-        <a href="{{ route('post.create') }}" class="drawer-btn drawer-btn-primary"><i class="fa-solid fa-plus"></i> Post Free Ad</a>
+        <a href="{{ route('post.create') }}" class="drawer-btn drawer-btn-primary"><i class="fa-solid fa-plus"></i> Post Your Ad</a>
         <a href="{{ route('register') }}" class="drawer-btn drawer-btn-outline">Register Free</a>
         <a href="{{ route('login') }}" class="drawer-btn drawer-btn-outline">Login</a>
       @endauth
@@ -554,7 +554,7 @@ footer.site-footer{background:var(--nav-bg);border-top:2px solid #2a4fa8;margin-
     <div class="footer-col">
       <h4>Quick Links</h4>
       <a href="{{ route('home') }}">Home</a>
-      <a href="{{ route('post.create') }}">Post Free Ad</a>
+      <a href="{{ route('post.create') }}">Post Your Ad</a>
       <a href="{{ route('classifieds.index') }}">Classifieds</a>
       <a href="{{ route('jobs.index') }}">Jobs</a>
       <a href="{{ route('events.index') }}">Events</a>

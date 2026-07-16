@@ -380,7 +380,7 @@ $heroLocLabel = request('city') ?: request('province');
         <div class="hcard-icon-row">
           <div class="hcard-icon"><i class="fa-solid fa-bullhorn"></i></div>
           <div>
-            <div class="hcard-title">Post an Ad for Free</div>
+            <div class="hcard-title">Post Your Ad</div>
             <div class="hcard-sub">Reach thousands of local buyers & sellers</div>
           </div>
         </div>
@@ -675,11 +675,11 @@ $heroLocLabel = request('city') ?: request('province');
 
   {{-- POST AD --}}
   <div class="sb-card">
-    <div class="sb-head"><i class="fa-solid fa-bullhorn"></i> Post your ad</div>
+    <div class="sb-head"><i class="fa-solid fa-bullhorn"></i> Post Your Ad</div>
     @auth
-      <a href="{{ route('post.create') }}" class="post-btn"><i class="fa-solid fa-plus"></i> Post an Ad for Free</a>
+      <a href="{{ route('post.create') }}" class="post-btn"><i class="fa-solid fa-plus"></i> Post Your Ad</a>
     @else
-      <a href="{{ route('register') }}" class="post-btn"><i class="fa-solid fa-plus"></i> Post an Ad for Free</a>
+      <a href="{{ route('register') }}" class="post-btn"><i class="fa-solid fa-plus"></i> Post Your Ad</a>
     @endauth
     <div class="free-note"><i class="fa-solid fa-circle-check"></i> 100% free · No hidden fees · Instant</div>
   </div>
