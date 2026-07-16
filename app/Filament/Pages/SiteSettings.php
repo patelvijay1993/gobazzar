@@ -363,9 +363,9 @@ class SiteSettings extends Page implements HasForms
 
                         Forms\Components\FileUpload::make('seo_og_image')
                             ->label(fn () => $this->seo_og_image_url ? 'Replace OG Image' : 'Upload OG Image')
-                            ->helperText('Upload JPG/PNG/WebP · Max 2MB · Recommended 1200×630px · Stored on S3')
+                            ->helperText('Upload JPG/PNG/WebP · Max 2MB · Recommended 1200×630px · Saved to local storage')
                             ->image()
-                            ->disk(config('filesystems.default'))
+                            ->disk('public')
                             ->directory('seo')
                             ->visibility('public')
                             ->imageCropAspectRatio('1.91:1')
@@ -816,8 +816,7 @@ class SiteSettings extends Page implements HasForms
         if (is_array($ogRaw)) {
             $ogRaw = array_values(array_filter($ogRaw))[0] ?? '';
         }
-        $ogPath = (string) $ogRaw;
-        $disk   = config('filesystems.default');
+        $ogPath  = (string) $ogRaw;
         $ogImage = $this->seo_og_image_url; // default: keep existing
 
         if ($ogPath && !str_starts_with($ogPath, 'http')) {
@@ -825,24 +824,25 @@ class SiteSettings extends Page implements HasForms
                 $ext     = pathinfo($ogPath, PATHINFO_EXTENSION) ?: 'png';
                 $newPath = 'seo/' . Str::uuid() . '.' . $ext;
 
-                // Livewire stores tmp files on local disk; final dest is $disk (s3 or public)
-                if (Storage::disk($disk)->exists($ogPath)) {
-                    // Already on target disk — copy to permanent path
-                    $contents = Storage::disk($disk)->get($ogPath);
-                    Storage::disk($disk)->put($newPath, $contents, ['visibility' => 'public']);
-                    Storage::disk($disk)->delete($ogPath);
-                } else {
-                    // Tmp file is on local disk (livewire default)
-                    $localPath = storage_path('app/' . $ogPath);
-                    if (file_exists($localPath)) {
-                        Storage::disk($disk)->put($newPath, file_get_contents($localPath), ['visibility' => 'public']);
-                        @unlink($localPath);
-                    }
+                // Always save OG image to local public disk regardless of FILESYSTEM_DISK
+                $contents = null;
+                if (Storage::disk('public')->exists($ogPath)) {
+                    $contents = Storage::disk('public')->get($ogPath);
+                    Storage::disk('public')->delete($ogPath);
+                } elseif (file_exists(storage_path('app/' . $ogPath))) {
+                    $contents = file_get_contents(storage_path('app/' . $ogPath));
+                    @unlink(storage_path('app/' . $ogPath));
+                } elseif (file_exists(storage_path('app/public/' . $ogPath))) {
+                    $contents = file_get_contents(storage_path('app/public/' . $ogPath));
+                    @unlink(storage_path('app/public/' . $ogPath));
                 }
-                $ogImage = Storage::disk($disk)->url($newPath);
+
+                if ($contents) {
+                    Storage::disk('public')->put($newPath, $contents);
+                    $ogImage = Storage::disk('public')->url($newPath);
+                }
             } catch (\Exception $e) {
-                // Log but don't crash — keep existing image
-                \Log::error('OG image move failed: ' . $e->getMessage());
+                \Log::error('OG image save failed: ' . $e->getMessage());
             }
         }
 
