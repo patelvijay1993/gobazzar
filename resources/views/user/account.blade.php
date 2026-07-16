@@ -138,7 +138,7 @@
     <a href="{{ route('post.create') }}" class="post-btn"><i class="fa-solid fa-plus"></i> Post Something</a>
 
     <nav class="acct-menu">
-      <a href="#" class="acct-mi active" onclick="showPanel('submissions',this)"><i class="fa-solid fa-list"></i> My Submissions</a>
+      <a href="#" class="acct-mi active" onclick="showPanel('submissions',this)"><i class="fa-solid fa-list"></i> My Listings</a>
       @if($user->hasFavorites())
       <a href="{{ route('account.favorites') }}" class="acct-mi"><i class="fa-solid fa-heart"></i> Saved Items</a>
       @endif
@@ -166,7 +166,7 @@
     {{-- MY SUBMISSIONS --}}
     <div class="panel active" id="panel-submissions">
       <div class="panel-head">
-        <span>My Submissions</span>
+        <span>My Listings</span>
         <a href="{{ route('post.create') }}" style="background:var(--red);color:#fff;font-size:11px;padding:4px 12px;border-radius:6px;font-weight:600">+ New Post</a>
       </div>
       <div class="panel-body">
