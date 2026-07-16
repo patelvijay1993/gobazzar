@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password as PasswordRules;
+use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
 {
@@ -206,6 +207,58 @@ class AuthController extends Controller
         return $status === Password::PASSWORD_RESET
             ? redirect()->route('login')->with('success', 'Password reset successfully. You can now log in.')
             : back()->withErrors(['email' => __($status)])->withInput();
+    }
+
+    // ── Google OAuth ──────────────────────────────────────────────
+
+    public function redirectToGoogle()
+    {
+        return Socialite::driver('google')->redirect();
+    }
+
+    public function handleGoogleCallback(Request $request)
+    {
+        try {
+            $googleUser = Socialite::driver('google')->user();
+        } catch (\Exception $e) {
+            return redirect()->route('login')->withErrors(['email' => 'Google login failed. Please try again.']);
+        }
+
+        // Find existing user by google_id or email
+        $user = User::where('google_id', $googleUser->getId())->first()
+            ?? User::where('email', $googleUser->getEmail())->first();
+
+        if ($user) {
+            // Link google_id if not already linked
+            if (!$user->google_id) {
+                $user->update(['google_id' => $googleUser->getId()]);
+            }
+        } else {
+            // New user — apply free trial if configured
+            $trialPlan      = Setting::get('trial_plan_slug', '');
+            $trialMonths    = (int) Setting::get('trial_duration_months', 3);
+            $trialExpiresAt = ($trialPlan && $trialMonths > 0)
+                ? now()->addMonths($trialMonths)
+                : null;
+
+            $user = User::create([
+                'name'            => $googleUser->getName(),
+                'email'           => $googleUser->getEmail(),
+                'google_id'       => $googleUser->getId(),
+                'avatar'          => $googleUser->getAvatar(),
+                'password'        => Hash::make(Str::random(24)),
+                'email_verified_at' => now(), // Google already verified the email
+                'plan'            => $trialPlan ?: null,
+                'plan_expires_at' => $trialExpiresAt,
+            ]);
+
+            ActivityLog::log($request, 'registered', ['meta' => ['name' => $user->name, 'email' => $user->email, 'via' => 'google']]);
+        }
+
+        Auth::login($user, true);
+        $request->session()->regenerate();
+
+        return redirect()->intended(route('account'))->with('success', 'Welcome, ' . $user->name . '!');
     }
 
     public function logout(Request $request)

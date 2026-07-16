@@ -19,7 +19,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     use HasFactory, Notifiable;
 
     protected $fillable = [
-        'name', 'email', 'password', 'phone', 'avatar',
+        'name', 'email', 'password', 'phone', 'avatar', 'google_id',
         'city', 'province', 'bio', 'is_admin', 'is_active',
         'plan', 'plan_expires_at',
         'stripe_customer_id', 'stripe_subscription_id', 'subscription_status',

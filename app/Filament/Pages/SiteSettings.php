@@ -81,6 +81,8 @@ class SiteSettings extends Page implements HasForms
     public string $stripe_key            = '';
     public string $stripe_secret         = '';
     public string $stripe_webhook_secret = '';
+    public string $google_client_id      = '';
+    public string $google_client_secret  = '';
     public string $filesystem_disk       = 'public';
     public string $aws_access_key_id     = '';
     public string $aws_secret_access_key = '';
@@ -145,6 +147,8 @@ class SiteSettings extends Page implements HasForms
         $this->stripe_key            = $this->readEnvValue('STRIPE_KEY');
         $this->stripe_secret         = $this->readEnvValue('STRIPE_SECRET');
         $this->stripe_webhook_secret = $this->readEnvValue('STRIPE_WEBHOOK_SECRET');
+        $this->google_client_id      = $this->readEnvValue('GOOGLE_CLIENT_ID');
+        $this->google_client_secret  = $this->readEnvValue('GOOGLE_CLIENT_SECRET');
         $this->filesystem_disk       = $this->readEnvValue('FILESYSTEM_DISK') ?: 'public';
         $this->aws_access_key_id     = $this->readEnvValue('AWS_ACCESS_KEY_ID');
         $this->aws_secret_access_key = $this->readEnvValue('AWS_SECRET_ACCESS_KEY');
@@ -152,7 +156,7 @@ class SiteSettings extends Page implements HasForms
         $this->aws_bucket            = $this->readEnvValue('AWS_BUCKET');
         $this->aws_use_path_style    = $this->readEnvValue('AWS_USE_PATH_STYLE_ENDPOINT') ?: 'false';
         $this->mail_mailer           = $this->readEnvValue('MAIL_MAILER') ?: 'smtp';
-        $this->mail_scheme           = $this->readEnvValue('MAIL_SCHEME') ?: 'smtps';
+        $this->mail_scheme           = $this->readEnvValue('MAIL_SCHEME') ?: 'smtp';
         $this->mail_host             = $this->readEnvValue('MAIL_HOST');
         $this->mail_port             = $this->readEnvValue('MAIL_PORT') ?: '465';
         $this->mail_username         = $this->readEnvValue('MAIL_USERNAME');
@@ -633,6 +637,31 @@ class SiteSettings extends Page implements HasForms
                             ->maxLength(300),
                     ]),
 
+                Section::make('Google OAuth (Login with Google)')
+                    ->description('Allow users to register and login using their Google account.')
+                    ->icon('heroicon-o-user-circle')
+                    ->collapsible()
+                    ->collapsed()
+                    ->schema([
+                        Grid::make(2)->schema([
+                            TextInput::make('google_client_id')
+                                ->label('Google Client ID')
+                                ->placeholder('xxxxxxxxxx-xxxx.apps.googleusercontent.com')
+                                ->password()->revealable()->maxLength(300),
+                            TextInput::make('google_client_secret')
+                                ->label('Google Client Secret')
+                                ->placeholder('GOCSPX-...')
+                                ->password()->revealable()->maxLength(200),
+                        ]),
+                        Forms\Components\Placeholder::make('google_redirect_info')
+                            ->label('Authorized Redirect URI')
+                            ->content(fn () => new \Illuminate\Support\HtmlString(
+                                '<code style="background:#f3f4f6;padding:6px 12px;border-radius:6px;font-size:13px">'
+                                . rtrim(config('app.url'), '/') . '/auth/google/callback'
+                                . '</code><br><span style="font-size:12px;color:#6b7280">Add this URL in Google Console → APIs & Services → Credentials → OAuth 2.0 Client → Authorized redirect URIs</span>'
+                            )),
+                    ]),
+
                 Section::make('AWS / S3 Storage')
                     ->description('File storage configuration. Switch between local storage and Amazon S3.')
                     ->icon('heroicon-o-cloud-arrow-up')
@@ -703,10 +732,11 @@ class SiteSettings extends Page implements HasForms
                             Select::make('mail_scheme')
                                 ->label('Encryption')
                                 ->options([
-                                    'smtps' => 'SMTPS (SSL — port 465)',
-                                    'tls'   => 'TLS (STARTTLS — port 587)',
+                                    'smtps' => 'SMTPS / SSL (port 465)',
+                                    'smtp'  => 'STARTTLS (port 587)',
                                     ''      => 'None (port 25)',
-                                ]),
+                                ])
+                                ->helperText('Use STARTTLS for Gmail/port 587. Use SMTPS/SSL for port 465.'),
                         ]),
 
                         Grid::make(2)->schema([
@@ -840,6 +870,9 @@ class SiteSettings extends Page implements HasForms
             'STRIPE_KEY'                  => $this->stripe_key,
             'STRIPE_SECRET'               => $this->stripe_secret,
             'STRIPE_WEBHOOK_SECRET'       => $this->stripe_webhook_secret,
+            'GOOGLE_CLIENT_ID'            => $this->google_client_id,
+            'GOOGLE_CLIENT_SECRET'        => $this->google_client_secret,
+            'GOOGLE_REDIRECT_URI'         => rtrim(config('app.url'), '/') . '/auth/google/callback',
             'FILESYSTEM_DISK'             => $this->filesystem_disk,
             'AWS_ACCESS_KEY_ID'           => $this->aws_access_key_id,
             'AWS_SECRET_ACCESS_KEY'       => $this->aws_secret_access_key,
