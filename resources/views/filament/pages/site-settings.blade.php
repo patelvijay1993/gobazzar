@@ -24,7 +24,7 @@
         @if($currentOg)
             <div style="margin-bottom:14px">
                 <p style="font-size:12px;color:#6b7280;margin-bottom:6px">Current image:</p>
-                <img src="{{ $currentOg }}" style="max-width:400px;height:auto;border-radius:8px;border:1px solid #e5e7eb"
+                <img src="{{ $currentOg }}" style="max-width:100%;height:auto;border-radius:8px;border:1px solid #e5e7eb"
                      onerror="this.style.display='none';this.nextSibling.style.display='block'">
                 <p style="display:none;font-size:12px;color:#dc2626">⚠️ Image failed to load: {{ $currentOg }}</p>
             </div>
