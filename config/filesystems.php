@@ -40,9 +40,7 @@ return [
 
         'public' => [
             'driver' => 'local',
-            'root' => env('APP_ENV') === 'production'
-                ? '/home/heavendw/public_html/gobazzarweb.heavendwell.com/storage'
-                : public_path('storage'),
+            'root' => storage_path('app/public'),
             'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage',
             'visibility' => 'public',
             'throw' => false,
