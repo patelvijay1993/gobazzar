@@ -126,6 +126,7 @@ Route::middleware('auth')->group(function () {
 Route::get('/pricing', [PricingController::class, 'index'])->name('pricing');
 Route::get('/pricing/upgrade/{plan}', [PricingController::class, 'upgrade'])->name('pricing.upgrade')->middleware('auth');
 Route::post('/pricing/request', [PricingController::class, 'request'])->name('pricing.request')->middleware('auth');
+Route::post('/promo/apply', [PricingController::class, 'applyPromo'])->name('promo.apply')->middleware('auth');
 
 // Advertise enquiry (public)
 Route::post('/advertise/enquiry', [\App\Http\Controllers\AdvertiseController::class, 'store'])->name('advertise.store');

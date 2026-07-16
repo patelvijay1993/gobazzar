@@ -96,6 +96,10 @@ class SiteSettings extends Page implements HasForms
     public string $mail_from_address     = '';
     public string $mail_from_name        = '';
 
+    // Free trial for new users
+    public string $trial_plan_slug       = '';
+    public string $trial_duration_months = '3';
+
     public function mount(): void
     {
         $this->email_verification_required = Setting::bool('email_verification_required', true);
@@ -156,6 +160,10 @@ class SiteSettings extends Page implements HasForms
         $this->mail_from_address     = trim($this->readEnvValue('MAIL_FROM_ADDRESS'), '"');
         $raw_from_name               = trim($this->readEnvValue('MAIL_FROM_NAME'), '"');
         $this->mail_from_name        = ($raw_from_name === '${APP_NAME}') ? config('app.name') : $raw_from_name;
+
+        // Free trial
+        $this->trial_plan_slug       = Setting::get('trial_plan_slug', '');
+        $this->trial_duration_months = Setting::get('trial_duration_months', '3');
     }
 
     private function readEnvValue(string $key): string
@@ -391,6 +399,27 @@ class SiteSettings extends Page implements HasForms
                             ->helperText('When ON — users must verify their email before logging in. When OFF — users can log in immediately after registering.')
                             ->onColor('success')
                             ->offColor('danger'),
+                    ]),
+
+                Section::make('Free Trial for New Users')
+                    ->description('Automatically grant new registering users a paid plan for a set number of months. Leave plan blank to disable.')
+                    ->icon('heroicon-o-gift')
+                    ->collapsible()
+                    ->schema([
+                        Grid::make(2)->schema([
+                            Select::make('trial_plan_slug')
+                                ->label('Trial Plan')
+                                ->options(fn () => \App\Models\Plan::where('is_active', true)->orderBy('sort_order')->pluck('name', 'slug')->prepend('— No trial (disabled) —', '')->toArray())
+                                ->helperText('Plan new users receive for free on sign-up. Select "No trial" to disable.'),
+
+                            TextInput::make('trial_duration_months')
+                                ->label('Duration (months)')
+                                ->numeric()
+                                ->default(3)
+                                ->minValue(1)
+                                ->maxValue(120)
+                                ->helperText('How many months the free trial lasts.'),
+                        ]),
                     ]),
 
                 Section::make('AI API Keys')
@@ -793,6 +822,10 @@ class SiteSettings extends Page implements HasForms
         Setting::set('seo_google_verification', $this->seo_google_verification);
         Setting::set('seo_google_analytics',    $this->seo_google_analytics);
         Setting::set('seo_facebook_pixel',      $this->seo_facebook_pixel);
+
+        // Free trial
+        Setting::set('trial_plan_slug',       $this->trial_plan_slug ?? '');
+        Setting::set('trial_duration_months', (string) ($this->trial_duration_months ?: '3'));
 
         // Update .env file for AI keys
         $this->updateEnv([

@@ -75,6 +75,18 @@
 .faq-a{padding:0 18px;font-size:13px;color:var(--muted);line-height:1.7;max-height:0;overflow:hidden;transition:max-height .3s,padding .3s}
 .faq-item.open .faq-a{max-height:200px;padding:0 18px 16px}
 
+/* ── PROMO CODE ── */
+.promo-box{max-width:520px;margin:0 auto 40px;background:#fff;border:2px dashed var(--border);border-radius:var(--radius-lg);padding:24px 28px;text-align:center}
+.promo-box h3{font-family:var(--fh);font-size:15px;font-weight:700;color:var(--text);margin-bottom:6px}
+.promo-box p{font-size:12.5px;color:var(--muted);margin-bottom:16px}
+.promo-row{display:flex;gap:10px}
+.promo-row input{flex:1;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;font-size:13.5px;font-family:inherit;text-transform:uppercase;letter-spacing:.5px;outline:none;transition:border-color .2s}
+.promo-row input:focus{border-color:var(--primary)}
+.promo-row button{background:var(--primary);color:#fff;border:none;border-radius:var(--radius-sm);padding:10px 22px;font-size:13.5px;font-weight:700;cursor:pointer;white-space:nowrap;transition:background .2s}
+.promo-row button:hover{background:var(--primary-dark)}
+.promo-msg{margin-top:10px;font-size:12.5px;font-weight:600;display:none}
+.promo-msg.ok{color:#16a34a}.promo-msg.err{color:#dc2626}
+
 /* ── CONTACT CTA ── */
 .contact-cta{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);border-radius:var(--radius-lg);padding:44px;text-align:center;margin-bottom:48px;position:relative;overflow:hidden}
 .contact-cta::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4z'/%3E%3C/g%3E%3C/svg%3E');pointer-events:none}
@@ -208,6 +220,27 @@
     </div>
     @endforeach
   </div>
+
+  {{-- PROMO CODE --}}
+  @auth
+  <div class="promo-box">
+    <h3>Have a Promo Code?</h3>
+    <p>Enter your code below to activate a free plan upgrade.</p>
+    @if(session('promo_success'))
+      <div class="promo-msg ok" style="display:block">{{ session('promo_success') }}</div>
+    @endif
+    @if(session('promo_error'))
+      <div class="promo-msg err" style="display:block">{{ session('promo_error') }}</div>
+    @endif
+    <form method="POST" action="{{ route('promo.apply') }}" id="promo-form">
+      @csrf
+      <div class="promo-row">
+        <input type="text" name="code" id="promo-input" placeholder="ENTER CODE" maxlength="32" autocomplete="off" required>
+        <button type="submit">Apply</button>
+      </div>
+    </form>
+  </div>
+  @endauth
 
   {{-- COMPARE TABLE — fully dynamic from DB plans --}}
   <div class="compare-section">

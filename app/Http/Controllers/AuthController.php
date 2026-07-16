@@ -65,12 +65,20 @@ class AuthController extends Controller
             'city'     => 'nullable|string|max:100',
         ]);
 
+        $trialPlan     = Setting::get('trial_plan_slug', '');
+        $trialMonths   = (int) Setting::get('trial_duration_months', 3);
+        $trialExpiresAt = ($trialPlan && $trialMonths > 0)
+            ? now()->addMonths($trialMonths)
+            : null;
+
         $user = User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'password' => Hash::make($request->password),
-            'phone'    => $request->phone,
-            'city'     => $request->city,
+            'name'            => $request->name,
+            'email'           => $request->email,
+            'password'        => Hash::make($request->password),
+            'phone'           => $request->phone,
+            'city'            => $request->city,
+            'plan'            => $trialPlan ?: null,
+            'plan_expires_at' => $trialExpiresAt,
         ]);
         ActivityLog::log($request, 'registered', ['meta' => ['name' => $user->name, 'email' => $user->email]]);
 
