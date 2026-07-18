@@ -178,7 +178,7 @@
       <div style="font-family:var(--fh);font-size:14px;font-weight:700;color:#fff;margin-bottom:4px">List Your Business</div>
       <div style="font-size:11px;color:rgba(255,255,255,.65);margin-bottom:12px;line-height:1.5">Reach thousands of Indian-Canadians looking for your services</div>
       @auth
-        <a href="{{ route('post.create') }}" style="display:block;background:var(--accent);color:#fff;padding:9px;border-radius:6px;font-size:13px;font-weight:700;text-decoration:none"><i class="fa-solid fa-plus"></i> Add Your Business</a>
+        <a href="{{ route('post.create', ['type' => 'business']) }}" style="display:block;background:var(--accent);color:#fff;padding:9px;border-radius:6px;font-size:13px;font-weight:700;text-decoration:none"><i class="fa-solid fa-plus"></i> Add Your Business</a>
       @else
         <a href="{{ route('register') }}" style="display:block;background:var(--accent);color:#fff;padding:9px;border-radius:6px;font-size:13px;font-weight:700;text-decoration:none"><i class="fa-solid fa-plus"></i> Add Your Business</a>
       @endauth
