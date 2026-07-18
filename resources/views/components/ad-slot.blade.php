@@ -42,11 +42,10 @@ $durationMs   = ($slotAds->first()->slide_duration ?? 3) * 1000;
        target="_blank" rel="noopener sponsored"
        class="ad-slide"
        data-index="{{ $i }}"
-       style="position:absolute;inset:0;opacity:{{ $i === 0 ? 1 : 0 }};transition:opacity .6s ease;pointer-events:{{ $i === 0 ? 'auto' : 'none' }}">
+       style="position:absolute;inset:0;display:block;opacity:{{ $i === 0 ? 1 : 0 }};transition:opacity .6s ease;pointer-events:{{ $i === 0 ? 'auto' : 'none' }}">
       <img src="{{ $ad->image_url }}" alt="{{ $ad->title }}"
-           width="{{ $size['width'] }}" height="{{ $size['height'] }}"
            loading="{{ $i === 0 ? 'eager' : 'lazy' }}"
-           style="width:100%;height:{{ $size['height'] }}px;object-fit:cover;display:block">
+           style="width:100%;height:100%;object-fit:cover;display:block">
     </a>
     @endforeach
     <script>
