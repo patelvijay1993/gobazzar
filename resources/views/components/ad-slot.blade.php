@@ -1,7 +1,7 @@
 @props(['position', 'ads', 'class' => ''])
 
 @php
-$slotAds = $ads->where('position', $position)->values();
+$slotAds = $ads->where('position', $position)->filter(fn($ad) => $ad->image_url !== '')->values();
 $sizes   = \App\Models\Advertisement::SIZES;
 $size    = $sizes[$position] ?? ['width' => 300, 'height' => 250];
 $count        = $slotAds->count();
@@ -33,7 +33,7 @@ $durationMs   = ($slotAds->first()->slide_duration ?? 3) * 1000;
   {{-- slider --}}
   <div id="{{ $sliderId }}"
        class="ad-slider ad-slot--{{ $position }} {{ $class }}"
-       style="position:relative;overflow:hidden;border-radius:8px;width:100%;max-width:100%">
+       style="position:relative;overflow:hidden;border-radius:8px;width:100%;max-width:100%;height:{{ $size['height'] }}px">
 
     <span class="ad-label" style="z-index:10">Ad</span>
 

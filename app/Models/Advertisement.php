@@ -34,7 +34,17 @@ class Advertisement extends Model
 
     public function getImageUrlAttribute(): string
     {
-        return Storage::disk(config('filesystems.default'))->url($this->image);
+        // New uploads go to public disk. S3 uploads (legacy) are re-uploaded via admin.
+        if (Storage::disk('public')->exists($this->image)) {
+            return Storage::disk('public')->url($this->image);
+        }
+
+        // Fallback: try S3 signed URL for legacy images
+        try {
+            return Storage::disk('s3')->temporaryUrl($this->image, now()->addHours(6));
+        } catch (\Throwable) {
+            return '';
+        }
     }
 
     /**

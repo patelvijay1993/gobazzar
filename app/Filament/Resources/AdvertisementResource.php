@@ -96,8 +96,9 @@ class AdvertisementResource extends Resource
                             })
                             ->image()
                             ->required()
-                            ->disk('s3')
+                            ->disk('public')
                             ->directory('ads')
+                            ->visibility('public')
                             ->imagePreviewHeight('120')
                             ->maxSize(2048)
                             ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/gif'])
@@ -205,7 +206,7 @@ class AdvertisementResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\ImageColumn::make('image')
-                    ->disk('s3')
+                    ->disk('public')
                     ->width(80)
                     ->height(40),
 
