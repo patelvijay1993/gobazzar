@@ -336,14 +336,18 @@ footer.site-footer{background:var(--nav-bg);border-top:2px solid #2a4fa8;margin-
 </nav>
 
 {{-- iOS Install Banner (Safari only, shown by JS) --}}
-<div id="ios-install-banner" style="display:none;background:#1a3a8f;color:#fff;padding:10px 16px;align-items:center;gap:12px;font-size:13px;position:relative">
-  <img src="{{ asset('images/pwa-icon-192.png') }}" style="width:40px;height:40px;border-radius:10px;flex-shrink:0">
-  <div style="flex:1;line-height:1.4">
-    <strong>Install GoBazaar App</strong><br>
-    <span style="opacity:.8">Tap <i class="fa-solid fa-arrow-up-from-bracket"></i> then <b>"Add to Home Screen"</b></span>
+{{-- iOS Install Banner — fixed bottom, shown by JS on iOS Safari only --}}
+<div id="ios-install-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;background:#fff;border-top:1px solid #e2e0db;box-shadow:0 -4px 20px rgba(0,0,0,.15);padding:14px 16px 20px;align-items:center;gap:12px">
+  <img src="{{ asset('images/pwa-icon-192.png') }}" style="width:48px;height:48px;border-radius:12px;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.15)">
+  <div style="flex:1;line-height:1.5">
+    <div style="font-weight:700;font-size:14px;color:#1a1a1a">Install GoBazaar App</div>
+    <div style="font-size:12px;color:#555;margin-top:2px">
+      Tap <svg style="width:14px;height:14px;vertical-align:middle;margin:0 2px" viewBox="0 0 24 24" fill="none" stroke="#007AFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13M7 8l5-5 5 5"/><path d="M5 20h14"/></svg>
+      then <strong style="color:#1a1a1a">"Add to Home Screen"</strong>
+    </div>
   </div>
   <button onclick="document.getElementById('ios-install-banner').style.display='none';localStorage.setItem('pwa-ios-dismissed','1')"
-    style="background:none;border:none;color:#fff;font-size:20px;cursor:pointer;padding:4px 8px;line-height:1">✕</button>
+    style="background:#f0f0f0;border:none;color:#555;font-size:16px;cursor:pointer;padding:6px 10px;border-radius:20px;line-height:1;flex-shrink:0">✕</button>
 </div>
 
 <!-- SUBNAV -->
@@ -1276,10 +1280,13 @@ function pwaInstall() {
 
 // ── PWA: iOS Safari Install Banner ───────────────────────────────────
 (function() {
-  var isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  // iPad iOS 13+ reports as Macintosh — check maxTouchPoints too
+  var isIos = /iphone|ipad|ipod/i.test(navigator.userAgent) ||
+              (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  var isSafari = /safari/i.test(navigator.userAgent) && !/chrome|crios|fxios/i.test(navigator.userAgent);
   var isStandalone = window.navigator.standalone === true;
   var dismissed = localStorage.getItem('pwa-ios-dismissed');
-  if (isIos && !isStandalone && !dismissed) {
+  if (isIos && isSafari && !isStandalone && !dismissed) {
     var banner = document.getElementById('ios-install-banner');
     if (banner) banner.style.display = 'flex';
   }
