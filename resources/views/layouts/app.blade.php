@@ -44,7 +44,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="GoBazaar">
-<link rel="apple-touch-icon" href="{{ asset('images/pwa-icon-192.png') }}">
+<link rel="apple-touch-icon" sizes="192x192" href="{{ asset('images/pwa-icon-192.png') }}">
+<link rel="apple-touch-icon" sizes="512x512" href="{{ asset('images/pwa-icon-512.png') }}">
 <meta name="theme-color" content="#1a3a8f">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Noto+Sans:wght@400;500;600&display=swap" rel="stylesheet">
