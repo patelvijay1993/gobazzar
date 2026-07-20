@@ -143,6 +143,8 @@ footer.site-footer{background:var(--nav-bg);border-top:2px solid #2a4fa8;margin-
 
 /* ── MOBILE INNER PAGE SIDEBAR ADS ── */
 .mob-sidebar-ad{display:none}
+.pwa-install-label{display:inline}
+@media(max-width:480px){.pwa-install-label{display:none}}
 @media(max-width:600px){
   .mob-sidebar-ad{display:block;padding:0 12px;margin:14px 0}
   .mob-sidebar-ad .ad-slot--sidebar img{height:180px;border-radius:10px}
@@ -300,6 +302,12 @@ footer.site-footer{background:var(--nav-bg);border-top:2px solid #2a4fa8;margin-
 
 
 <div class="nav-actions">
+      {{-- PWA Install button: shown by JS when browser supports it --}}
+      <button id="pwa-install-btn" onclick="pwaInstall()"
+        style="display:none;align-items:center;gap:6px;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:7px 13px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">
+        <i class="fa-solid fa-download"></i>
+        <span class="pwa-install-label">Install App</span>
+      </button>
       @auth
         <a href="{{ route('chat.inbox') }}" class="nav-icon-btn" id="nav-chat-btn" title="Inbox">
           <i class="fa-solid fa-comments"></i>
@@ -326,6 +334,17 @@ footer.site-footer{background:var(--nav-bg);border-top:2px solid #2a4fa8;margin-
     </div>
   </div>
 </nav>
+
+{{-- iOS Install Banner (Safari only, shown by JS) --}}
+<div id="ios-install-banner" style="display:none;background:#1a3a8f;color:#fff;padding:10px 16px;align-items:center;gap:12px;font-size:13px;position:relative">
+  <img src="{{ asset('images/pwa-icon-192.png') }}" style="width:40px;height:40px;border-radius:10px;flex-shrink:0">
+  <div style="flex:1;line-height:1.4">
+    <strong>Install GoBazaar App</strong><br>
+    <span style="opacity:.8">Tap <i class="fa-solid fa-arrow-up-from-bracket"></i> then <b>"Add to Home Screen"</b></span>
+  </div>
+  <button onclick="document.getElementById('ios-install-banner').style.display='none';localStorage.setItem('pwa-ios-dismissed','1')"
+    style="background:none;border:none;color:#fff;font-size:20px;cursor:pointer;padding:4px 8px;line-height:1">✕</button>
+</div>
 
 <!-- SUBNAV -->
 <div class="subnav">
@@ -1229,6 +1248,42 @@ function navSearch() {
 document.getElementById('nav-search-input')?.addEventListener('keydown', function(e){
   if (e.key === 'Enter') navSearch();
 });
+
+// ── PWA: Install Button (Android/Chrome) ─────────────────────────────
+var _pwaPrompt = null;
+window.addEventListener('beforeinstallprompt', function(e) {
+  e.preventDefault();
+  _pwaPrompt = e;
+  var btn = document.getElementById('pwa-install-btn');
+  if (btn) btn.style.display = 'flex';
+});
+window.addEventListener('appinstalled', function() {
+  var btn = document.getElementById('pwa-install-btn');
+  if (btn) btn.style.display = 'none';
+  _pwaPrompt = null;
+});
+function pwaInstall() {
+  if (!_pwaPrompt) return;
+  _pwaPrompt.prompt();
+  _pwaPrompt.userChoice.then(function(r) {
+    if (r.outcome === 'accepted') {
+      var btn = document.getElementById('pwa-install-btn');
+      if (btn) btn.style.display = 'none';
+    }
+    _pwaPrompt = null;
+  });
+}
+
+// ── PWA: iOS Safari Install Banner ───────────────────────────────────
+(function() {
+  var isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  var isStandalone = window.navigator.standalone === true;
+  var dismissed = localStorage.getItem('pwa-ios-dismissed');
+  if (isIos && !isStandalone && !dismissed) {
+    var banner = document.getElementById('ios-install-banner');
+    if (banner) banner.style.display = 'flex';
+  }
+})();
 
 // ── PWA: Service Worker + Push Subscription ───────────────────────────
 if ('serviceWorker' in navigator && 'PushManager' in window) {
