@@ -3,6 +3,7 @@
 @section('description', "Canada's #1 Community Marketplace — Classifieds, Yellow Pages, Events, Jobs, Blog and more for your community in Canada.")
 
 @push('schema')
+@verbatim
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -37,6 +38,7 @@
   ]
 }
 </script>
+@endverbatim
 @endpush
 
 @push('styles')
