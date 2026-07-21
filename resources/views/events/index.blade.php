@@ -205,7 +205,7 @@
       <div style="font-family:var(--fh);font-size:14px;font-weight:700;color:#fff;margin-bottom:4px">Hosting an Event?</div>
       <div style="font-size:11px;color:rgba(255,255,255,.65);margin-bottom:12px;line-height:1.5">List your event free and reach the Indian-Canadian community</div>
       @auth
-        <a href="{{ route('post.create') }}" style="display:block;background:var(--accent);color:#fff;padding:9px;border-radius:6px;font-size:13px;font-weight:700;text-decoration:none"><i class="fa-solid fa-plus"></i> Post Free Event</a>
+        <a href="{{ route('post.create', ['type' => 'event']) }}" style="display:block;background:var(--accent);color:#fff;padding:9px;border-radius:6px;font-size:13px;font-weight:700;text-decoration:none"><i class="fa-solid fa-plus"></i> Post Free Event</a>
       @else
         <a href="{{ route('register') }}" style="display:block;background:var(--accent);color:#fff;padding:9px;border-radius:6px;font-size:13px;font-weight:700;text-decoration:none"><i class="fa-solid fa-plus"></i> Post Free Event</a>
       @endauth
@@ -259,7 +259,7 @@
         <div class="empty-icon">📭</div>
         <h3>No events found</h3>
         <p>Try adjusting your filters or search terms.</p>
-        <a href="{{ route('post.create') }}"><i class="fa-solid fa-plus"></i> Post an Event</a>
+        <a href="{{ route('post.create', ['type' => 'event']) }}"><i class="fa-solid fa-plus"></i> Post an Event</a>
       </div>
     @else
       <div class="ev-list">

@@ -207,7 +207,7 @@
       <div style="font-family:var(--fh);font-size:14px;font-weight:700;color:#fff;margin-bottom:4px">Hiring?</div>
       <div style="font-size:11px;color:rgba(255,255,255,.65);margin-bottom:12px;line-height:1.5">Post a job and reach Indian-Canadian professionals</div>
       @auth
-        <a href="{{ route('post.create') }}" style="display:block;background:var(--accent);color:#fff;padding:9px;border-radius:6px;font-size:13px;font-weight:700;text-decoration:none"><i class="fa-solid fa-plus"></i> Post a Job</a>
+        <a href="{{ route('post.create', ['type' => 'job']) }}" style="display:block;background:var(--accent);color:#fff;padding:9px;border-radius:6px;font-size:13px;font-weight:700;text-decoration:none"><i class="fa-solid fa-plus"></i> Post a Job</a>
       @else
         <a href="{{ route('register') }}" style="display:block;background:var(--accent);color:#fff;padding:9px;border-radius:6px;font-size:13px;font-weight:700;text-decoration:none"><i class="fa-solid fa-plus"></i> Post a Job</a>
       @endauth
@@ -265,7 +265,7 @@
         <div class="empty-icon">📭</div>
         <h3>No jobs found</h3>
         <p>Try adjusting your filters or search terms.</p>
-        <a href="{{ route('post.create') }}"><i class="fa-solid fa-plus"></i> Post a Job</a>
+        <a href="{{ route('post.create', ['type' => 'job']) }}"><i class="fa-solid fa-plus"></i> Post a Job</a>
       </div>
     @else
       <div class="job-list">
