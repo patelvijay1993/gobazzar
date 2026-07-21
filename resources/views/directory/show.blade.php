@@ -176,17 +176,48 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
         <div style="margin-top:14px">@foreach($business->tags as $tag)<span class="tag">{{ $tag }}</span>@endforeach</div>
       @endif
 
-      {{-- Map embed (OpenStreetMap — no API key required) --}}
+      {{-- Map embed via Nominatim geocoding → OSM iframe with marker (coords cached on business row) --}}
       @php
-        $mapAddr = trim(($business->address ?? '') . ' ' . ($business->city ?? '') . ' ' . ($business->province ?? '') . ' Canada');
-        $osmQ    = urlencode($mapAddr);
-        $osmEmbed = 'https://www.openstreetmap.org/export/embed.html?bbox=-180%2C-90%2C180%2C90&layer=mapnik&marker=0%2C0&query=' . $osmQ;
-        $gmapsLink = $business->map_url ?: ('https://www.google.com/maps/search/' . $osmQ);
+        $mapAddr   = trim(($business->address ?? '') . ' ' . ($business->city ?? '') . ' ' . ($business->province ?? '') . ' Canada');
+        $gmapsLink = $business->map_url ?: ('https://www.google.com/maps/search/' . urlencode($mapAddr));
+        $osmEmbedUrl = null;
+
+        if ($business->address || $business->city) {
+            $lat = $business->lat ? (float) $business->lat : null;
+            $lon = $business->lon ? (float) $business->lon : null;
+
+            // Geocode only if not yet cached
+            if (!$lat || !$lon) {
+                try {
+                    $geoResp = @file_get_contents(
+                        'https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' . urlencode($mapAddr),
+                        false,
+                        stream_context_create(['http' => ['timeout' => 4, 'header' => "User-Agent: GoBazaar/1.0 (gobazaar.ca)\r\n"]])
+                    );
+                    $geoData = $geoResp ? json_decode($geoResp, true) : [];
+                    if (!empty($geoData[0]['lat'])) {
+                        $lat = (float) $geoData[0]['lat'];
+                        $lon = (float) $geoData[0]['lon'];
+                        // Cache on the model so next page load skips geocoding
+                        $business->updateQuietly(['lat' => $lat, 'lon' => $lon]);
+                    }
+                } catch (\Throwable $e) {}
+            }
+
+            if ($lat && $lon) {
+                $delta = 0.008; // ~zoom 15
+                $osmEmbedUrl = 'https://www.openstreetmap.org/export/embed.html'
+                    . '?bbox='   . ($lon - $delta) . '%2C' . ($lat - $delta)
+                    . '%2C'      . ($lon + $delta) . '%2C' . ($lat + $delta)
+                    . '&layer=mapnik'
+                    . '&marker=' . $lat . '%2C' . $lon;
+            }
+        }
       @endphp
-      @if($business->address || $business->city || $business->map_url)
+      @if($osmEmbedUrl)
         <div style="margin-top:20px;border-radius:10px;overflow:hidden;border:1.5px solid var(--border)">
           <iframe
-            src="https://www.openstreetmap.org/export/embed.html?query={{ $osmQ }}&layer=mapnik"
+            src="{{ $osmEmbedUrl }}"
             width="100%" height="260" style="border:0;display:block"
             allowfullscreen loading="lazy"
             referrerpolicy="no-referrer-when-downgrade">
