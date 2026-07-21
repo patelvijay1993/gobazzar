@@ -176,32 +176,38 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
         <div style="margin-top:14px">@foreach($business->tags as $tag)<span class="tag">{{ $tag }}</span>@endforeach</div>
       @endif
 
-      {{-- Google Maps embed — extract lat/lon from share URL, no API key needed --}}
+      {{-- Google Maps embed via Maps Embed API --}}
       @php
         $mapEmbedUrl = null;
         $gmapsLink   = $business->map_url ?: null;
+        $mapsKey     = config('services.google.maps_embed_key') ?: config('services.google_places.key');
 
-        if ($business->map_url) {
-            $url = $business->map_url;
+        if ($mapsKey && ($business->map_url || $business->address || $business->city)) {
+            $url = $business->map_url ?? '';
 
             // Resolve short URLs (maps.app.goo.gl / goo.gl/maps) to full URL
-            if (str_contains($url, 'goo.gl')) {
+            if ($url && str_contains($url, 'goo.gl')) {
                 $headers = @get_headers($url, true);
                 if (!empty($headers['Location'])) {
                     $url = is_array($headers['Location']) ? end($headers['Location']) : $headers['Location'];
                 }
             }
 
-            // Extract @lat,lon from google.com/maps URLs
-            // e.g. /maps/place/Name/@50.4452,-104.6189,17z/...
+            // Extract @lat,lon from google.com/maps/place/.../@lat,lon,zoom
             if (preg_match('/@(-?\d+\.\d+),(-?\d+\.\d+)/', $url, $m)) {
-                $lat = $m[1];
-                $lon = $m[2];
-                $mapEmbedUrl = 'https://www.google.com/maps?q=' . $lat . ',' . $lon . '&z=16&output=embed';
+                $mapEmbedUrl = 'https://www.google.com/maps/embed/v1/view'
+                    . '?key=' . $mapsKey
+                    . '&center=' . $m[1] . ',' . $m[2]
+                    . '&zoom=16';
             }
-            // Fallback: extract ?q= param
-            elseif (preg_match('/[?&]q=([^&]+)/', $url, $m)) {
-                $mapEmbedUrl = 'https://www.google.com/maps?q=' . $m[1] . '&output=embed';
+            // Fallback: search by address
+            else {
+                $q = $business->address
+                    ? trim(($business->address ?? '') . ' ' . ($business->city ?? '') . ' ' . ($business->province ?? '') . ' Canada')
+                    : trim(($business->city ?? '') . ' ' . ($business->province ?? '') . ' Canada');
+                $mapEmbedUrl = 'https://www.google.com/maps/embed/v1/place'
+                    . '?key=' . $mapsKey
+                    . '&q=' . urlencode($q);
             }
         }
       @endphp
@@ -213,7 +219,7 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
             allowfullscreen loading="lazy"
             referrerpolicy="no-referrer-when-downgrade">
           </iframe>
-          <a href="{{ $gmapsLink }}" target="_blank" rel="noopener noreferrer"
+          <a href="{{ $gmapsLink ?? ('https://www.google.com/maps/search/' . urlencode($business->address . ' ' . $business->city)) }}" target="_blank" rel="noopener noreferrer"
              style="display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:12.5px;color:var(--primary);font-weight:600;text-decoration:none;background:#f8faff;border-top:1px solid var(--border)">
             <i class="fa-solid fa-map-location-dot"></i> Open in Google Maps →
           </a>

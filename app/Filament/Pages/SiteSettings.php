@@ -575,7 +575,7 @@ class SiteSettings extends Page implements HasForms
                         Forms\Components\Grid::make(2)->schema([
                             TextInput::make('google_places_api_key')
                                 ->label('Google Places API Key')
-                                ->helperText('Used for Lead Finder — search businesses on Google Maps. Enable "Places API" in console.cloud.google.com')
+                                ->helperText('Used for Lead Finder. Enable "Places API" + "Geocoding API" in Google Cloud Console. Key must allow server-side calls — remove HTTP referrer restrictions or add a separate unrestricted server key.')
                                 ->placeholder('AIzaSy...')
                                 ->password()->revealable()->maxLength(200),
                             Forms\Components\Placeholder::make('status_places')
@@ -594,9 +594,18 @@ class SiteSettings extends Page implements HasForms
                                     $key = $get('google_places_api_key');
                                     if (!$key) { Notification::make()->title('No key entered')->warning()->send(); return; }
                                     try {
-                                        $r = Http::timeout(8)->get("https://maps.googleapis.com/maps/api/place/textsearch/json?query=restaurants&key={$key}");
+                                        // Use Geocoding API (no referrer restriction issues for server-side calls)
+                                        $r = Http::timeout(8)->get("https://maps.googleapis.com/maps/api/geocode/json?address=Toronto,Canada&key={$key}");
                                         $s = $r->json()['status'] ?? '';
-                                        $this->status_places = in_array($s, ['OK', 'ZERO_RESULTS']) ? 'valid' : 'invalid';
+                                        if (in_array($s, ['OK', 'ZERO_RESULTS'])) {
+                                            $this->status_places = 'valid';
+                                        } else {
+                                            $error = $r->json()['error_message'] ?? $s;
+                                            $this->status_places = 'invalid';
+                                            Notification::make()->title('API Error: ' . $error)
+                                                ->body('Make sure "Maps Geocoding API" is enabled in Google Cloud Console, and the key has no HTTP referrer restriction (server-side calls have no Referer header).')
+                                                ->warning()->send();
+                                        }
                                     } catch (\Exception $e) { $this->status_places = 'invalid'; }
                                 }),
                         ])->columnSpanFull(),
