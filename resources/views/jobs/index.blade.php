@@ -1,5 +1,6 @@
 @extends('layouts.app')
-@section('title', 'Jobs')
+@section('title', 'Jobs — Find Jobs in Canada | GoBazaar')
+@section('canonical', route('jobs.index'))
 
 @push('styles')
 <style>

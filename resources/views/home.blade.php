@@ -2,6 +2,43 @@
 @section('title', "GoBazaar — Canada's #1 Community Marketplace")
 @section('description', "Canada's #1 Community Marketplace — Classifieds, Yellow Pages, Events, Jobs, Blog and more for your community in Canada.")
 
+@push('schema')
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://gobazaar.ca/#organization",
+      "name": "GoBazaar",
+      "url": "https://gobazaar.ca",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://gobazaar.ca/images/logo.png"
+      },
+      "sameAs": []
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://gobazaar.ca/#website",
+      "url": "https://gobazaar.ca",
+      "name": "GoBazaar",
+      "description": "Canada's #1 Community Marketplace — Classifieds, Jobs, Events, Businesses and more.",
+      "publisher": { "@id": "https://gobazaar.ca/#organization" },
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://gobazaar.ca/classifieds?search={search_term_string}"
+        },
+        "query-input": "required name=search_term_string"
+      }
+    }
+  ]
+}
+</script>
+@endpush
+
 @push('styles')
 <style>
 /* ══ HERO ══════════════════════════════════════════════════════════ */
@@ -325,7 +362,7 @@ $heroLocLabel = request('city') ?: request('province');
     <div class="hero-left">
       <div class="hero-eyebrow"><i class="fa-solid fa-star"></i> Canada's #1 Community Marketplace</div>
       @if($heroLocLabel)
-        <h1 class="hero-title">Community Marketplace<br><span>in {{ $heroLocLabel }}</span></h1>
+        <h1 class="hero-title">Canada's Community<br><span>Marketplace in {{ $heroLocLabel }}</span></h1>
         <p class="hero-sub">Classifieds · Yellow Pages · Events · Jobs · Blog — everything your community in {{ $heroLocLabel }} needs, in one place.</p>
       @else
         <h1 class="hero-title">Canada's #1 Community<br><span>Marketplace</span></h1>

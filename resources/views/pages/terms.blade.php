@@ -25,7 +25,7 @@
 
 <div class="legal-wrap">
   <div class="legal-meta">
-    <i class="fa-solid fa-calendar" style="margin-right:6px"></i><strong>Last Updated:</strong> June 1, 2025 &nbsp;·&nbsp;
+    <i class="fa-solid fa-calendar" style="margin-right:6px"></i><strong>Last Updated:</strong> July 21, 2026 &nbsp;·&nbsp;
     <i class="fa-solid fa-location-dot" style="margin-right:6px"></i>Governing Law: Ontario, Canada
   </div>
 
@@ -33,7 +33,7 @@
   <p>By accessing or using GoBazaar ("Site", "Platform", "we", "us"), you agree to be bound by these Terms of Use. If you do not agree to these terms, you may not use our platform. These terms apply to all visitors, registered users, and businesses who use GoBazaar.</p>
 
   <h2>2. Eligibility</h2>
-  <p>You must be at least 18 years of age to create an account or post content on GoBazaar. By using the platform, you represent that you meet this requirement. GoBazaar is intended for use by residents of and businesses operating in Canada.</p>
+  <p>You must be at least <strong>18 years of age</strong> to create an account or post content on GoBazaar. By registering, you confirm that you meet this requirement. GoBazaar is intended for use by residents of and businesses operating in Canada.</p>
 
   <h2>3. User Accounts</h2>
   <ul>
@@ -81,7 +81,18 @@
   <p>All content on GoBazaar — including the logo, design, code, and platform features — is owned by GoBazaar and protected by Canadian copyright and trademark law. You may not copy, reproduce, or distribute our content without written permission.</p>
   <p>By posting content (text, images, etc.) on GoBazaar, you grant us a non-exclusive, worldwide, royalty-free license to display, distribute, and promote that content in connection with our services.</p>
 
-  <h2>8. Paid Plans & Refunds</h2>
+  <h2>8. Copyright — Notice and Notice Regime</h2>
+  <p>GoBazaar respects intellectual property rights and complies with Canada's <em>Notice and Notice</em> regime under the <em>Copyright Act</em> (R.S.C., 1985, c. C-42). If you believe content posted on GoBazaar infringes your copyright, please send a written notice to <a href="mailto:legal@gobazaar.ca" style="color:var(--primary)">legal@gobazaar.ca</a> including:</p>
+  <ul>
+    <li>Your name and contact information</li>
+    <li>A description of the copyrighted work you claim has been infringed</li>
+    <li>The URL or specific location of the allegedly infringing content on GoBazaar</li>
+    <li>A statement that you have a good-faith belief the use is not authorized by the copyright owner</li>
+    <li>Your electronic or physical signature</li>
+  </ul>
+  <p>We will forward valid notices to the relevant user and take appropriate action.</p>
+
+  <h2>9. Paid Plans & Refunds</h2>
   <ul>
     <li>Paid plan fees are charged in advance and are generally non-refundable.</li>
     <li>If your account is suspended for violating these terms, no refund will be issued.</li>
@@ -89,19 +100,23 @@
     <li>For billing issues, contact us at <strong>billing@gobazaar.ca</strong>.</li>
   </ul>
 
-  <h2>9. Disclaimer of Warranties</h2>
+  <h2>10. Disclaimer of Warranties</h2>
   <p>GoBazaar is provided "as is" and "as available" without warranties of any kind. We do not guarantee that the platform will be error-free, uninterrupted, or free of viruses. We are not responsible for any losses arising from your use of the platform.</p>
 
-  <h2>10. Limitation of Liability</h2>
+  <h2>11. Limitation of Liability</h2>
   <p>To the fullest extent permitted by law, GoBazaar shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of the platform or any transactions conducted through it.</p>
 
-  <h2>11. Governing Law</h2>
-  <p>These Terms of Use are governed by and construed in accordance with the laws of the Province of Ontario and the federal laws of Canada applicable therein. Any disputes shall be resolved in the courts of Ontario.</p>
+  <h2>12. Dispute Resolution</h2>
+  <p>We encourage users to contact us first to resolve any disputes informally. If a dispute cannot be resolved informally within 30 days, the parties agree to attempt mediation through a mutually agreed mediator in Ontario before pursuing litigation.</p>
+  <p>Nothing in this section prevents either party from seeking urgent injunctive relief from a court of competent jurisdiction. Small claims may be brought in Ontario Small Claims Court without mediation.</p>
 
-  <h2>12. Changes to Terms</h2>
-  <p>We reserve the right to modify these terms at any time. We will notify users of material changes by posting the updated terms on this page. Continued use of GoBazaar after any changes constitutes acceptance of the new terms.</p>
+  <h2>13. Governing Law</h2>
+  <p>These Terms of Use are governed by and construed in accordance with the laws of the Province of Ontario and the federal laws of Canada applicable therein. Any disputes not resolved through the process above shall be subject to the exclusive jurisdiction of the courts of Ontario.</p>
 
-  <h2>13. Contact Us</h2>
+  <h2>14. Changes to Terms</h2>
+  <p>We reserve the right to modify these terms at any time. We will notify users of material changes by posting the updated terms on this page and updating the "Last Updated" date above. Continued use of GoBazaar after changes constitutes acceptance of the new terms.</p>
+
+  <h2>15. Contact Us</h2>
   <p>If you have questions about these Terms of Use, please contact us:</p>
   <ul>
     <li>Email: <a href="mailto:legal@gobazaar.ca" style="color:var(--primary)">legal@gobazaar.ca</a></li>

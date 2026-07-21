@@ -1,5 +1,6 @@
 @extends('layouts.app')
-@section('title', 'Events')
+@section('title', 'Events — Indian-Canadian Community Events | GoBazaar')
+@section('canonical', route('events.index'))
 
 @push('styles')
 <style>

@@ -4,5 +4,13 @@ Disallow: /login
 Disallow: /register
 Disallow: /account
 Disallow: /chat/
+Disallow: /post/create
+Disallow: /post/edit/
+Disallow: /stripe/
+Disallow: /push/
+Disallow: /email/verify/
+Disallow: /password/
+Disallow: /promo/
+Disallow: /auth/google
 
-Sitemap: https://gobazzarweb.heavendwell.com/sitemap.xml
+Sitemap: https://gobazaar.ca/sitemap.xml

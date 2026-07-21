@@ -1,5 +1,6 @@
 @extends('layouts.app')
 @section('title', 'Classifieds — Find Anything in Canada')
+@section('canonical', route('classifieds.index'))
 
 @push('styles')
 <style>

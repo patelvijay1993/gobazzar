@@ -16,7 +16,8 @@
 <meta property="og:description" content="@yield('og_description', 'GoBazaar — Canada\'s #1 Community Marketplace. Find classifieds, jobs, events, businesses and more.')">
 <meta property="og:url"         content="@yield('canonical', url()->current())">
 <meta property="og:image"       content="@yield('og_image', \App\Models\Setting::get('seo_og_image') ?: asset('images/og-default.jpg'))">
-<meta property="og:image:url"    content="@yield('og_image', \App\Models\Setting::get('seo_og_image') ?: asset('images/og-default.jpg'))">
+<meta property="og:image:url"   content="@yield('og_image', \App\Models\Setting::get('seo_og_image') ?: asset('images/og-default.jpg'))">
+<meta property="og:image:alt"   content="@yield('og_title', 'GoBazaar — Canada\'s #1 Community Marketplace')">
 <meta property="og:image:width"  content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:type"   content="image/jpeg">
@@ -24,9 +25,15 @@
 
 {{-- Twitter Card --}}
 <meta name="twitter:card"        content="summary_large_image">
+<meta name="twitter:site"        content="@GoBazaarCA">
 <meta name="twitter:title"       content="@yield('og_title', config('app.name', 'GoBazaar') . ' — Canada\'s #1 Community Marketplace')">
 <meta name="twitter:description" content="@yield('og_description', 'GoBazaar — Canada\'s #1 Community Marketplace.')">
 <meta name="twitter:image"       content="@yield('og_image', \App\Models\Setting::get('seo_og_image') ?: asset('images/og-default.jpg'))">
+
+{{-- Geographic / local SEO --}}
+<meta name="geo.region"   content="CA">
+<meta name="geo.placename" content="Canada">
+<meta name="author"       content="GoBazaar">
 
 {{-- Page-specific JSON-LD structured data --}}
 @stack('schema')
@@ -563,11 +570,11 @@ footer.site-footer{background:var(--nav-bg);border-top:2px solid #2a4fa8;margin-
           $sw = \App\Models\Setting::get('social_whatsapp','');
           $sy = \App\Models\Setting::get('social_youtube','');
         @endphp
-        @if($sf)<a href="{{ $sf }}" target="_blank" rel="noopener"><i class="fa-brands fa-facebook-f"></i></a>@endif
-        @if($si)<a href="{{ $si }}" target="_blank" rel="noopener"><i class="fa-brands fa-instagram"></i></a>@endif
-        @if($st)<a href="{{ $st }}" target="_blank" rel="noopener"><i class="fa-brands fa-twitter"></i></a>@endif
-        @if($sw)<a href="https://wa.me/{{ preg_replace('/\D/','',$sw) }}" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i></a>@endif
-        @if($sy)<a href="{{ $sy }}" target="_blank" rel="noopener"><i class="fa-brands fa-youtube"></i></a>@endif
+        @if($sf)<a href="{{ $sf }}" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-facebook-f"></i></a>@endif
+        @if($si)<a href="{{ $si }}" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-instagram"></i></a>@endif
+        @if($st)<a href="{{ $st }}" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-twitter"></i></a>@endif
+        @if($sw)<a href="https://wa.me/{{ preg_replace('/\D/','',$sw) }}" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-whatsapp"></i></a>@endif
+        @if($sy)<a href="{{ $sy }}" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-youtube"></i></a>@endif
         @if(!$sf && !$si && !$st && !$sw && !$sy)
           <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
           <a href="#"><i class="fa-brands fa-instagram"></i></a>
@@ -609,7 +616,7 @@ footer.site-footer{background:var(--nav-bg);border-top:2px solid #2a4fa8;margin-
     <a href="{{ route('classifieds.index') }}">Classifieds</a> &nbsp;·&nbsp;
     <a href="{{ route('jobs.index') }}">Jobs</a>
     &nbsp;·&nbsp;
-    <a href="//www.dmca.com/Protection/Status.aspx?ID=953e6b61-feb3-49ea-bbf4-4bda7b9526dc" title="DMCA.com Protection Status" target="_blank" rel="noopener">
+    <a href="//www.dmca.com/Protection/Status.aspx?ID=953e6b61-feb3-49ea-bbf4-4bda7b9526dc" title="DMCA.com Protection Status" target="_blank" rel="noopener noreferrer">
       <img src="https://images.dmca.com/Badges/dmca-badge-w100-2x1-03.png?ID=953e6b61-feb3-49ea-bbf4-4bda7b9526dc" alt="DMCA Protected" style="height:18px;width:auto;vertical-align:middle;opacity:.75">
     </a>
   </div>
@@ -1912,24 +1919,25 @@ document.getElementById('gc-input').addEventListener('keydown', function(e) {
      style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:10000;
             background:#fff;border-top:2px solid #e2e0db;
             box-shadow:0 -4px 24px rgba(0,0,0,.12);
-            padding:16px 20px 20px;align-items:center;gap:16px;flex-wrap:wrap">
+            padding:16px 20px 20px;align-items:flex-start;gap:16px;flex-wrap:wrap">
 
   <div style="flex:1;min-width:220px">
-    <div style="font-weight:700;font-size:14px;color:#1a1a1a;margin-bottom:4px">
-      🍪 We use cookies
+    <div style="font-weight:700;font-size:14px;color:#1a1a1a;margin-bottom:6px">🍪 We use cookies</div>
+    <div style="font-size:12px;color:#555;line-height:1.6;margin-bottom:8px">
+      We use <strong>essential cookies</strong> to keep the site working, and <strong>analytics cookies</strong>
+      (Google Analytics) to understand how visitors use GoBazaar. Analytics cookies are only loaded after you accept.
+      See our <a href="{{ route('privacy') }}" style="color:#1a3a8f;text-decoration:underline">Privacy Policy</a> for details.
     </div>
-    <div style="font-size:12px;color:#555;line-height:1.5">
-      We use cookies to improve your experience, analyze traffic, and personalize content.
-      By clicking <strong>Accept</strong>, you agree to our
-      <a href="{{ route('privacy') }}" style="color:#1a3a8f;text-decoration:underline">Privacy Policy</a>.
+    <div style="font-size:11px;color:#888">
+      Essential cookies: always active &nbsp;·&nbsp; Analytics: only with consent (PIPEDA / CASL compliant)
     </div>
   </div>
 
-  <div style="display:flex;gap:10px;flex-shrink:0;align-items:center">
-    <button onclick="cookieConsent('reject')"
+  <div style="display:flex;gap:10px;flex-shrink:0;align-items:center;padding-top:4px">
+    <button onclick="cookieConsent('essential')"
       style="background:#f3f4f6;color:#374151;border:1px solid #d1d5db;border-radius:8px;
-             padding:9px 18px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap">
-      Reject
+             padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap">
+      Essential Only
     </button>
     <button onclick="cookieConsent('accept')"
       style="background:#1a3a8f;color:#fff;border:none;border-radius:8px;
@@ -1945,15 +1953,31 @@ document.getElementById('gc-input').addEventListener('keydown', function(e) {
   if (!consent) {
     var b = document.getElementById('cookie-banner');
     if (b) {
-      // If iOS install banner is also showing, stack above it
       var ios = document.getElementById('ios-install-banner');
       if (ios && ios.style.display !== 'none') {
         b.style.bottom = (ios.offsetHeight || 80) + 'px';
       }
       b.style.display = 'flex';
     }
+  } else if (consent === 'accept') {
+    // Analytics already accepted — load GA if configured
+    _loadAnalytics();
   }
 })();
+
+function _loadAnalytics() {
+  if (!window.GA_MEASUREMENT_ID) return;
+  if (window._gaLoaded) return;
+  window._gaLoaded = true;
+  var s = document.createElement('script');
+  s.async = true;
+  s.src = 'https://www.googletagmanager.com/gtag/js?id=' + window.GA_MEASUREMENT_ID;
+  document.head.appendChild(s);
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', window.GA_MEASUREMENT_ID, { anonymize_ip: true });
+}
 
 function cookieConsent(choice) {
   localStorage.setItem('cookie-consent', choice);
@@ -1965,9 +1989,11 @@ function cookieConsent(choice) {
     b.style.transform = 'translateY(20px)';
     setTimeout(function(){ b.style.display = 'none'; }, 300);
   }
-  // If rejected, disable GA (if present)
-  if (choice === 'reject' && window['ga-disable-' + (window.GA_MEASUREMENT_ID || '')]) {
-    window['ga-disable-' + window.GA_MEASUREMENT_ID] = true;
+  if (choice === 'accept') {
+    _loadAnalytics();
+  } else {
+    // Disable GA if already loaded
+    if (window.GA_MEASUREMENT_ID) window['ga-disable-' + window.GA_MEASUREMENT_ID] = true;
   }
 }
 </script>

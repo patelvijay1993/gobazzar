@@ -61,7 +61,7 @@ Route::get('/my-businesses', function () {
 
 // Poll voting (anonymous, one vote per device token)
 Route::post('/poll/{poll}/vote', function (\Illuminate\Http\Request $request, \App\Models\Poll $poll) {
-    $request->validate(['option_id' => 'required|exists:poll_options,id', 'token' => 'required|string']);
+    $request->validate(['option_id' => 'required|exists:poll_options,id', 'token' => 'required|string|max:128']);
 
     // Ensure option belongs to this poll
     $option = $poll->options()->where('id', $request->option_id)->first();
@@ -92,7 +92,7 @@ Route::post('/poll/{poll}/vote', function (\Illuminate\Http\Request $request, \A
         ]),
         'already' => $already,
     ]);
-})->name('poll.vote');
+})->name('poll.vote')->middleware('throttle:10,1');
 
 // Sitemaps
 Route::get('/sitemap.xml',          [\App\Http\Controllers\SitemapController::class, 'index'])->name('sitemap');
@@ -143,7 +143,7 @@ Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:5,1');
     Route::get('/forgot-password', [AuthController::class, 'showForgotPassword'])->name('password.request');
     Route::post('/forgot-password', [AuthController::class, 'sendResetLink'])->name('password.email')->middleware('throttle:5,1');
     Route::get('/password/reset/{token}', [AuthController::class, 'showResetPassword'])->name('password.reset');
@@ -165,7 +165,7 @@ Route::post('/email/resend', [AuthController::class, 'verificationSend'])
     ->name('verification.send');
 
 // AI Assistant
-Route::post('/assistant/chat', [\App\Http\Controllers\AssistantController::class, 'chat'])->name('assistant.chat');
+Route::post('/assistant/chat', [\App\Http\Controllers\AssistantController::class, 'chat'])->name('assistant.chat')->middleware('throttle:10,1');
 
 // PWA Push Notifications
 Route::get('/push/vapid-key', [\App\Http\Controllers\PushController::class, 'vapidKey'])->name('push.vapid-key');

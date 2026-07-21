@@ -1,5 +1,6 @@
 @extends('layouts.app')
 @section('title', 'Business Directory — Indian Businesses in Canada')
+@section('canonical', route('directory.index'))
 
 @push('styles')
 <style>
