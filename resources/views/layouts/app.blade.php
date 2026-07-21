@@ -1902,5 +1902,70 @@ document.getElementById('gc-input').addEventListener('keydown', function(e) {
 });
 </script>
 @endauth
+
+{{-- ── Cookie Consent Banner ─────────────────────────────────────────── --}}
+<div id="cookie-banner"
+     style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:10000;
+            background:#fff;border-top:2px solid #e2e0db;
+            box-shadow:0 -4px 24px rgba(0,0,0,.12);
+            padding:16px 20px 20px;align-items:center;gap:16px;flex-wrap:wrap">
+
+  <div style="flex:1;min-width:220px">
+    <div style="font-weight:700;font-size:14px;color:#1a1a1a;margin-bottom:4px">
+      🍪 We use cookies
+    </div>
+    <div style="font-size:12px;color:#555;line-height:1.5">
+      We use cookies to improve your experience, analyze traffic, and personalize content.
+      By clicking <strong>Accept</strong>, you agree to our
+      <a href="{{ route('privacy') }}" style="color:#1a3a8f;text-decoration:underline">Privacy Policy</a>.
+    </div>
+  </div>
+
+  <div style="display:flex;gap:10px;flex-shrink:0;align-items:center">
+    <button onclick="cookieConsent('reject')"
+      style="background:#f3f4f6;color:#374151;border:1px solid #d1d5db;border-radius:8px;
+             padding:9px 18px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap">
+      Reject
+    </button>
+    <button onclick="cookieConsent('accept')"
+      style="background:#1a3a8f;color:#fff;border:none;border-radius:8px;
+             padding:9px 20px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">
+      Accept All
+    </button>
+  </div>
+</div>
+
+<script>
+(function() {
+  var consent = localStorage.getItem('cookie-consent');
+  if (!consent) {
+    var b = document.getElementById('cookie-banner');
+    if (b) {
+      // If iOS install banner is also showing, stack above it
+      var ios = document.getElementById('ios-install-banner');
+      if (ios && ios.style.display !== 'none') {
+        b.style.bottom = (ios.offsetHeight || 80) + 'px';
+      }
+      b.style.display = 'flex';
+    }
+  }
+})();
+
+function cookieConsent(choice) {
+  localStorage.setItem('cookie-consent', choice);
+  localStorage.setItem('cookie-consent-date', new Date().toISOString());
+  var b = document.getElementById('cookie-banner');
+  if (b) {
+    b.style.transition = 'opacity .3s,transform .3s';
+    b.style.opacity = '0';
+    b.style.transform = 'translateY(20px)';
+    setTimeout(function(){ b.style.display = 'none'; }, 300);
+  }
+  // If rejected, disable GA (if present)
+  if (choice === 'reject' && window['ga-disable-' + (window.GA_MEASUREMENT_ID || '')]) {
+    window['ga-disable-' + window.GA_MEASUREMENT_ID] = true;
+  }
+}
+</script>
 </body>
 </html>
