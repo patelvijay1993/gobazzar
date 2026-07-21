@@ -176,47 +176,22 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
         <div style="margin-top:14px">@foreach($business->tags as $tag)<span class="tag">{{ $tag }}</span>@endforeach</div>
       @endif
 
-      {{-- Google Map embed --}}
-      @if($business->map_url)
+      {{-- Map embed (OpenStreetMap — no API key required) --}}
+      @php
+        $mapAddr = trim(($business->address ?? '') . ' ' . ($business->city ?? '') . ' ' . ($business->province ?? '') . ' Canada');
+        $osmQ    = urlencode($mapAddr);
+        $osmEmbed = 'https://www.openstreetmap.org/export/embed.html?bbox=-180%2C-90%2C180%2C90&layer=mapnik&marker=0%2C0&query=' . $osmQ;
+        $gmapsLink = $business->map_url ?: ('https://www.google.com/maps/search/' . $osmQ);
+      @endphp
+      @if($business->address || $business->city || $business->map_url)
         <div style="margin-top:20px;border-radius:10px;overflow:hidden;border:1.5px solid var(--border)">
-          @php
-            // Convert Google Maps share URL to embed URL
-            $mapUrl = $business->map_url;
-            if (str_contains($mapUrl, 'maps.google.com') || str_contains($mapUrl, 'goo.gl/maps') || str_contains($mapUrl, 'maps.app.goo.gl')) {
-                // Use embed via place search query parameter
-                preg_match('/[?&]q=([^&]+)/', $mapUrl, $qm);
-                if (!empty($qm[1])) {
-                    $embedUrl = 'https://maps.google.com/maps?q=' . $qm[1] . '&output=embed';
-                } else {
-                    // Fallback: embed address
-                    $addr = urlencode(trim(($business->address ?? '') . ' ' . ($business->city ?? '') . ' ' . ($business->province ?? '')));
-                    $embedUrl = 'https://maps.google.com/maps?q=' . $addr . '&output=embed';
-                }
-            } else {
-                $addr = urlencode(trim(($business->address ?? '') . ' ' . ($business->city ?? '') . ' ' . ($business->province ?? '')));
-                $embedUrl = 'https://maps.google.com/maps?q=' . $addr . '&output=embed';
-            }
-          @endphp
           <iframe
-            src="{{ $embedUrl }}"
+            src="https://www.openstreetmap.org/export/embed.html?query={{ $osmQ }}&layer=mapnik"
             width="100%" height="260" style="border:0;display:block"
             allowfullscreen loading="lazy"
             referrerpolicy="no-referrer-when-downgrade">
           </iframe>
-          <a href="{{ $business->map_url }}" target="_blank"
-             style="display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:12.5px;color:var(--primary);font-weight:600;text-decoration:none;background:#f8faff;border-top:1px solid var(--border)">
-            <i class="fa-solid fa-map-location-dot"></i> Open in Google Maps →
-          </a>
-        </div>
-      @elseif($business->address || $business->city)
-        {{-- No map_url but has address — auto-embed --}}
-        @php
-          $addr = urlencode(trim(($business->address ?? '') . ' ' . ($business->city ?? '') . ' ' . ($business->province ?? '') . ' Canada'));
-          $embedUrl = 'https://maps.google.com/maps?q=' . $addr . '&output=embed';
-        @endphp
-        <div style="margin-top:20px;border-radius:10px;overflow:hidden;border:1.5px solid var(--border)">
-          <iframe src="{{ $embedUrl }}" width="100%" height="260" style="border:0;display:block" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-          <a href="https://maps.google.com/maps?q={{ $addr }}" target="_blank"
+          <a href="{{ $gmapsLink }}" target="_blank" rel="noopener noreferrer"
              style="display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:12.5px;color:var(--primary);font-weight:600;text-decoration:none;background:#f8faff;border-top:1px solid var(--border)">
             <i class="fa-solid fa-map-location-dot"></i> Open in Google Maps →
           </a>
