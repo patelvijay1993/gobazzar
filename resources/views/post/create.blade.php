@@ -708,7 +708,7 @@ textarea.form-input{resize:vertical;min-height:100px}
             </div>
             <div class="form-group">
               <label class="form-label">Google Maps Link</label>
-              <input type="url" name="map_url" class="form-input" value="{{ old('map_url') }}" placeholder="https://maps.google.com/…">
+              <input type="url" name="map_url" class="form-input" value="{{ old('map_url') }}" placeholder="Paste Google Maps link (e.g. https://maps.app.goo.gl/…)">
             </div>
           </div>
         </div>

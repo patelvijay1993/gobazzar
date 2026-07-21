@@ -36,7 +36,7 @@ class SecurityHeaders
             "img-src * data: blob:",
             "media-src 'self'",
             "connect-src 'self' api.groq.com *.pusher.com wss://*.pusher.com",
-            "frame-src 'self' js.stripe.com www.openstreetmap.org",
+            "frame-src 'self' js.stripe.com www.google.com",
             "frame-ancestors 'none'",
             "base-uri 'self'",
             "form-action 'self'",
