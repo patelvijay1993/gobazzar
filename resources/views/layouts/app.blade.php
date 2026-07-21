@@ -143,7 +143,8 @@ footer.site-footer{background:var(--nav-bg);border-top:2px solid #2a4fa8;margin-
 
 /* ── MOBILE INNER PAGE SIDEBAR ADS ── */
 .mob-sidebar-ad{display:none}
-.pwa-install-label{display:inline}
+#pwa-install-btn{display:none!important}
+@media(max-width:1024px){#pwa-install-btn{display:flex!important}}
 @media(max-width:480px){.pwa-install-label{display:none}}
 @media(max-width:600px){
   .mob-sidebar-ad{display:block;padding:0 12px;margin:14px 0}
@@ -1258,12 +1259,15 @@ var _pwaPrompt = null;
 window.addEventListener('beforeinstallprompt', function(e) {
   e.preventDefault();
   _pwaPrompt = e;
-  var btn = document.getElementById('pwa-install-btn');
-  if (btn) btn.style.display = 'flex';
+  // Only show on mobile/tablet (≤1024px)
+  if (window.innerWidth <= 1024) {
+    var btn = document.getElementById('pwa-install-btn');
+    if (btn) btn.style.setProperty('display', 'flex', 'important');
+  }
 });
 window.addEventListener('appinstalled', function() {
   var btn = document.getElementById('pwa-install-btn');
-  if (btn) btn.style.display = 'none';
+  if (btn) btn.style.setProperty('display', 'none', 'important');
   _pwaPrompt = null;
 });
 function pwaInstall() {
