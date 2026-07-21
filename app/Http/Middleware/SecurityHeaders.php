@@ -15,7 +15,6 @@ class SecurityHeaders
         $response = $next($request);
 
         $response->headers->set('X-Content-Type-Options', 'nosniff');
-        $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
         $response->headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(self)');
         $response->headers->set('X-XSS-Protection', '0');
@@ -26,6 +25,13 @@ class SecurityHeaders
         if ($request->secure() || app()->environment('production')) {
             $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
         }
+
+        // Skip CSP and framing restrictions for Filament admin — it manages its own asset pipeline
+        if ($request->is('admin') || $request->is('admin/*')) {
+            return $response;
+        }
+
+        $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
 
         // Content-Security-Policy
         $csp = implode('; ', [
