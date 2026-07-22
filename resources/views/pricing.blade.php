@@ -22,7 +22,7 @@
 /* ── PLANS GRID ── */
 .plans-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:50px;max-width:900px;margin-left:auto;margin-right:auto}
 
-.plan-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:28px 22px;position:relative;transition:box-shadow .2s,transform .2s;display:flex;flex-direction:column}
+.plan-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:28px 22px;position:relative;transition:box-shadow .2s,transform .2s;display:flex;flex-direction:column;margin-top:14px}
 .plan-card:hover{box-shadow:0 8px 32px rgba(26,58,143,.12);transform:translateY(-3px)}
 .plan-card.popular{border-color:var(--primary);box-shadow:0 4px 24px rgba(26,58,143,.18)}
 
@@ -100,16 +100,16 @@
   .compare-section{display:none}
 }
 @media(max-width:820px){
-  .plans-grid{grid-template-columns:repeat(2,1fr);max-width:100%}
+  .plans-grid{grid-template-columns:1fr;max-width:480px}
 }
 @media(max-width:560px){
   .pricing-wrap{padding:0 14px}
-  .plans-grid{grid-template-columns:1fr;gap:24px}
+  .plans-grid{grid-template-columns:1fr;max-width:100%;gap:20px}
   .plan-card{padding:22px 18px}
   .pricing-hero{padding:32px 16px}
   .pricing-hero h1{font-size:22px}
   .pricing-hero p{font-size:13.5px}
-  .pricing-hero-badges{gap:8px}
+  .pricing-hero-badges{gap:8px;justify-content:center}
   .hero-badge{font-size:11px;padding:5px 10px}
   .plan-price{font-size:32px}
   .promo-box{padding:18px 16px}
@@ -118,7 +118,7 @@
   .contact-cta{padding:28px 18px}
   .contact-cta h3{font-size:20px}
   .faq-section{padding:0 2px}
-  .current-plan-bar{font-size:12px}
+  .current-plan-bar{font-size:12px;flex-wrap:wrap}
 }
 </style>
 @endpush
