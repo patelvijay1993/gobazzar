@@ -3,8 +3,11 @@
 
 @push('styles')
 <style>
+/* ── BASE ── */
+.pricing-page-root{max-width:100vw;overflow-x:hidden}
+
 /* ── HERO ── */
-.pricing-hero{background:var(--primary);padding:48px 20px;text-align:center;position:relative;overflow:hidden}
+.pricing-hero{background:var(--primary);padding:48px 20px;text-align:center;position:relative;overflow:hidden;width:100%;box-sizing:border-box}
 .pricing-hero::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E");pointer-events:none}
 .pricing-hero h1{font-family:var(--fh);font-size:32px;font-weight:800;color:#fff;margin-bottom:10px;position:relative}
 .pricing-hero p{color:rgba(255,255,255,.7);font-size:15px;max-width:500px;margin:0 auto;position:relative}
@@ -13,14 +16,15 @@
 .hero-badge i{color:var(--accent);font-size:13px}
 
 /* ── WRAP ── */
-.pricing-wrap{max-width:1200px;margin:40px auto;padding:0 20px}
+.pricing-wrap{max-width:1200px;margin:40px auto;padding:0 20px;box-sizing:border-box;width:100%}
 
 /* ── CURRENT PLAN ── */
 .current-plan-bar{background:#eff6ff;border:1px solid #bfdbfe;border-radius:var(--radius);padding:14px 18px;margin-bottom:28px;font-size:13px;display:flex;align-items:center;gap:10px;color:#1d4ed8}
 .current-plan-bar i{font-size:18px;color:#1d4ed8;flex-shrink:0}
 
 /* ── PLANS GRID ── */
-.plans-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:50px;max-width:900px;margin-left:auto;margin-right:auto;width:100%}
+.plans-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:50px;max-width:900px;margin-left:auto;margin-right:auto;width:100%;box-sizing:border-box}
+.plan-card{box-sizing:border-box;width:100%}
 
 .plan-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:28px 22px;position:relative;transition:box-shadow .2s,transform .2s;display:flex;flex-direction:column;margin-top:14px}
 .plan-card:hover{box-shadow:0 8px 32px rgba(26,58,143,.12);transform:translateY(-3px)}
@@ -96,32 +100,33 @@
 .contact-cta a:hover{opacity:.88;color:#fff !important}
 
 /* ── RESPONSIVE ── */
-@media(max-width:900px){
+@media(max-width:1024px){
+  .plans-grid{grid-template-columns:1fr !important;max-width:480px}
   .compare-section{display:none}
-  .plans-grid{grid-template-columns:1fr !important;max-width:500px}
 }
-@media(max-width:560px){
-  .pricing-wrap{padding:0 14px}
-  .plans-grid{grid-template-columns:1fr !important;max-width:100%;gap:20px}
-  .plan-card{padding:22px 18px}
-  .pricing-hero{padding:32px 16px}
-  .pricing-hero h1{font-size:22px}
-  .pricing-hero p{font-size:13.5px}
+@media(max-width:600px){
+  .pricing-wrap{padding:0 12px}
+  .plans-grid{max-width:100%;gap:20px}
+  .plan-card{padding:20px 16px}
+  .pricing-hero{padding:28px 14px}
+  .pricing-hero h1{font-size:22px;word-break:break-word}
+  .pricing-hero p{font-size:13px}
   .pricing-hero-badges{gap:8px;justify-content:center}
   .hero-badge{font-size:11px;padding:5px 10px}
-  .plan-price{font-size:32px}
-  .promo-box{padding:18px 16px}
-  .promo-row{flex-direction:column}
+  .plan-price{font-size:30px}
+  .promo-box{padding:16px 14px}
+  .promo-row{flex-direction:column;gap:8px}
   .promo-row input,.promo-row button{width:100%;box-sizing:border-box}
-  .contact-cta{padding:28px 18px}
-  .contact-cta h3{font-size:20px}
-  .faq-section{padding:0 2px}
+  .contact-cta{padding:24px 16px}
+  .contact-cta h3{font-size:18px}
+  .faq-section{padding:0}
   .current-plan-bar{font-size:12px;flex-wrap:wrap}
 }
 </style>
 @endpush
 
 @section('content')
+<div class="pricing-page-root">
 
 {{-- HERO --}}
 <div class="pricing-hero">
@@ -459,7 +464,8 @@
     <a href="mailto:admin@gobazaar.ca" style="color:#fff !important"><i class="fa-solid fa-envelope"></i> Email Us to Upgrade</a>
   </div>
 
-</div>
+</div>{{-- pricing-wrap --}}
+</div>{{-- pricing-page-root --}}
 
 <script>
 document.querySelectorAll('.faq-q').forEach(q => {
