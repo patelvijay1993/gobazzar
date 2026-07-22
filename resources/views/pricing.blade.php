@@ -23,7 +23,11 @@
 .current-plan-bar i{font-size:18px;color:#1d4ed8;flex-shrink:0}
 
 /* ── PLANS GRID ── */
-.plans-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:50px;max-width:900px;margin-left:auto;margin-right:auto;width:100%;box-sizing:border-box}
+.plans-grid{display:flex;flex-direction:column;gap:20px;margin-bottom:50px;max-width:500px;margin-left:auto;margin-right:auto;width:100%;box-sizing:border-box}
+@media(min-width:900px){
+  .plans-grid{flex-direction:row;max-width:900px;align-items:stretch}
+  .plan-card{flex:1}
+}
 .plan-card{box-sizing:border-box;width:100%}
 
 .plan-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:28px 22px;position:relative;transition:box-shadow .2s,transform .2s;display:flex;flex-direction:column;margin-top:14px}
@@ -100,13 +104,12 @@
 .contact-cta a:hover{opacity:.88;color:#fff !important}
 
 /* ── RESPONSIVE ── */
-@media(max-width:1024px){
-  .plans-grid{grid-template-columns:1fr !important;max-width:480px}
+@media(max-width:899px){
   .compare-section{display:none}
+  .plans-grid{max-width:100%}
 }
 @media(max-width:600px){
   .pricing-wrap{padding:0 12px}
-  .plans-grid{max-width:100%;gap:20px}
   .plan-card{padding:20px 16px}
   .pricing-hero{padding:28px 14px}
   .pricing-hero h1{font-size:22px;word-break:break-word}
@@ -161,7 +164,7 @@
   @endauth
 
   {{-- PLANS GRID (dynamic from DB) --}}
-  <div class="plans-grid">
+  <div class="plans-grid" id="plans-grid">
     @foreach($plans as $plan)
     @php
       $userPlan = auth()->check() ? auth()->user()->activePlan() : null;
