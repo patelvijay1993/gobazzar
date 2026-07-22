@@ -266,7 +266,7 @@ footer.site-footer{background:var(--nav-bg);border-top:2px solid #2a4fa8;margin-
 }
 </style>
 @stack('styles')
-<link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
+<link href="/css/quill.snow.css" rel="stylesheet">
 </head>
 <body>
 
@@ -1013,7 +1013,7 @@ async function submitReport() {
   </a>
 </nav>
 
-<script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+<script src="/js/quill.min.js"></script>
 @stack('scripts')
 <script>
 // ── OLX-STYLE LOCATION MODAL ──────────────────────────────────────
