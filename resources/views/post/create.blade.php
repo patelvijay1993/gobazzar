@@ -1293,9 +1293,7 @@ function _qlInitReturn(editorId, textareaId, withImage) {
     q.getModule('toolbar').addHandler('image', _qlImageHandler(q));
   }
   if (ta.value) q.clipboard.dangerouslyPasteHTML(ta.value);
-  el.closest('form').addEventListener('submit', function() {
-    ta.value = q.root.innerHTML;
-  });
+  q.on('text-change', function() { ta.value = q.root.innerHTML; });
   return q;
 }
 
@@ -1411,10 +1409,15 @@ function runAIGenerate() {
 
     // Auto-apply description to Quill editor
     var descHtml = res.data.description || '';
-    document.getElementById('biz-description').value = descHtml;
     if (_bizQuill) {
-      _bizQuill.root.innerHTML = descHtml;
-      _bizQuill.update();
+      _bizQuill.setContents([]);                          // clear first
+      _bizQuill.clipboard.dangerouslyPasteHTML(0, descHtml); // paste at start
+      // sync hidden textarea after Quill settles
+      setTimeout(function() {
+        document.getElementById('biz-description').value = _bizQuill.root.innerHTML;
+      }, 50);
+    } else {
+      document.getElementById('biz-description').value = descHtml;
     }
 
     // Auto-apply tags
