@@ -17,9 +17,10 @@ class BusinessContentController extends Controller
             'language'      => 'nullable|in:en,gu,hi',
         ]);
 
-        $apiKey = config('services.groq.key');
+        $keys   = config('services.groq.keys', []);
+        $apiKey = is_array($keys) ? (array_values(array_filter($keys))[0] ?? null) : $keys;
         if (!$apiKey) {
-            return response()->json(['error' => 'AI generation is not configured.'], 503);
+            return response()->json(['error' => 'AI generation is not configured. Add GROQ_API_KEY in .env'], 503);
         }
 
         $name     = trim($request->business_name);
