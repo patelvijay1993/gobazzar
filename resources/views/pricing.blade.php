@@ -20,7 +20,7 @@
 .current-plan-bar i{font-size:18px;color:#1d4ed8;flex-shrink:0}
 
 /* ── PLANS GRID ── */
-.plans-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:50px;max-width:900px;margin-left:auto;margin-right:auto}
+.plans-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:50px;max-width:900px;margin-left:auto;margin-right:auto;width:100%}
 
 .plan-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:28px 22px;position:relative;transition:box-shadow .2s,transform .2s;display:flex;flex-direction:column;margin-top:14px}
 .plan-card:hover{box-shadow:0 8px 32px rgba(26,58,143,.12);transform:translateY(-3px)}
@@ -98,13 +98,11 @@
 /* ── RESPONSIVE ── */
 @media(max-width:900px){
   .compare-section{display:none}
-}
-@media(max-width:820px){
-  .plans-grid{grid-template-columns:1fr;max-width:480px}
+  .plans-grid{grid-template-columns:1fr !important;max-width:500px}
 }
 @media(max-width:560px){
   .pricing-wrap{padding:0 14px}
-  .plans-grid{grid-template-columns:1fr;max-width:100%;gap:20px}
+  .plans-grid{grid-template-columns:1fr !important;max-width:100%;gap:20px}
   .plan-card{padding:22px 18px}
   .pricing-hero{padding:32px 16px}
   .pricing-hero h1{font-size:22px}
