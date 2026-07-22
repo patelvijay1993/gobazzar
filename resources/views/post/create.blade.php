@@ -610,27 +610,9 @@ textarea.form-input{resize:vertical;min-height:100px}
               <div id="ai-status" style="font-size:12px;color:var(--muted)"></div>
             </div>
 
-            {{-- Preview area --}}
-            <div id="ai-preview" style="display:none;margin-top:16px;border-top:1px solid #dde3f5;padding-top:16px">
-              <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px">✨ Generated Content — Review and Apply</div>
-
-              <div style="background:#fff;border:1.5px solid #dde3f5;border-radius:8px;padding:14px 16px;margin-bottom:10px;font-size:13px;line-height:1.7;color:var(--text)" id="ai-desc-preview"></div>
-
-              <div style="margin-bottom:12px">
-                <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:6px">SUGGESTED TAGLINE</div>
-                <div id="ai-tagline-preview" style="font-size:13px;font-style:italic;color:var(--primary);background:#f0f4ff;padding:8px 12px;border-radius:6px"></div>
-              </div>
-
-              <div style="margin-bottom:14px">
-                <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:6px">SUGGESTED TAGS</div>
-                <div id="ai-tags-preview" style="display:flex;flex-wrap:wrap;gap:6px"></div>
-              </div>
-
-              <div style="display:flex;gap:8px;flex-wrap:wrap">
-                <button type="button" onclick="applyAIContent()" style="background:var(--primary);color:#fff;border:none;border-radius:7px;padding:9px 20px;font-size:13px;font-weight:700;cursor:pointer">✅ Apply to Form</button>
-                <button type="button" onclick="runAIGenerate()" style="background:#fff;color:var(--primary);border:1.5px solid var(--primary);border-radius:7px;padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer">🔄 Regenerate</button>
-                <button type="button" onclick="document.getElementById('ai-preview').style.display='none'" style="background:#fff;color:var(--muted);border:1.5px solid var(--border);border-radius:7px;padding:9px 16px;font-size:12px;cursor:pointer">Dismiss</button>
-              </div>
+            {{-- Regenerate button shown after first generation --}}
+            <div id="ai-preview" style="display:none;margin-top:10px">
+              <button type="button" onclick="runAIGenerate()" style="background:#fff;color:var(--primary);border:1.5px solid var(--primary);border-radius:7px;padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer">🔄 Regenerate</button>
             </div>
           </div>
 
@@ -1426,31 +1408,33 @@ function runAIGenerate() {
     }
 
     _aiGenResult = res.data;
-    status.textContent = '✅ Done! Review below.';
 
-    // Show description preview
-    document.getElementById('ai-desc-preview').innerHTML = res.data.description || '';
-    document.getElementById('ai-tagline-preview').textContent = res.data.tagline || '';
+    // Auto-apply description to Quill editor immediately
+    if (_bizQuill) {
+      _bizQuill.clipboard.dangerouslyPasteHTML(res.data.description || '');
+      document.getElementById('biz-description').value = res.data.description || '';
+    }
 
-    // Show tag pills in preview
-    var tagWrap = document.getElementById('ai-tags-preview');
-    tagWrap.innerHTML = '';
-    (res.data.tags || []).forEach(function(tag) {
-      var span = document.createElement('span');
-      span.style.cssText = 'background:#f0f4ff;color:var(--primary);border:1px solid #c7d4f0;border-radius:20px;padding:3px 10px;font-size:12px;font-weight:600;cursor:pointer';
-      span.title = 'Click to toggle';
-      span.textContent = tag;
-      span.dataset.selected = '1';
-      span.addEventListener('click', function() {
-        var sel = span.dataset.selected === '1';
-        span.dataset.selected = sel ? '0' : '1';
-        span.style.opacity = sel ? '0.4' : '1';
-      });
-      tagWrap.appendChild(span);
-    });
+    // Auto-apply tags
+    var tagInput = document.getElementById('biz-tags-input');
+    if (tagInput && res.data.tags && res.data.tags.length) {
+      var existing = tagInput.value.split(',').map(function(t){ return t.trim(); }).filter(Boolean);
+      var merged   = [...new Set([...existing, ...res.data.tags])];
+      tagInput.value = merged.join(', ');
+      tagInput.dispatchEvent(new Event('blur'));
+    }
 
-    preview.style.display = 'block';
-    preview.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    // Auto-apply tagline if field exists
+    var taglineField = document.getElementById('biz-tagline');
+    if (taglineField && res.data.tagline) taglineField.value = res.data.tagline;
+
+    status.textContent = '✅ Content applied!';
+
+    // Show Regenerate button
+    document.getElementById('ai-preview').style.display = 'block';
+
+    // Scroll to description editor
+    document.getElementById('biz-description-editor').scrollIntoView({ behavior: 'smooth', block: 'center' });
   })
   .catch(function(err) {
     btn.disabled = false;
