@@ -26,7 +26,7 @@
 .plan-card:hover{box-shadow:0 8px 32px rgba(26,58,143,.12);transform:translateY(-3px)}
 .plan-card.popular{border-color:var(--primary);box-shadow:0 4px 24px rgba(26,58,143,.18)}
 
-.popular-badge{position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:var(--primary);color:#fff;font-size:10px;font-weight:700;padding:4px 16px;border-radius:20px;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;display:flex;align-items:center;gap:5px}
+.popular-badge{position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:var(--primary);color:#fff;font-size:10px;font-weight:700;padding:4px 12px;border-radius:20px;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;display:flex;align-items:center;gap:5px;max-width:90%}
 
 .plan-icon{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:14px}
 .plan-name{font-family:var(--fh);font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.9px;margin-bottom:8px}
@@ -96,18 +96,29 @@
 .contact-cta a:hover{opacity:.88;color:#fff !important}
 
 /* ── RESPONSIVE ── */
-@media(max-width:820px){
-  .plans-grid{grid-template-columns:repeat(2,1fr)}
+@media(max-width:900px){
   .compare-section{display:none}
 }
-@media(max-width:540px){
-  .plans-grid{grid-template-columns:1fr}
+@media(max-width:820px){
+  .plans-grid{grid-template-columns:repeat(2,1fr);max-width:100%}
 }
-@media(max-width:520px){
-  .plans-grid{grid-template-columns:1fr}
-  .pricing-hero h1{font-size:24px}
-  .pricing-hero-badges{gap:10px}
-  .contact-cta{padding:28px 20px}
+@media(max-width:560px){
+  .pricing-wrap{padding:0 14px}
+  .plans-grid{grid-template-columns:1fr;gap:24px}
+  .plan-card{padding:22px 18px}
+  .pricing-hero{padding:32px 16px}
+  .pricing-hero h1{font-size:22px}
+  .pricing-hero p{font-size:13.5px}
+  .pricing-hero-badges{gap:8px}
+  .hero-badge{font-size:11px;padding:5px 10px}
+  .plan-price{font-size:32px}
+  .promo-box{padding:18px 16px}
+  .promo-row{flex-direction:column}
+  .promo-row input,.promo-row button{width:100%;box-sizing:border-box}
+  .contact-cta{padding:28px 18px}
+  .contact-cta h3{font-size:20px}
+  .faq-section{padding:0 2px}
+  .current-plan-bar{font-size:12px}
 }
 </style>
 @endpush
