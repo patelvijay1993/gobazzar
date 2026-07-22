@@ -1409,10 +1409,12 @@ function runAIGenerate() {
 
     _aiGenResult = res.data;
 
-    // Auto-apply description to Quill editor immediately
+    // Auto-apply description to Quill editor
+    var descHtml = res.data.description || '';
+    document.getElementById('biz-description').value = descHtml;
     if (_bizQuill) {
-      _bizQuill.clipboard.dangerouslyPasteHTML(res.data.description || '');
-      document.getElementById('biz-description').value = res.data.description || '';
+      _bizQuill.root.innerHTML = descHtml;
+      _bizQuill.update();
     }
 
     // Auto-apply tags
