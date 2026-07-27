@@ -55,7 +55,7 @@
 .sp-card{background:#fff;border-radius:13px;overflow:hidden;border:1.5px solid #e8edf4;box-shadow:0 1px 5px rgba(0,0,0,.05);text-decoration:none;color:inherit;display:block;transition:transform .16s,box-shadow .16s,border-color .16s}
 .sp-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.1);border-color:#c8d6f0}
 .sp-card-img{position:relative;height:150px;background:#f3f6fb;display:flex;align-items:center;justify-content:center;overflow:hidden}
-.sp-card-img img{width:100%;height:100%;object-fit:cover;transition:transform .3s}
+.sp-card-img img{width:100%;height:100%;object-fit:cover;object-position:top center;transition:transform .3s}
 .sp-card:hover .sp-card-img img{transform:scale(1.04)}
 .sp-card-no-img{font-size:40px;opacity:.5}
 .sp-card-body{padding:11px 12px 12px}
