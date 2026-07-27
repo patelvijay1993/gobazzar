@@ -5,11 +5,21 @@
     'min'      => 0,
     'label'    => 'Photos',
     'hint'     => null,
+    'crop'     => false,
+    'aspect'   => null,   // e.g. '16/9', '1/1', '4/3', or null for free crop
 ])
 @php
   $uid      = 'iu' . Str::random(7);
   $maxBytes = 1024 * 1024;
   $accept   = 'image/jpeg,image/png,image/webp,image/gif';
+
+  // Convert aspect string to JS number
+  if ($aspect === null) {
+      $aspectJs = 'NaN';
+  } else {
+      $parts = explode('/', $aspect);
+      $aspectJs = count($parts) === 2 ? ((int)$parts[0] / (int)$parts[1]) : (float)$aspect;
+  }
 @endphp
 
 <div class="img-uploader" id="{{ $uid }}_wrap">
@@ -25,7 +35,7 @@
       <div class="img-dropzone-icon">🖼️</div>
       <div class="img-dropzone-text">
         <strong>Click to upload</strong> or drag & drop<br>
-        <span>JPG, PNG, WEBP · Auto-compressed to WebP{{ $multiple ? ' · Up to '.$max.' photos' : '' }}{{ $min > 0 ? ' · Min '.$min.' required' : '' }}</span>
+        <span>JPG, PNG, WEBP · Auto-compressed to WebP{{ $multiple ? ' · Up to '.$max.' photos' : '' }}{{ $min > 0 ? ' · Min '.$min.' required' : '' }}{{ $crop ? ' · Crop available' : '' }}</span>
       </div>
     </div>
   </div>
@@ -44,6 +54,7 @@
 
 {{-- Shared CSS — only emit once per page --}}
 @once
+<link rel="stylesheet" href="/css/cropper.min.css">
 <style>
 .img-uploader{margin-bottom:0}
 .img-dropzone{border:2px dashed var(--border2);border-radius:var(--r);background:var(--bg);cursor:pointer;transition:all .15s;margin-top:6px}
@@ -65,21 +76,106 @@
 .img-rm:hover{background:#C0392B}
 .img-err-msg{font-size:11.5px;color:#C0392B;background:#FEF2F1;border:1px solid #fecaca;border-radius:var(--r);padding:6px 10px;margin-top:6px}
 @media(max-width:480px){.img-dropzone-inner{flex-direction:column;text-align:center;gap:8px;padding:16px}}
+
+/* Crop modal */
+#_iu_crop_modal{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.7);align-items:center;justify-content:center}
+#_iu_crop_modal.open{display:flex}
+#_iu_crop_box{background:#fff;border-radius:12px;overflow:hidden;max-width:92vw;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.4);width:560px}
+#_iu_crop_header{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #eee;flex-shrink:0}
+#_iu_crop_header h3{font-family:var(--fh,sans-serif);font-size:15px;font-weight:700;margin:0}
+#_iu_crop_close{background:none;border:none;font-size:20px;cursor:pointer;color:#666;line-height:1;padding:0 4px}
+#_iu_crop_img_wrap{flex:1;overflow:hidden;background:#111;max-height:60vh;display:flex;align-items:center;justify-content:center}
+#_iu_crop_img_wrap img{max-width:100%;max-height:60vh;display:block}
+#_iu_crop_footer{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;border-top:1px solid #eee;flex-shrink:0;flex-wrap:wrap}
+#_iu_crop_hint{font-size:11.5px;color:#666;flex:1}
+#_iu_crop_actions{display:flex;gap:8px}
+.iu-crop-btn{padding:8px 18px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:background .15s}
+#_iu_crop_skip{background:#f3f3f3;color:#444}
+#_iu_crop_skip:hover{background:#e5e5e5}
+#_iu_crop_use{background:var(--red,#1a3a8f);color:#fff}
+#_iu_crop_use:hover{background:var(--red-dark,#122970)}
 </style>
 @endonce
 
 {{-- Shared JS engine — only emit once per page --}}
 @once
+<script src="/js/cropper.min.js"></script>
 <script>
-window._iuReg = {};   // uid → { files:[{file,blob,url,w,h,valid,converting}], isMulti, maxFiles, minFiles, maxBytes }
+window._iuReg = {};   // uid → { files:[{file,blob,url,w,h,valid,converting}], isMulti, maxFiles, minFiles, maxBytes, crop, aspect }
 
 var _IU_MAX_W    = 1600;  // max dimension before downscale
 var _IU_QUALITY  = 0.82;  // WebP quality
 
-// Convert a raw File → compressed WebP Blob via Canvas, then call cb(blob)
-function _iu_compress(file, cb) {
-  var img = new Image();
-  var objUrl = URL.createObjectURL(file);
+// ---------- Crop modal (singleton) ----------
+var _iuCropper     = null;
+var _iuCropResolve = null;
+
+// Lazy-build the modal DOM once
+function _iu_ensureModal() {
+  if (document.getElementById('_iu_crop_modal')) return;
+  var modal = document.createElement('div');
+  modal.id = '_iu_crop_modal';
+  modal.innerHTML = [
+    '<div id="_iu_crop_box">',
+      '<div id="_iu_crop_header">',
+        '<h3>Crop Image</h3>',
+        '<button id="_iu_crop_close" type="button" title="Close">✕</button>',
+      '</div>',
+      '<div id="_iu_crop_img_wrap"><img id="_iu_crop_target" src="" alt=""></div>',
+      '<div id="_iu_crop_footer">',
+        '<span id="_iu_crop_hint">Drag to reposition · Pinch or scroll to zoom</span>',
+        '<div id="_iu_crop_actions">',
+          '<button class="iu-crop-btn" id="_iu_crop_skip" type="button">Skip Crop</button>',
+          '<button class="iu-crop-btn" id="_iu_crop_use"  type="button">✓ Crop & Use</button>',
+        '</div>',
+      '</div>',
+    '</div>'
+  ].join('');
+  document.body.appendChild(modal);
+
+  document.getElementById('_iu_crop_close').onclick = function() { _iuCropResolve && _iuCropResolve(null); };
+  document.getElementById('_iu_crop_skip').onclick  = function() { _iuCropResolve && _iuCropResolve(null); };
+  document.getElementById('_iu_crop_use').onclick   = function() {
+    if (!_iuCropper) { _iuCropResolve && _iuCropResolve(null); return; }
+    _iuCropper.getCroppedCanvas({ maxWidth: _IU_MAX_W * 2, imageSmoothingQuality: 'high' })
+      .toBlob(function(blob) { _iuCropResolve && _iuCropResolve(blob); }, 'image/webp', _IU_QUALITY);
+  };
+  modal.addEventListener('click', function(e) {
+    if (e.target === modal) { _iuCropResolve && _iuCropResolve(null); }
+  });
+}
+
+// Open the crop modal for a file; returns Promise<Blob|null>
+// null means "skip / use original"
+function _iu_openCrop(file, aspectRatio) {
+  _iu_ensureModal();
+  var modal  = document.getElementById('_iu_crop_modal');
+  var target = document.getElementById('_iu_crop_target');
+
+  return new Promise(function(resolve) {
+    _iuCropResolve = function(result) {
+      modal.classList.remove('open');
+      if (_iuCropper) { _iuCropper.destroy(); _iuCropper = null; }
+      URL.revokeObjectURL(target.src);
+      target.src = '';
+      _iuCropResolve = null;
+      resolve(result);
+    };
+
+    target.onload = function() {
+      var opts = { viewMode: 1, autoCropArea: 1, movable: true, zoomable: true, rotatable: false };
+      if (!isNaN(aspectRatio)) opts.aspectRatio = aspectRatio;
+      _iuCropper = new Cropper(target, opts);
+    };
+    target.src = URL.createObjectURL(file);
+    modal.classList.add('open');
+  });
+}
+
+// Convert a raw File or Blob → compressed WebP Blob via Canvas, then call cb(blob, w, h)
+function _iu_compress(source, cb) {
+  var img    = new Image();
+  var objUrl = URL.createObjectURL(source);
   img.onload = function() {
     var w = img.naturalWidth, h = img.naturalHeight;
     if (w > _IU_MAX_W) { h = Math.round(h * _IU_MAX_W / w); w = _IU_MAX_W; }
@@ -123,28 +219,44 @@ function _iu_process(incoming, uid) {
     _iu_err(errDiv, 'Maximum ' + cfg.maxFiles + ' photos allowed. Extra files ignored.');
   }
 
-  toAdd.forEach(function(file) {
-    var entry = { file: file, blob: null, url: null, w: 0, h: 0, valid: false, converting: true };
-    cfg.files.push(entry);
-    var idx = cfg.files.length - 1;
+  // Process files one at a time (important when crop modal is involved)
+  _iu_processQueue(toAdd, 0, cfg, uid);
+}
 
-    // Show placeholder immediately
-    _iu_render(uid);
+function _iu_processQueue(files, idx, cfg, uid) {
+  if (idx >= files.length) return;
+  var file = files[idx];
 
-    _iu_compress(file, function(blob, w, h) {
-      if (!blob) {
-        // compression failed — fall back to original
-        blob = file; w = 0; h = 0;
-      }
-      entry.blob       = blob;
-      entry.w          = w;
-      entry.h          = h;
-      entry.valid      = blob.size <= cfg.maxBytes;
-      entry.converting = false;
-      entry.url        = URL.createObjectURL(blob);
-      _iu_render(uid);
-      _iu_sync(uid);
+  if (cfg.crop) {
+    // Show crop modal first, then compress the cropped result
+    _iu_openCrop(file, cfg.aspect).then(function(croppedBlob) {
+      var source = croppedBlob || file;  // null = skip crop, use original
+      _iu_addAndCompress(source, file, cfg, uid);
+      _iu_processQueue(files, idx + 1, cfg, uid);
     });
+  } else {
+    _iu_addAndCompress(file, file, cfg, uid);
+    _iu_processQueue(files, idx + 1, cfg, uid);
+  }
+}
+
+function _iu_addAndCompress(source, originalFile, cfg, uid) {
+  var entry = { file: originalFile, blob: null, url: null, w: 0, h: 0, valid: false, converting: true };
+  cfg.files.push(entry);
+
+  // Show placeholder immediately
+  _iu_render(uid);
+
+  _iu_compress(source, function(blob, w, h) {
+    if (!blob) { blob = source; w = 0; h = 0; }
+    entry.blob       = blob;
+    entry.w          = w;
+    entry.h          = h;
+    entry.valid      = blob.size <= cfg.maxBytes;
+    entry.converting = false;
+    entry.url        = URL.createObjectURL(blob);
+    _iu_render(uid);
+    _iu_sync(uid);
   });
 }
 
@@ -158,7 +270,6 @@ function _iu_render(uid) {
     item.className = 'img-preview-item' + (!entry.converting && !entry.valid ? ' has-error' : '');
 
     if (entry.converting) {
-      // Spinner placeholder while compressing
       var spin = document.createElement('div');
       spin.style.cssText = 'height:96px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--hint)';
       spin.textContent = 'Compressing…';
@@ -232,7 +343,7 @@ function _iu_injectFiles(form) {
 
     try {
       var dt = new DataTransfer();
-      validFiles.forEach(function(entry, i) {
+      validFiles.forEach(function(entry) {
         var ext  = entry.file.name.replace(/\.[^.]+$/, '');
         var name = ext + '.webp';
         var webpFile = new File([entry.blob], name, { type: 'image/webp' });
@@ -266,12 +377,6 @@ function _iu_err(container, msg) {
   d.textContent = msg;
   container.appendChild(d);
 }
-
-function _iu_ratio(w, h) {
-  function gcd(a, b){ return b === 0 ? a : gcd(b, a % b); }
-  var g = gcd(w, h);
-  return (w / g) + ':' + (h / g);
-}
 </script>
 @endonce
 
@@ -282,7 +387,9 @@ window._iuReg['{{ $uid }}'] = {
   isMulti:  {{ $multiple ? 'true' : 'false' }},
   maxFiles: {{ $max }},
   minFiles: {{ $min }},
-  maxBytes: {{ $maxBytes }}
+  maxBytes: {{ $maxBytes }},
+  crop:     {{ $crop ? 'true' : 'false' }},
+  aspect:   {{ $aspectJs }}
 };
 
 // Hook the parent form once — use a flag so multiple uploaders on same form don't double-bind
