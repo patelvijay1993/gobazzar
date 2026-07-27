@@ -95,14 +95,16 @@ class LeadResource extends Resource
                     ->formatStateUsing(fn($state) => $state ? "★ $state" : '—')
                     ->sortable(),
 
-                Tables\Columns\BadgeColumn::make('status')
-                    ->colors([
-                        'gray'    => 'new',
-                        'info'    => 'contacted',
-                        'success' => 'interested',
-                        'danger'  => 'not_interested',
-                        'warning' => 'converted',
-                    ])
+                Tables\Columns\TextColumn::make('status')
+                    ->badge()
+                    ->color(fn($state) => match($state) {
+                        'new'            => 'gray',
+                        'contacted'      => 'info',
+                        'interested'     => 'success',
+                        'not_interested' => 'danger',
+                        'converted'      => 'warning',
+                        default          => 'gray',
+                    })
                     ->formatStateUsing(fn($state) => match($state) {
                         'new'            => '🆕 New',
                         'contacted'      => '📤 Contacted',
