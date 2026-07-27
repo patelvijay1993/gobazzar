@@ -99,8 +99,12 @@
           <button wire:click="deselectAll" class="text-xs px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 font-medium">✗ Deselect All</button>
           <button wire:click="saveLeads" wire:loading.attr="disabled"
             class="text-xs px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium">
-            <span wire:loading.remove wire:target="saveLeads">💾 Save Selected to Leads</span>
+            <span wire:loading.remove wire:target="saveLeads">💾 Save to Leads</span>
             <span wire:loading wire:target="saveLeads">Saving...</span>
+          </button>
+          <button wire:click="openDirModal" wire:loading.attr="disabled"
+            class="text-xs px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium">
+            🏢 Add to Directory ({{ count($selected) }})
           </button>
         </div>
       </div>
@@ -239,5 +243,87 @@
   </div>
   @endif
 
+  {{-- IMPORT LOG --}}
+  @if($dir_import_log !== null)
+  <div class="bg-white dark:bg-gray-900 rounded-xl ring-1 ring-gray-950/5 dark:ring-white/10 overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-200 dark:border-white/10 flex items-center gap-2">
+      <span class="text-lg">🏢</span>
+      <h3 class="text-base font-semibold text-gray-950 dark:text-white">Directory Import Results</h3>
+    </div>
+    <div class="p-6 space-y-2 max-h-96 overflow-y-auto">
+      @foreach($dir_import_log as $log)
+      <div class="flex items-center justify-between py-2 px-3 rounded-lg
+        {{ $log['status'] === 'added' ? 'bg-green-50 dark:bg-green-900/20' : 'bg-yellow-50 dark:bg-yellow-900/20' }}">
+        <div class="flex items-center gap-2 text-sm min-w-0">
+          <span>{{ $log['status'] === 'added' ? '✅' : '⚠️' }}</span>
+          <span class="font-medium text-gray-800 dark:text-gray-200 truncate">{{ $log['name'] }}</span>
+          @if($log['status'] === 'added')
+            <span class="text-gray-400 text-xs">· {{ $log['photos'] }} photo(s)</span>
+          @else
+            <span class="text-yellow-600 text-xs">— {{ $log['reason'] }}</span>
+          @endif
+        </div>
+        @if($log['status'] === 'added')
+          <a href="{{ route('directory.show', $log['slug']) }}" target="_blank"
+            class="flex-shrink-0 text-xs px-3 py-1 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full font-medium ml-2">
+            View ↗
+          </a>
+        @endif
+      </div>
+      @endforeach
+    </div>
+  </div>
+  @endif
+
 </div>
+
+{{-- ADD TO DIRECTORY MODAL --}}
+@if($show_dir_modal)
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" wire:click.self="closeDirModal">
+  <div class="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-200 dark:border-white/10 flex items-center justify-between">
+      <h3 class="text-base font-bold text-gray-950 dark:text-white">🏢 Add {{ count($selected) }} Business(es) to Directory</h3>
+      <button wire:click="closeDirModal" class="text-gray-400 hover:text-gray-600 text-xl leading-none">✕</button>
+    </div>
+    <div class="p-6 space-y-5">
+      <div class="rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-3 text-sm text-blue-700 dark:text-blue-300">
+        <strong>What will happen:</strong>
+        <ul class="mt-1 ml-4 list-disc space-y-0.5 text-xs">
+          <li>Fetch phone, website & photos from Google Places</li>
+          <li>Download up to 3 photos → store in your file storage</li>
+          <li>Auto-generate description using AI (Groq)</li>
+          <li>Create active listing under Admin account</li>
+          <li>Skip businesses already in the directory</li>
+        </ul>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+          Category <span class="text-red-500">*</span>
+        </label>
+        <select wire:model="dir_category_id"
+          class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500">
+          <option value="0">— Select a category —</option>
+          @foreach($this->directoryCategories as $cat)
+            <option value="{{ $cat['id'] }}">{{ $cat['name'] }}</option>
+          @endforeach
+        </select>
+      </div>
+
+      <div class="flex gap-3">
+        <button wire:click="closeDirModal" type="button"
+          class="flex-1 px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">
+          Cancel
+        </button>
+        <button wire:click="addToDirectory" wire:loading.attr="disabled" type="button"
+          class="flex-1 px-4 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white text-sm font-semibold transition">
+          <span wire:loading.remove wire:target="addToDirectory">🚀 Import to Directory</span>
+          <span wire:loading wire:target="addToDirectory">⏳ Importing... (may take 30s)</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+@endif
+
 </x-filament-panels::page>

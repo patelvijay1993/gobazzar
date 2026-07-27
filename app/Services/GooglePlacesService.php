@@ -86,6 +86,62 @@ class GooglePlacesService
         ];
     }
 
+    /**
+     * Get full details including photos for directory import
+     */
+    public function getPlaceFullDetails(string $placeId): array
+    {
+        if (!$this->apiKey) return [];
+
+        $response = Http::timeout(10)->get("{$this->baseUrl}/details/json", [
+            'place_id' => $placeId,
+            'fields'   => 'name,formatted_phone_number,website,formatted_address,rating,user_ratings_total,url,photos,types',
+            'key'      => $this->apiKey,
+        ]);
+
+        if (!$response->ok()) return [];
+
+        $data   = $response->json();
+        $result = $data['result'] ?? [];
+
+        $photoRefs = [];
+        foreach ($result['photos'] ?? [] as $photo) {
+            if (!empty($photo['photo_reference'])) {
+                $photoRefs[] = $photo['photo_reference'];
+            }
+            if (count($photoRefs) >= 3) break;
+        }
+
+        return [
+            'phone'           => $result['formatted_phone_number'] ?? null,
+            'website'         => $result['website'] ?? null,
+            'address'         => $result['formatted_address'] ?? null,
+            'rating'          => $result['rating'] ?? null,
+            'review_count'    => $result['user_ratings_total'] ?? null,
+            'google_maps_url' => $result['url'] ?? null,
+            'photo_refs'      => $photoRefs,
+            'types'           => $result['types'] ?? [],
+        ];
+    }
+
+    /**
+     * Download a Place photo by reference and return raw image bytes
+     */
+    public function downloadPhoto(string $photoRef, int $maxWidth = 1200): ?string
+    {
+        if (!$this->apiKey) return null;
+
+        $response = Http::timeout(15)->get("{$this->baseUrl}/photo", [
+            'photo_reference' => $photoRef,
+            'maxwidth'        => $maxWidth,
+            'key'             => $this->apiKey,
+        ]);
+
+        if (!$response->ok()) return null;
+
+        return $response->body();
+    }
+
     private function formatPlace(array $place, string $category, string $city): array
     {
         return [
