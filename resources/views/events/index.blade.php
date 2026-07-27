@@ -59,7 +59,7 @@
 .ev-mon{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:rgba(255,255,255,.8);margin-top:2px}
 .ev-year{font-size:10px;color:rgba(255,255,255,.55);margin-top:1px}
 
-.ev-img{width:150px;height:auto;object-fit:cover;object-position:top center;flex-shrink:0;border-left:1px solid var(--border)}
+.ev-img{width:150px;height:auto;object-fit:contain;flex-shrink:0;border-left:1px solid var(--border)}
 
 .ev-body{padding:14px 16px;flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:5px}
 .ev-cat-badge{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;color:var(--muted);font-weight:500}

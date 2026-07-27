@@ -57,7 +57,7 @@
 .ad-card{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:all .18s;display:block;color:var(--text);background:#fff;text-decoration:none}
 .ad-card:hover{border-color:var(--primary);box-shadow:0 6px 20px rgba(26,58,143,.12);transform:translateY(-2px)}
 .ad-thumb{height:170px;overflow:hidden;background:#f5f0ec;display:flex;align-items:center;justify-content:center;font-size:44px;position:relative}
-.ad-thumb img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block}
+.ad-thumb img{width:100%;height:100%;object-fit:contain;display:block}
 .ad-feat-badge{position:absolute;top:8px;left:8px;background:var(--primary);color:#fff;font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:.4px}
 .ad-fav{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.92);width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center}
 .ad-fav i{font-size:12px;color:#bbb}

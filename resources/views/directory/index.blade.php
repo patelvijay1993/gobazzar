@@ -51,7 +51,7 @@
 .biz-card:hover{border-color:var(--primary);box-shadow:0 6px 20px rgba(26,58,143,.12);transform:translateY(-2px)}
 
 .biz-banner{height:120px;display:flex;align-items:center;justify-content:center;font-size:36px;position:relative;overflow:hidden;background:#f5f0ec}
-.biz-banner img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block}
+.biz-banner img{width:100%;height:100%;object-fit:contain;display:block}
 .biz-logo-wrap{position:absolute;bottom:-18px;left:14px}
 .biz-logo{width:46px;height:46px;border-radius:10px;background:#fff;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.1)}
 .biz-logo img{width:100%;height:100%;object-fit:cover}

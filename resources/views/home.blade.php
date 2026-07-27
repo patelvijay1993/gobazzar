@@ -128,7 +128,7 @@
 .cl-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;display:block;text-decoration:none;color:var(--text);transition:all .18s}
 .cl-card:hover{border-color:var(--primary);transform:translateY(-2px);box-shadow:0 6px 18px rgba(26,58,143,.11)}
 .cl-img{height:130px;position:relative;overflow:hidden;background:#f5f0ec;display:flex;align-items:center;justify-content:center;font-size:40px}
-.cl-img img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block}
+.cl-img img{width:100%;height:100%;object-fit:contain;display:block}
 .cl-feat{position:absolute;top:7px;left:7px;background:var(--primary);color:#fff;font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px;text-transform:uppercase}
 .cl-fav{position:absolute;top:7px;right:7px;background:rgba(255,255,255,.9);width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center}
 .cl-fav i{font-size:12px;color:#bbb}
@@ -185,7 +185,7 @@
 .biz-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;display:block;text-decoration:none;color:var(--text);transition:all .15s}
 .biz-card:hover{border-color:var(--primary);transform:translateY(-2px)}
 .biz-img{width:100%;height:80px;background:#f5f0ec;display:flex;align-items:center;justify-content:center;font-size:32px;overflow:hidden}
-.biz-img img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block}
+.biz-img img{width:100%;height:100%;object-fit:contain;display:block}
 .biz-body{padding:9px 10px 12px}
 .biz-name{font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px}
 .biz-cat{font-size:10px;color:var(--muted);margin-bottom:6px}
