@@ -170,7 +170,7 @@ textarea.form-input{resize:vertical;min-height:100px}
               <div class="form-hint">Upload new photos below to replace all existing photos.</div>
             </div>
           @endif
-          <x-image-uploader name="images" :multiple="true" :max="$maxImages" :label="'Photos (up to '.$maxImages.')'" hint="JPG, PNG, WEBP · Max 1 MB each · Leave empty to keep current photos" />
+          <x-image-uploader name="images" :multiple="true" :max="$maxImages" :label="'Photos (up to '.$maxImages.')'" hint="Recommended: 800×600px (4:3) · JPG/PNG · Max 1MB each · Leave empty to keep current photos" />
         </div>
         <button type="submit" class="btn-save">Save Changes</button>
         <a href="{{ route('account') }}" class="btn-cancel">Cancel</a>
@@ -289,7 +289,7 @@ textarea.form-input{resize:vertical;min-height:100px}
               <div class="form-hint">Upload a new logo below to replace it.</div>
             </div>
           @endif
-          <x-image-uploader name="company_logo" :multiple="false" :max="1" label="Company Logo" hint="JPG, PNG, WEBP · Max 1 MB · Leave empty to keep current" />
+          <x-image-uploader name="company_logo" :multiple="false" :max="1" label="Company Logo" hint="Recommended: 200×200px square · PNG transparent preferred · Max 1MB · Leave empty to keep current" />
         </div>
         <button type="submit" class="btn-save">Save Changes</button>
         <a href="{{ route('account') }}" class="btn-cancel">Cancel</a>
@@ -403,7 +403,7 @@ textarea.form-input{resize:vertical;min-height:100px}
               <div class="form-hint">Upload a new photo below to replace it.</div>
             </div>
           @endif
-          <x-image-uploader name="image" :multiple="false" :max="1" label="Event Banner / Photo" hint="JPG, PNG, WEBP · Max 1 MB · Leave empty to keep current" />
+          <x-image-uploader name="image" :multiple="false" :max="1" label="Event Banner / Photo" hint="Recommended: 1200×628px (16:9 landscape) · Max 1MB · Leave empty to keep current" />
         </div>
         <button type="submit" class="btn-save">Save Changes</button>
         <a href="{{ route('account') }}" class="btn-cancel">Cancel</a>
@@ -673,7 +673,7 @@ textarea.form-input{resize:vertical;min-height:100px}
           </div>
         @endif
         <div style="margin-bottom:20px">
-          <x-image-uploader name="images" :multiple="true" :max="$maxImages" :label="'Add / Replace Photos (up to '.$maxImages.')'" hint="First photo = main banner · Leave empty to keep current photos" />
+          <x-image-uploader name="images" :multiple="true" :max="$maxImages" :label="'Add / Replace Photos (up to '.$maxImages.')'" hint="Recommended: 1200×628px (16:9) · First photo = main banner · Max 1MB each · Leave empty to keep current" />
         </div>
         @if($record->logo)
           <div style="margin-bottom:12px">
@@ -689,7 +689,7 @@ textarea.form-input{resize:vertical;min-height:100px}
             <div class="form-hint" style="margin-top:6px">Click ✕ to remove logo, or upload new one below to replace.</div>
           </div>
         @endif
-        <x-image-uploader name="logo" :multiple="false" :max="1" label="Business Logo" hint="Square image preferred · Leave empty to keep current" />
+        <x-image-uploader name="logo" :multiple="false" :max="1" label="Business Logo" hint="Recommended: 200×200px square · PNG transparent preferred · Max 1MB · Leave empty to keep current" />
       </div>
     </div>
 
@@ -857,7 +857,7 @@ textarea.form-input{resize:vertical;min-height:100px}
               <div class="form-hint">Upload a new photo below to replace it.</div>
             </div>
           @endif
-          <x-image-uploader name="photo" :multiple="false" :max="1" label="Profile Photo" hint="JPG, PNG, WEBP · Max 1 MB · Leave empty to keep current" />
+          <x-image-uploader name="photo" :multiple="false" :max="1" label="Profile Photo" hint="Recommended: 400×400px square · Clear face photo · Max 1MB · Leave empty to keep current" />
           <div style="margin-top:16px">
             <x-image-uploader name="photos" :multiple="true" :max="$maxImages" label="Additional Photos (Gallery)" hint="Upload up to {{ $maxImages }} additional photos · Leave empty to keep current gallery" />
           </div>
@@ -953,7 +953,7 @@ textarea.form-input{resize:vertical;min-height:100px}
               <div class="form-hint">Upload new photos below to replace all existing photos.</div>
             </div>
           @endif
-          <x-image-uploader name="images" :multiple="true" :max="$maxImages" :label="'Post Photos (up to '.$maxImages.')'" hint="JPG, PNG, WEBP · Max 1 MB each · Leave empty to keep current photos" />
+          <x-image-uploader name="images" :multiple="true" :max="$maxImages" :label="'Post Photos (up to '.$maxImages.')'" hint="Recommended: 800×600px (4:3) · JPG/PNG · Max 1MB each · Leave empty to keep current photos" />
         </div>
         <button type="button" id="ebp-submit-btn" onclick="submitEbpForm()" class="btn-save">Save Changes</button>
         <a href="{{ route('account') }}" class="btn-cancel">Cancel</a>

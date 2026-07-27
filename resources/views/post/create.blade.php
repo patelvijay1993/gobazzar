@@ -268,7 +268,7 @@ textarea.form-input{resize:vertical;min-height:100px}
               <label class="form-label">Contact Email</label>
               <input type="email" name="contact_email" class="form-input" value="{{ old('contact_email', Auth::user()->email) }}">
             </div>
-            <x-image-uploader name="images" :multiple="true" :max="$maxImages" :min="2" :label="'Photos (up to '.$maxImages.')'" :hint="'Your '.$user->planName().' plan allows '.$maxImages.' photos · Min 2 required'" />
+            <x-image-uploader name="images" :multiple="true" :max="$maxImages" :min="2" :label="'Photos (up to '.$maxImages.')'" :hint="'Recommended size: 800×600px (4:3) · Max 1MB per photo · '.$user->planName().' plan allows '.$maxImages.' photos · Min 2 required'" />
           </div>
 
           <button type="submit" class="btn-submit">Submit Ad →</button>
@@ -386,7 +386,7 @@ textarea.form-input{resize:vertical;min-height:100px}
                 <input type="url" name="apply_url" class="form-input" value="{{ old('apply_url') }}" placeholder="https://…">
               </div>
             </div>
-            <x-image-uploader name="company_logo" :multiple="false" :max="1" label="Company Logo" hint="Square image preferred (e.g. 200×200)" />
+            <x-image-uploader name="company_logo" :multiple="false" :max="1" label="Company Logo" hint="Recommended: 200×200px square · PNG with transparent background preferred · Max 1MB" />
           </div>
 
           <button type="submit" class="btn-submit">Submit Job →</button>
@@ -497,7 +497,7 @@ textarea.form-input{resize:vertical;min-height:100px}
                 <input type="url" name="website" class="form-input" value="{{ old('website') }}" placeholder="https://…">
               </div>
             </div>
-            <x-image-uploader name="image" :multiple="false" :max="1" label="Event Banner / Photo" hint="Recommended 1200×628 (16:9)" />
+            <x-image-uploader name="image" :multiple="false" :max="1" label="Event Banner / Photo" hint="Recommended: 1200×628px (16:9 landscape) · Max 1MB · Wide banner looks best" />
           </div>
 
           <button type="submit" class="btn-submit">Submit Event →</button>
@@ -786,9 +786,9 @@ textarea.form-input{resize:vertical;min-height:100px}
             <span>The <strong>first photo</strong> you upload becomes your main banner on the directory listing. Use a high-quality landscape image (1200×628 recommended).</span>
           </div>
           <div style="margin-bottom:20px">
-            <x-image-uploader name="images" :multiple="true" :max="$maxImages" :min="2" :label="'Business Photos (up to '.$maxImages.')'" :hint="'First photo = main banner · '.$user->planName().' plan allows '.$maxImages.' photos · Min 2 required'" />
+            <x-image-uploader name="images" :multiple="true" :max="$maxImages" :min="2" :label="'Business Photos (up to '.$maxImages.')'" :hint="'Recommended: 1200×628px (16:9) · First photo = main banner on your listing · Max 1MB each · Min 2 required'" />
           </div>
-          <x-image-uploader name="logo" :multiple="false" :max="1" label="Business Logo" hint="Square image preferred (200×200 minimum). Shows in search results and listings." />
+          <x-image-uploader name="logo" :multiple="false" :max="1" label="Business Logo" hint="Recommended: 200×200px square · PNG with transparent background preferred · Max 1MB · Shows on your listing card" />
         </div>
       </div>
 
@@ -894,7 +894,7 @@ textarea.form-input{resize:vertical;min-height:100px}
 
             <div class="form-section">
               <div class="form-section-title">Photos</div>
-              <x-image-uploader name="images" :multiple="true" :max="$maxImages" :min="2" :label="'Post Photos (up to '.$maxImages.')'" :hint="'First photo will be the main image · '.$user->planName().' plan: '.$maxImages.' photos · Min 2 required'" />
+              <x-image-uploader name="images" :multiple="true" :max="$maxImages" :min="2" :label="'Post Photos (up to '.$maxImages.')'" :hint="'Recommended: 800×600px (4:3) · First photo = main image on your post · Max 1MB each · Min 2 required'" />
             </div>
 
             <button type="submit" class="btn-submit">Publish Post →</button>
@@ -1065,7 +1065,7 @@ textarea.form-input{resize:vertical;min-height:100px}
                 <label for="hide_contact" style="font-size:13px;color:var(--muted);cursor:pointer">Hide contact from public</label>
               </div>
             </div>
-            <x-image-uploader name="photo" :multiple="false" :max="1" label="Profile Photo" hint="Square photo preferred (e.g. 400×400)" />
+            <x-image-uploader name="photo" :multiple="false" :max="1" label="Profile Photo" hint="Recommended: 400×400px square · Clear face photo · Max 1MB" />
             <div style="margin-top:16px">
               <x-image-uploader name="photos" :multiple="true" :max="$maxImages" label="Additional Photos (Gallery)" hint="Upload up to {{ $maxImages }} additional photos to showcase your profile" />
             </div>
