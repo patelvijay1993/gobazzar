@@ -31,7 +31,7 @@ class ListingResource extends Resource
                     ->afterStateUpdated(fn ($state, Forms\Set $set) => $set('slug', Str::slug($state)))
                     ->columnSpanFull(),
                 Forms\Components\TextInput::make('slug')->required()->unique(ignoreRecord: true)->columnSpanFull(),
-                Forms\Components\Select::make('category_id')
+                Forms\Components\Select::make('parent_category_id')
                     ->label('Category')
                     ->options(
                         Category::where('is_active', true)
@@ -43,7 +43,19 @@ class ListingResource extends Resource
                     ->searchable()
                     ->required()
                     ->live()
-                    ->afterStateUpdated(fn (Forms\Set $set) => $set('custom_fields', [])),
+                    ->afterStateUpdated(fn (Forms\Set $set) => $set('category_id', null) + $set('custom_fields', []))
+                    ->dehydrated(false),
+                Forms\Components\Select::make('category_id')
+                    ->label('Subcategory')
+                    ->options(fn (Forms\Get $get) => Category::where('parent_id', $get('parent_category_id'))
+                        ->where('is_active', true)
+                        ->orderBy('name')
+                        ->pluck('name', 'id'))
+                    ->searchable()
+                    ->nullable()
+                    ->placeholder('— Select Subcategory (optional) —')
+                    ->visible(fn (Forms\Get $get) => (bool) $get('parent_category_id') && Category::where('parent_id', $get('parent_category_id'))->exists())
+                    ->live(),
                 Forms\Components\Select::make('status')
                     ->options(['pending'=>'Pending','active'=>'Active','rejected'=>'Rejected','expired'=>'Expired','flagged'=>'Flagged'])
                     ->default('pending')
