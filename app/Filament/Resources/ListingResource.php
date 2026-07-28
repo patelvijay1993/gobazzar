@@ -82,7 +82,7 @@ class ListingResource extends Resource
                         return match ($f->type) {
                             'select' => Forms\Components\Select::make($name)
                                 ->label($f->label)
-                                ->options(collect(json_decode($f->options ?? '[]', true))->mapWithKeys(fn ($v) => [$v => $v]))
+                                ->options(collect(is_array($f->options) ? $f->options : json_decode($f->options ?? '[]', true))->mapWithKeys(fn ($v) => [$v => $v]))
                                 ->placeholder($f->placeholder)
                                 ->required((bool) $f->is_required),
                             'textarea' => Forms\Components\Textarea::make($name)
