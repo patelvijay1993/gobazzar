@@ -122,7 +122,7 @@
           @if($hasSubs)
             <div class="cat-group" data-open="{{ $isOpen ? 'true' : 'false' }}">
               <div class="cat-parent-row" onclick="toggleCat(this)">
-                <a href="{{ route('directory.category', $cat->slug) }}"
+                <a href="{{ route('directory.index', array_merge(request()->except('category','page'), ['category' => $cat->id])) }}"
                    class="filter-item {{ request('category') == $cat->id ? 'active' : '' }}"
                    onclick="event.stopPropagation()">
                   <span style="width:16px;text-align:center">{{ $cat->icon }}</span> {{ $cat->name }}
@@ -133,7 +133,7 @@
               </div>
               <div class="cat-subs {{ $isOpen ? 'open' : '' }}">
                 @foreach($cat->children as $sub)
-                  <a href="{{ route('directory.index', ['category' => $sub->id]) }}"
+                  <a href="{{ route('directory.index', array_merge(request()->except('category','page'), ['category' => $sub->id])) }}"
                      class="filter-item {{ request('category') == $sub->id ? 'active' : '' }}"
                      style="padding-left:36px;font-size:12.5px">
                     <span style="width:14px;text-align:center;opacity:.5">•</span> {{ $sub->name }}
@@ -142,7 +142,7 @@
               </div>
             </div>
           @else
-            <a href="{{ route('directory.category', $cat->slug) }}"
+            <a href="{{ route('directory.index', array_merge(request()->except('category','page'), ['category' => $cat->id])) }}"
                class="filter-item {{ request('category') == $cat->id ? 'active' : '' }}">
               <span style="width:16px;text-align:center">{{ $cat->icon }}</span> {{ $cat->name }}
             </a>
