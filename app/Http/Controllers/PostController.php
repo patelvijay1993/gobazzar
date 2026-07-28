@@ -243,21 +243,28 @@ class PostController extends Controller
         $maxImg = $user->maxImages();
 
         $data = $request->validate([
-            'title'         => 'required|string|max:150',
-            'category_id'   => 'required|exists:categories,id',
-            'description'   => 'nullable|string',
-            'price'         => 'nullable|numeric|min:0|max:99999999',
-            'price_unit'    => 'nullable|string|max:20',
-            'location'      => 'nullable|string|max:150',
-            'city'          => 'required|string|max:100',
-            'province'      => 'required|string|max:100',
-            'postal_code'   => 'nullable|string|max:10',
-            'contact_name'  => 'nullable|string|max:100',
-            'contact_email' => 'nullable|email|max:150',
-            'contact_phone' => 'nullable|string|max:30',
-            'images'        => "required|array|min:2|max:{$maxImg}",
-            'images.*'      => self::imgRules(),
+            'title'          => 'required|string|max:150',
+            'category_id'    => 'required|exists:categories,id',
+            'subcategory_id' => 'nullable|exists:categories,id',
+            'description'    => 'nullable|string',
+            'price'          => 'nullable|numeric|min:0|max:99999999',
+            'price_unit'     => 'nullable|string|max:20',
+            'location'       => 'nullable|string|max:150',
+            'city'           => 'required|string|max:100',
+            'province'       => 'required|string|max:100',
+            'postal_code'    => 'nullable|string|max:10',
+            'contact_name'   => 'nullable|string|max:100',
+            'contact_email'  => 'nullable|email|max:150',
+            'contact_phone'  => 'nullable|string|max:30',
+            'images'         => "required|array|min:2|max:{$maxImg}",
+            'images.*'       => self::imgRules(),
         ]);
+
+        // If subcategory selected, store it as category_id (listings filter by category_id directly)
+        if (!empty($data['subcategory_id'])) {
+            $data['category_id'] = $data['subcategory_id'];
+        }
+        unset($data['subcategory_id']);
         if (!$user->canPostListing()) {
             $max = $user->maxListings();
             $plan = ucfirst(str_replace('_', ' ', $user->activePlan()));
@@ -659,21 +666,26 @@ class PostController extends Controller
     {
         $maxImg = Auth::user()->maxImages();
         $data = $request->validate([
-            'title'         => 'required|string|max:150',
-            'category_id'   => 'required|exists:categories,id',
-            'description'   => 'nullable|string',
-            'price'         => 'nullable|numeric|min:0|max:99999999',
-            'price_unit'    => 'nullable|string|max:20',
-            'location'      => 'nullable|string|max:150',
-            'city'          => 'required|string|max:100',
-            'province'      => 'required|string|max:100',
-            'postal_code'   => 'nullable|string|max:10',
-            'contact_name'  => 'nullable|string|max:100',
-            'contact_email' => 'nullable|email|max:150',
-            'contact_phone' => 'nullable|string|max:30',
-            'images'        => "nullable|array|max:{$maxImg}",
-            'images.*'      => self::imgRules(),
+            'title'          => 'required|string|max:150',
+            'category_id'    => 'required|exists:categories,id',
+            'subcategory_id' => 'nullable|exists:categories,id',
+            'description'    => 'nullable|string',
+            'price'          => 'nullable|numeric|min:0|max:99999999',
+            'price_unit'     => 'nullable|string|max:20',
+            'location'       => 'nullable|string|max:150',
+            'city'           => 'required|string|max:100',
+            'province'       => 'required|string|max:100',
+            'postal_code'    => 'nullable|string|max:10',
+            'contact_name'   => 'nullable|string|max:100',
+            'contact_email'  => 'nullable|email|max:150',
+            'contact_phone'  => 'nullable|string|max:30',
+            'images'         => "nullable|array|max:{$maxImg}",
+            'images.*'       => self::imgRules(),
         ]);
+        if (!empty($data['subcategory_id'])) {
+            $data['category_id'] = $data['subcategory_id'];
+        }
+        unset($data['subcategory_id']);
         $data['title'] = strip_tags($data['title']);
         $this->moderate($request, 'title', 'classified');
         unset($data['images']);
