@@ -23,11 +23,13 @@ class ListingController extends Controller
             ->get();
 
         // Support single category or multiple (comma-separated via 'categories' param)
+        // When a parent category is selected, include all its subcategory IDs too
         $filterCategoryIds = null;
         if ($request->filled('categories')) {
-            $filterCategoryIds = array_filter(array_map('intval', explode(',', $request->categories)));
+            $ids = array_filter(array_map('intval', explode(',', $request->categories)));
+            $filterCategoryIds = $this->expandWithChildren($ids);
         } elseif ($request->filled('category')) {
-            $filterCategoryIds = [(int) $request->category];
+            $filterCategoryIds = $this->expandWithChildren([(int) $request->category]);
         }
 
         $listings = Listing::with(['category', 'user'])
@@ -94,5 +96,12 @@ class ListingController extends Controller
             ->latest()
             ->paginate(12);
         return view('classifieds.seller', compact('user', 'listings'));
+    }
+
+    // Expand a list of category IDs to also include their children
+    private function expandWithChildren(array $ids): array
+    {
+        $childIds = Category::whereIn('parent_id', $ids)->pluck('id')->toArray();
+        return array_unique(array_merge($ids, $childIds));
     }
 }
