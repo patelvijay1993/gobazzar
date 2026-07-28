@@ -214,7 +214,7 @@ class ListingResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\ImageColumn::make('image')->circular()->getStateUsing(fn ($record) => $record->image_url),
+                Tables\Columns\ImageColumn::make('image')->rounded()->getStateUsing(fn ($record) => $record->image_url),
                 Tables\Columns\TextColumn::make('title')->searchable()->limit(40)->sortable(),
                 Tables\Columns\TextColumn::make('category.name')->badge()->color('info'),
                 Tables\Columns\TextColumn::make('price'),

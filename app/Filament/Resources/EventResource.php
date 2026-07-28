@@ -85,7 +85,7 @@ class EventResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\ImageColumn::make('image')->circular(),
+                Tables\Columns\ImageColumn::make('image')->rounded(),
                 Tables\Columns\TextColumn::make('title')->searchable()->limit(35)->sortable(),
                 Tables\Columns\TextColumn::make('category.name')->badge()->color('warning'),
                 Tables\Columns\TextColumn::make('start_date')->dateTime('d M Y, h:i A')->sortable(),

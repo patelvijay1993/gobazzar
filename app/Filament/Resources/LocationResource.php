@@ -81,7 +81,7 @@ class LocationResource extends Resource
 
                 Tables\Columns\ImageColumn::make('city_image')
                     ->label('City Img')
-                    ->circular()
+                    ->rounded()
                     ->defaultImageUrl(null)
                     ->toggleable(isToggledHiddenByDefault: true),
 

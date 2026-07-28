@@ -128,7 +128,7 @@ class BusinessResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\ImageColumn::make('image')
-                    ->circular()
+                    ->rounded()
                     ->disk(config('filesystems.default'))
                     ->defaultImageUrl(fn () => null),
                 Tables\Columns\TextColumn::make('name')->searchable()->sortable(),

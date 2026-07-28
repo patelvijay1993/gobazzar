@@ -97,7 +97,7 @@ class JobResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\ImageColumn::make('company_logo')->circular()->label('Logo'),
+                Tables\Columns\ImageColumn::make('company_logo')->rounded()->label('Logo'),
                 Tables\Columns\TextColumn::make('title')->searchable()->limit(30)->sortable(),
                 Tables\Columns\TextColumn::make('company')->searchable(),
                 Tables\Columns\TextColumn::make('category.name')->badge()->color('success'),

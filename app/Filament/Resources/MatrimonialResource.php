@@ -102,7 +102,7 @@ class MatrimonialResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\ImageColumn::make('photo')->circular()->label('Photo'),
+                Tables\Columns\ImageColumn::make('photo')->rounded()->label('Photo'),
                 Tables\Columns\TextColumn::make('name')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('gender')->badge()
                     ->color(fn ($state) => $state === 'male' ? 'info' : 'danger'),
