@@ -21,7 +21,12 @@ class EventController extends Controller
 
         $events = Event::with('category')
             ->where('status', 'active')
-            ->when($request->category, fn ($q) => $q->where('category_id', $request->category))
+            ->when($request->category, function ($q) use ($request) {
+                $ids = Category::where('id', $request->category)
+                    ->orWhere('parent_id', $request->category)
+                    ->pluck('id');
+                $q->whereIn('category_id', $ids);
+            })
             ->when($request->search,   fn ($q) => $q->where('title', 'like', '%' . addcslashes($request->search, '%_\\') . '%'))
             ->when($request->city,     fn ($q) => $q->where('city', $request->city))
             ->when($request->province, fn ($q) => $q->where('province', $request->province))

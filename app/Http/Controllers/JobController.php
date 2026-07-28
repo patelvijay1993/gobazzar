@@ -21,7 +21,12 @@ class JobController extends Controller
 
         $jobs = Job::with('category')
             ->live()
-            ->when($request->category,  fn ($q) => $q->where('category_id', $request->category))
+            ->when($request->category, function ($q) use ($request) {
+                $ids = Category::where('id', $request->category)
+                    ->orWhere('parent_id', $request->category)
+                    ->pluck('id');
+                $q->whereIn('category_id', $ids);
+            })
             ->when($request->search,    fn ($q) => $q->where(fn ($q2) => $q2
                 ->where('title',   'like', '%' . addcslashes($request->search, '%_\\') . '%')
                 ->orWhere('company', 'like', '%' . addcslashes($request->search, '%_\\') . '%')))
