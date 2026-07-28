@@ -50,13 +50,9 @@ class ReportResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('id')->label('ID')->sortable()->width('60px'),
 
-                Tables\Columns\BadgeColumn::make('status')
-                    ->colors([
-                        'warning' => 'pending',
-                        'primary' => 'reviewed',
-                        'success' => 'actioned',
-                        'gray'    => 'dismissed',
-                    ]),
+                Tables\Columns\TextColumn::make('status')
+                    ->badge()
+                    ->color(fn ($state) => match($state) { 'pending' => 'warning', 'reviewed' => 'primary', 'actioned' => 'success', default => 'gray' }),
 
                 Tables\Columns\TextColumn::make('reason')
                     ->badge()

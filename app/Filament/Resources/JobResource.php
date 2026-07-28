@@ -113,8 +113,9 @@ class JobResource extends Resource
                 Tables\Columns\TextColumn::make('work_mode')->badge()->color('info'),
                 Tables\Columns\TextColumn::make('city'),
                 Tables\Columns\TextColumn::make('salary'),
-                Tables\Columns\BadgeColumn::make('status')
-                    ->colors(['gray' => 'draft', 'success' => 'active', 'danger' => 'closed']),
+                Tables\Columns\TextColumn::make('status')
+                    ->badge()
+                    ->color(fn ($state) => match($state) { 'active' => 'success', 'closed' => 'danger', default => 'gray' }),
                 Tables\Columns\IconColumn::make('is_featured')->boolean(),
                 Tables\Columns\TextColumn::make('views')->sortable(),
             ])

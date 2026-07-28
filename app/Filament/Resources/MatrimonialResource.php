@@ -109,8 +109,9 @@ class MatrimonialResource extends Resource
                 Tables\Columns\TextColumn::make('age')->sortable(),
                 Tables\Columns\TextColumn::make('religion'),
                 Tables\Columns\TextColumn::make('city'),
-                Tables\Columns\BadgeColumn::make('status')
-                    ->colors(['warning' => 'pending', 'success' => 'active', 'gray' => 'inactive']),
+                Tables\Columns\TextColumn::make('status')
+                    ->badge()
+                    ->color(fn ($state) => match($state) { 'active' => 'success', 'pending' => 'warning', default => 'gray' }),
                 Tables\Columns\IconColumn::make('is_featured')->boolean(),
                 Tables\Columns\TextColumn::make('views')->sortable(),
                 Tables\Columns\TextColumn::make('created_at')->date()->sortable(),

@@ -73,8 +73,9 @@ class BlogPostResource extends Resource
                 Tables\Columns\TextColumn::make('title')->searchable()->limit(35)->sortable(),
                 Tables\Columns\TextColumn::make('category')->badge()->color('info'),
                 Tables\Columns\TextColumn::make('author.name')->label('Author'),
-                Tables\Columns\BadgeColumn::make('status')
-                    ->colors(['gray' => 'draft', 'success' => 'published']),
+                Tables\Columns\TextColumn::make('status')
+                    ->badge()
+                    ->color(fn ($state) => match($state) { 'published' => 'success', default => 'gray' }),
                 Tables\Columns\IconColumn::make('is_featured')->boolean(),
                 Tables\Columns\TextColumn::make('views')->sortable(),
                 Tables\Columns\TextColumn::make('published_at')->date()->sortable(),

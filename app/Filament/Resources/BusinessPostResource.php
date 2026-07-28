@@ -122,8 +122,9 @@ class BusinessPostResource extends Resource
                 Tables\Columns\TextColumn::make('business.name')->label('Business')->searchable()->limit(25),
                 Tables\Columns\TextColumn::make('user.name')->label('Owner')->searchable()->limit(20),
                 Tables\Columns\TextColumn::make('price')->money('CAD')->sortable()->placeholder('â€”'),
-                Tables\Columns\BadgeColumn::make('status')
-                    ->colors(['success' => 'active', 'gray' => 'inactive', 'danger' => 'expired']),
+                Tables\Columns\TextColumn::make('status')
+                    ->badge()
+                    ->color(fn ($state) => match($state) { 'active' => 'success', 'expired' => 'danger', default => 'gray' }),
                 Tables\Columns\IconColumn::make('is_featured')->boolean()->label('Featured'),
                 Tables\Columns\TextColumn::make('views')->sortable(),
                 Tables\Columns\TextColumn::make('expires_at')->date()->sortable()->placeholder('Never'),

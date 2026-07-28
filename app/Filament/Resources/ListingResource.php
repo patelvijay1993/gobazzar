@@ -219,13 +219,15 @@ class ListingResource extends Resource
                 Tables\Columns\TextColumn::make('category.name')->badge()->color('info'),
                 Tables\Columns\TextColumn::make('price'),
                 Tables\Columns\TextColumn::make('location')->limit(25),
-                Tables\Columns\BadgeColumn::make('status')
-                    ->colors([
-                        'warning' => 'pending',
-                        'success' => 'active',
-                        'danger'  => 'rejected',
-                        'gray'    => 'expired',
-                    ]),
+                Tables\Columns\TextColumn::make('status')
+                    ->badge()
+                    ->color(fn ($state) => match($state) {
+                        'pending'  => 'warning',
+                        'active'   => 'success',
+                        'rejected' => 'danger',
+                        'flagged'  => 'danger',
+                        default    => 'gray',
+                    }),
                 Tables\Columns\IconColumn::make('is_featured')->boolean(),
                 Tables\Columns\IconColumn::make('is_verified')->boolean(),
                 Tables\Columns\TextColumn::make('views')->sortable(),

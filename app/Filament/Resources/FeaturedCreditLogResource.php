@@ -62,13 +62,11 @@ class FeaturedCreditLogResource extends Resource
                     ->sortable()
                     ->placeholder('Still featured'),
 
-                Tables\Columns\BadgeColumn::make('status')
+                Tables\Columns\TextColumn::make('status')
                     ->label('Status')
                     ->getStateUsing(fn (FeaturedCreditLog $r) => $r->unfeatured_at ? 'Ended' : 'Active')
-                    ->colors([
-                        'success' => 'Active',
-                        'gray'    => 'Ended',
-                    ]),
+                    ->badge()
+                    ->color(fn ($state) => $state === 'Active' ? 'success' : 'gray'),
 
                 Tables\Columns\TextColumn::make('duration')
                     ->label('Duration')

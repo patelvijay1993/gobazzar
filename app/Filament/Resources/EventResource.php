@@ -91,8 +91,9 @@ class EventResource extends Resource
                 Tables\Columns\TextColumn::make('start_date')->dateTime('d M Y, h:i A')->sortable(),
                 Tables\Columns\TextColumn::make('city'),
                 Tables\Columns\TextColumn::make('price'),
-                Tables\Columns\BadgeColumn::make('status')
-                    ->colors(['gray' => 'draft', 'success' => 'active', 'danger' => 'cancelled', 'info' => 'completed']),
+                Tables\Columns\TextColumn::make('status')
+                    ->badge()
+                    ->color(fn ($state) => match($state) { 'active' => 'success', 'cancelled' => 'danger', 'completed' => 'info', default => 'gray' }),
                 Tables\Columns\IconColumn::make('is_featured')->boolean(),
             ])
             ->defaultSort('start_date')
