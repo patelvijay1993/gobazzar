@@ -25,11 +25,19 @@ class BusinessController extends Controller
         $businesses = Business::with(['category', 'subcategory'])
             ->where('status', 'active')
             ->when($request->category, function ($q) use ($request) {
-                // Match the category itself OR any of its sub-categories
-                $ids = Category::where('id', $request->category)
-                    ->orWhere('parent_id', $request->category)
-                    ->pluck('id');
-                $q->whereIn('category_id', $ids);
+                $cat = Category::find($request->category);
+                if (!$cat) return;
+
+                if ($cat->parent_id) {
+                    // Subcategory selected — businesses store parent in category_id
+                    // and subcategory in subcategory_id
+                    $q->where('category_id', $cat->parent_id)
+                      ->where('subcategory_id', $cat->id);
+                } else {
+                    // Parent category selected — show all businesses in this category
+                    // regardless of subcategory
+                    $q->where('category_id', $cat->id);
+                }
             })
             ->when($request->search,   fn ($q) => $q->where(fn ($q2) => $q2
                 ->where('name',        'like', '%' . addcslashes($request->search, '%_\\') . '%')
