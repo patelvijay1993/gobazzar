@@ -37,9 +37,10 @@ class LeadFinder extends Page
     public string $api_status = '';
 
     // Add to Directory
-    public bool   $show_dir_modal  = false;
-    public int    $dir_category_id = 0;
-    public ?array $dir_import_log  = null;
+    public bool   $show_dir_modal     = false;
+    public int    $dir_category_id    = 0;
+    public int    $dir_subcategory_id = 0;
+    public ?array $dir_import_log     = null;
 
     public function search(): void
     {
@@ -204,8 +205,14 @@ class LeadFinder extends Page
             Notification::make()->title('Select at least one business first.')->warning()->send();
             return;
         }
-        $this->dir_import_log = null;
-        $this->show_dir_modal = true;
+        $this->dir_import_log     = null;
+        $this->dir_subcategory_id = 0;
+        $this->show_dir_modal     = true;
+    }
+
+    public function updatedDirCategoryId(): void
+    {
+        $this->dir_subcategory_id = 0;
     }
 
     public function closeDirModal(): void
@@ -273,6 +280,7 @@ class LeadFinder extends Page
             Business::create([
                 'user_id'         => $adminId,
                 'category_id'     => $this->dir_category_id,
+                'subcategory_id'  => $this->dir_subcategory_id ?: null,
                 'name'            => $place['name'],
                 'slug'            => $slug,
                 'description'     => $description,

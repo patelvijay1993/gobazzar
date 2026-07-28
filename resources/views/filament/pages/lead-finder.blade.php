@@ -301,7 +301,7 @@
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
           Category <span class="text-red-500">*</span>
         </label>
-        <select wire:model="dir_category_id"
+        <select wire:model.live="dir_category_id"
           class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500">
           <option value="0">— Select a category —</option>
           @foreach($this->directoryCategories as $cat)
@@ -309,6 +309,26 @@
           @endforeach
         </select>
       </div>
+
+      @if($dir_category_id)
+        @php
+          $subcats = \App\Models\Category::where('parent_id', $dir_category_id)->orderBy('name')->get(['id','name','icon']);
+        @endphp
+        @if($subcats->isNotEmpty())
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+            Subcategory <span class="text-gray-400 text-xs font-normal">(optional)</span>
+          </label>
+          <select wire:model="dir_subcategory_id"
+            class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500">
+            <option value="0">— None —</option>
+            @foreach($subcats as $sc)
+              <option value="{{ $sc->id }}">{{ $sc->icon ? $sc->icon . ' ' : '' }}{{ $sc->name }}</option>
+            @endforeach
+          </select>
+        </div>
+        @endif
+      @endif
 
       <div class="flex gap-3">
         <button wire:click="closeDirModal" type="button"

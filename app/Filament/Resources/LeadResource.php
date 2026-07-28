@@ -144,7 +144,7 @@ class LeadResource extends Resource
                     ->color('success')
                     ->form([
                         Forms\Components\Select::make('category_id')
-                            ->label('Directory Category')
+                            ->label('Category')
                             ->options(fn() => Category::where('type', 'directory')
                                 ->whereNull('parent_id')
                                 ->orderBy('name')
@@ -152,13 +152,27 @@ class LeadResource extends Resource
                                 ->mapWithKeys(fn($c) => [$c->id => ($c->icon ? $c->icon . ' ' : '') . $c->name])
                                 ->toArray())
                             ->required()
-                            ->searchable(),
+                            ->searchable()
+                            ->live()
+                            ->afterStateUpdated(fn(Forms\Set $set) => $set('subcategory_id', null)),
+                        Forms\Components\Select::make('subcategory_id')
+                            ->label('Subcategory (optional)')
+                            ->options(fn(Forms\Get $get) => $get('category_id')
+                                ? Category::where('parent_id', $get('category_id'))
+                                    ->orderBy('name')
+                                    ->get()
+                                    ->mapWithKeys(fn($c) => [$c->id => ($c->icon ? $c->icon . ' ' : '') . $c->name])
+                                    ->toArray()
+                                : [])
+                            ->searchable()
+                            ->placeholder('— None —')
+                            ->visible(fn(Forms\Get $get) => (bool) $get('category_id')),
                     ])
                     ->modalHeading('Add to Business Directory')
                     ->modalDescription('Select a category. Photos and AI description will be auto-generated.')
                     ->modalSubmitActionLabel('🚀 Import to Directory')
                     ->action(function (Lead $record, array $data) {
-                        $result = self::importLeadToDirectory($record, (int) $data['category_id']);
+                        $result = self::importLeadToDirectory($record, (int) $data['category_id'], (int) ($data['subcategory_id'] ?? 0));
                         if ($result === 'exists') {
                             Notification::make()->title('Already in directory')->warning()->send();
                         } elseif ($result === 'created') {
@@ -197,7 +211,7 @@ class LeadResource extends Resource
                         ->color('success')
                         ->form([
                             Forms\Components\Select::make('category_id')
-                                ->label('Directory Category')
+                                ->label('Category')
                                 ->options(fn() => Category::where('type', 'directory')
                                     ->whereNull('parent_id')
                                     ->orderBy('name')
@@ -205,7 +219,21 @@ class LeadResource extends Resource
                                     ->mapWithKeys(fn($c) => [$c->id => ($c->icon ? $c->icon . ' ' : '') . $c->name])
                                     ->toArray())
                                 ->required()
-                                ->searchable(),
+                                ->searchable()
+                                ->live()
+                                ->afterStateUpdated(fn(Forms\Set $set) => $set('subcategory_id', null)),
+                            Forms\Components\Select::make('subcategory_id')
+                                ->label('Subcategory (optional)')
+                                ->options(fn(Forms\Get $get) => $get('category_id')
+                                    ? Category::where('parent_id', $get('category_id'))
+                                        ->orderBy('name')
+                                        ->get()
+                                        ->mapWithKeys(fn($c) => [$c->id => ($c->icon ? $c->icon . ' ' : '') . $c->name])
+                                        ->toArray()
+                                    : [])
+                                ->searchable()
+                                ->placeholder('— None —')
+                                ->visible(fn(Forms\Get $get) => (bool) $get('category_id')),
                         ])
                         ->modalHeading('Bulk Add to Directory')
                         ->modalDescription('All selected leads will be imported. Photos and AI descriptions auto-generated. Already-imported leads are skipped.')
@@ -214,7 +242,7 @@ class LeadResource extends Resource
                             $created = 0;
                             $skipped = 0;
                             foreach ($records as $lead) {
-                                $result = self::importLeadToDirectory($lead, (int) $data['category_id']);
+                                $result = self::importLeadToDirectory($lead, (int) $data['category_id'], (int) ($data['subcategory_id'] ?? 0));
                                 if ($result === 'created') { $created++; $lead->update(['status' => 'converted']); }
                                 else { $skipped++; }
                             }
@@ -242,7 +270,7 @@ class LeadResource extends Resource
     }
 
     /** Returns 'created' | 'exists' | error string */
-    private static function importLeadToDirectory(Lead $lead, int $categoryId): string
+    private static function importLeadToDirectory(Lead $lead, int $categoryId, int $subcategoryId = 0): string
     {
         if (!$lead->google_place_id) return 'No Google Place ID on this lead';
 
@@ -286,6 +314,7 @@ class LeadResource extends Resource
         Business::create([
             'user_id'         => 1,
             'category_id'     => $categoryId,
+            'subcategory_id'  => $subcategoryId ?: null,
             'name'            => $lead->name,
             'slug'            => $slug,
             'description'     => $description,
