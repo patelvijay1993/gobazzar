@@ -29,14 +29,18 @@ class BusinessController extends Controller
                 if (!$cat) return;
 
                 if ($cat->parent_id) {
-                    // Subcategory selected — businesses store parent in category_id
-                    // and subcategory in subcategory_id
+                    // Subcategory selected — match parent in category_id + child in subcategory_id
                     $q->where('category_id', $cat->parent_id)
                       ->where('subcategory_id', $cat->id);
                 } else {
-                    // Parent category selected — show all businesses in this category
-                    // regardless of subcategory
-                    $q->where('category_id', $cat->id);
+                    // Parent category selected — show all businesses:
+                    // either stored directly under parent OR under any subcategory
+                    $childIds = Category::where('parent_id', $cat->id)->pluck('id');
+                    $q->where('category_id', $cat->id)
+                      ->where(function ($q2) use ($childIds) {
+                          $q2->whereNull('subcategory_id')
+                             ->orWhereIn('subcategory_id', $childIds);
+                      });
                 }
             })
             ->when($request->search,   fn ($q) => $q->where(fn ($q2) => $q2
