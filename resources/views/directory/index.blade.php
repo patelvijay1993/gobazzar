@@ -132,6 +132,11 @@
                 </button>
               </div>
               <div class="cat-subs {{ $isOpen ? 'open' : '' }}">
+                <a href="{{ route('directory.index', array_merge(request()->except('category','page'), ['category' => $cat->id])) }}"
+                   class="filter-item {{ request('category') == $cat->id ? 'active' : '' }}"
+                   style="padding-left:36px;font-size:12.5px;font-weight:600">
+                  <span style="width:14px;text-align:center;opacity:.5">◈</span> All {{ $cat->name }}
+                </a>
                 @foreach($cat->children as $sub)
                   <a href="{{ route('directory.index', array_merge(request()->except('category','page'), ['category' => $sub->id])) }}"
                      class="filter-item {{ request('category') == $sub->id ? 'active' : '' }}"
