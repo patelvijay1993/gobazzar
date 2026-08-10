@@ -95,6 +95,7 @@
     {{-- Search --}}
     <form method="GET" action="{{ route('news.index') }}">
       @if(request('category'))<input type="hidden" name="category" value="{{ request('category') }}">@endif
+      @if(request('language'))<input type="hidden" name="language" value="{{ request('language') }}">@endif
       <div class="news-search">
         <i class="fa-solid fa-magnifying-glass" style="padding:0 10px 0 14px;color:#bbb;font-size:15px;align-self:center;flex-shrink:0"></i>
         <input type="text" name="search" value="{{ request('search') }}" placeholder="Search news...">
@@ -103,7 +104,7 @@
     </form>
 
     {{-- Active filters --}}
-    @if(request('search') || request('category'))
+    @if(request('search') || request('category') || request('language'))
     <div class="active-filters">
       @if(request('search'))
         <a href="{{ route('news.index', request()->except('search','page')) }}" class="filter-tag">"{{ request('search') }}" <i class="fa-solid fa-times"></i></a>
@@ -111,12 +112,15 @@
       @if(request('category'))
         <a href="{{ route('news.index', request()->except('category','page')) }}" class="filter-tag"><i class="fa-solid fa-tag"></i> {{ request('category') }} <i class="fa-solid fa-times"></i></a>
       @endif
+      @if(request('language'))
+        <a href="{{ route('news.index', request()->except('language','page')) }}" class="filter-tag"><i class="fa-solid fa-language"></i> {{ ucfirst(request('language')) }} <i class="fa-solid fa-times"></i></a>
+      @endif
       <a href="{{ route('news.index') }}" style="font-size:12px;color:var(--muted);align-self:center;text-decoration:none;margin-left:4px">Clear all</a>
     </div>
     @endif
 
     {{-- Featured --}}
-    @if($featured && !request('search') && !request('category'))
+    @if($featured && !request('search') && !request('category') && !request('language'))
     <a href="{{ route('news.show', $featured->slug) }}" class="featured-news">
       <div class="featured-img">
         @if($featured->image_url)
@@ -180,6 +184,21 @@
 
   {{-- SIDEBAR --}}
   <aside>
+    {{-- Language --}}
+    @if($languages->count() > 1)
+    <div class="sb-box">
+      <div class="sb-box-head"><i class="fa-solid fa-language"></i> Language</div>
+      <div class="sb-body">
+        <a href="{{ route('news.index', request()->except('language','page')) }}"
+           class="cat-pill {{ !request('language') ? 'active' : '' }}">All</a>
+        @foreach($languages as $lang)
+          <a href="{{ route('news.index', array_merge(request()->except('language','page'), ['language' => $lang])) }}"
+             class="cat-pill {{ request('language') === $lang ? 'active' : '' }}">{{ ucfirst($lang) }}</a>
+        @endforeach
+      </div>
+    </div>
+    @endif
+
     {{-- Categories --}}
     <div class="sb-box">
       <div class="sb-box-head"><i class="fa-solid fa-tags"></i> Categories</div>

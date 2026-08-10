@@ -11,6 +11,7 @@ class NewsController extends Controller
     {
         $articles = NewsArticle::where('status', 'published')
             ->when($request->category, fn ($q) => $q->whereJsonContains('category', $request->category))
+            ->when($request->language, fn ($q) => $q->where('language', $request->language))
             ->when($request->search, fn ($q) => $q->where(fn ($q2) => $q2
                 ->where('title', 'like', '%'.addcslashes($request->search, '%_\\').'%')
                 ->orWhere('description', 'like', '%'.addcslashes($request->search, '%_\\').'%')))
@@ -26,12 +27,19 @@ class NewsController extends Controller
             ->sort()
             ->values();
 
+        $languages = NewsArticle::where('status', 'published')
+            ->whereNotNull('language')
+            ->distinct()
+            ->pluck('language')
+            ->sort()
+            ->values();
+
         $featured = NewsArticle::where('status', 'published')
             ->where('is_featured', true)
             ->latest('pub_date')
             ->first();
 
-        return view('news.index', compact('articles', 'categories', 'featured'));
+        return view('news.index', compact('articles', 'categories', 'languages', 'featured'));
     }
 
     public function show(NewsArticle $article)
