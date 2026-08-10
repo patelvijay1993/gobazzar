@@ -35,12 +35,14 @@ class BusinessResource extends Resource
                     ->options(Category::where('type', 'directory')->whereNull('parent_id')->where('is_active', true)->pluck('name', 'id'))
                     ->searchable()
                     ->live()
-                    ->afterStateUpdated(fn (Forms\Set $set) => $set('subcategory_id', null)),
-                Forms\Components\Select::make('subcategory_id')
-                    ->label('Sub-Category')
+                    ->afterStateUpdated(fn (Forms\Set $set) => $set('subcategories', [])),
+                Forms\Components\Select::make('subcategories')
+                    ->relationship('subcategories', 'name')
+                    ->label('Sub-Categories')
+                    ->multiple()
                     ->options(fn (Forms\Get $get) => Category::where('parent_id', $get('category_id'))->where('is_active', true)->pluck('name', 'id')->toArray())
                     ->searchable()
-                    ->placeholder('— Select Sub-Category —'),
+                    ->placeholder('— Select Sub-Categories —'),
                 Forms\Components\Select::make('status')
                     ->options(['pending' => 'Pending', 'active' => 'Active', 'inactive' => 'Inactive', 'flagged' => 'Flagged'])
                     ->default('pending')->required(),

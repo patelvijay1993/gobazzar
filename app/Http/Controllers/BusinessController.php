@@ -22,24 +22,24 @@ class BusinessController extends Controller
             ->with('children')
             ->orderBy('sort_order')->get();
 
-        $businesses = Business::with(['category', 'subcategory'])
+        $businesses = Business::with(['category', 'subcategories'])
             ->where('status', 'active')
             ->when($request->category, function ($q) use ($request) {
                 $cat = Category::find($request->category);
                 if (!$cat) return;
 
                 if ($cat->parent_id) {
-                    // Subcategory selected — match parent in category_id + child in subcategory_id
+                    // Subcategory selected — match parent in category_id + this subcategory among the business's subcategories
                     $q->where('category_id', $cat->parent_id)
-                      ->where('subcategory_id', $cat->id);
+                      ->whereHas('subcategories', fn ($q2) => $q2->where('categories.id', $cat->id));
                 } else {
                     // Parent category selected — show all businesses:
-                    // either stored directly under parent OR under any subcategory
+                    // either with no subcategories OR under any of this parent's subcategories
                     $childIds = Category::where('parent_id', $cat->id)->pluck('id');
                     $q->where('category_id', $cat->id)
                       ->where(function ($q2) use ($childIds) {
-                          $q2->whereNull('subcategory_id')
-                             ->orWhereIn('subcategory_id', $childIds);
+                          $q2->whereDoesntHave('subcategories')
+                             ->orWhereHas('subcategories', fn ($q3) => $q3->whereIn('categories.id', $childIds));
                       });
                 }
             })
@@ -69,6 +69,7 @@ class BusinessController extends Controller
     public function show(Request $request, Business $business)
     {
         abort_if($business->status !== 'active', 404);
+        $business->loadMissing('subcategories');
         PageView::record($business, $request);
         ActivityLog::log($request, 'viewed_business', [
             'subject_type'  => get_class($business),
@@ -100,7 +101,7 @@ class BusinessController extends Controller
             ->orWhere('parent_id', $category->id)
             ->pluck('id');
 
-        $businesses = Business::with(['category', 'subcategory'])
+        $businesses = Business::with(['category', 'subcategories'])
             ->where('status', 'active')
             ->whereIn('category_id', $catIds)
             ->orderByDesc('is_featured')

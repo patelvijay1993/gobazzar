@@ -128,8 +128,8 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
       </div>
       <div class="biz-cat-label">
         {{ $business->category->name ?? '' }}
-        @if($business->subcategory)
-          <span style="opacity:.5;margin:0 4px">›</span>{{ $business->subcategory->name }}
+        @if($business->subcategories->isNotEmpty())
+          <span style="opacity:.5;margin:0 4px">›</span>{{ $business->subcategories->pluck('name')->implode(', ') }}
         @endif
       </div>
 

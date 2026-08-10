@@ -46,6 +46,11 @@ textarea.form-input{resize:vertical;min-height:100px}
 .form-hint{font-size:11px;color:var(--hint);margin-top:4px}
 .form-full{grid-column:1/-1}
 
+.subcat-pills{display:flex;flex-wrap:wrap;gap:7px;border:1.5px solid var(--border2);border-radius:var(--r);padding:9px 10px;min-height:42px;align-items:center}
+.subcat-pill{display:inline-flex;align-items:center;gap:5px;background:var(--surface);border:1.5px solid var(--border2);border-radius:20px;padding:5px 12px;font-size:12.5px;cursor:pointer;transition:all .15s;user-select:none}
+.subcat-pill:has(input:checked),.subcat-pill.checked{background:var(--red);border-color:var(--red);color:#fff}
+.subcat-pill input{margin:0;accent-color:var(--red)}
+
 .btn-submit{background:var(--red);color:#fff;border:none;border-radius:var(--r);padding:12px 32px;font-size:14px;font-weight:700;cursor:pointer;transition:background .15s;display:inline-flex;align-items:center;gap:8px}
 .btn-submit:hover{background:var(--red-dark)}
 
@@ -560,7 +565,7 @@ textarea.form-input{resize:vertical;min-height:100px}
           <div class="form-row" style="margin-bottom:14px">
             <div class="form-group">
               <label class="form-label">Category <span>*</span></label>
-              <select name="category_id" id="biz-category" class="form-input" onchange="loadSubCats('biz-subcategory', this.value)" required>
+              <select name="category_id" id="biz-category" class="form-input" onchange="loadSubCatsMulti('biz-subcategory', this.value, [])" required>
                 <option value="">Select category</option>
                 @foreach($directoryParents as $cat)
                   <option value="{{ $cat->id }}" {{ old('category_id')==$cat->id ? 'selected' : '' }}>{{ $cat->icon }} {{ $cat->name }}</option>
@@ -568,10 +573,10 @@ textarea.form-input{resize:vertical;min-height:100px}
               </select>
             </div>
             <div class="form-group">
-              <label class="form-label">Sub-Category</label>
-              <select name="subcategory_id" id="biz-subcategory" class="form-input">
-                <option value="">Select sub-category (optional)</option>
-              </select>
+              <label class="form-label">Sub-Categories</label>
+              <div id="biz-subcategory" class="subcat-pills">
+                <span class="form-hint">Select a category first</span>
+              </div>
             </div>
           </div>
 
@@ -1228,6 +1233,36 @@ function loadSubCats(selectId, parentId) {
       });
     })
     .catch(() => { sel.innerHTML = '<option value="">Select sub-category (optional)</option>'; });
+}
+
+// Multi-select sub-category pills (used for Business — a business can belong to several sub-categories)
+function loadSubCatsMulti(containerId, parentId, checkedIds) {
+  var box = document.getElementById(containerId);
+  if (!box) return;
+  checkedIds = (checkedIds || []).map(String);
+  if (!parentId) { box.innerHTML = '<span class="form-hint">Select a category first</span>'; return; }
+  box.innerHTML = '<span class="form-hint">Loading…</span>';
+  fetch('{{ route("categories.subs") }}?parent=' + encodeURIComponent(parentId))
+    .then(r => r.json())
+    .then(subs => {
+      if (!subs.length) { box.innerHTML = '<span class="form-hint">No sub-categories for this category</span>'; return; }
+      box.innerHTML = '';
+      subs.forEach(function(c) {
+        var id = 'subcat-' + containerId + '-' + c.id;
+        var isChecked = checkedIds.indexOf(String(c.id)) !== -1;
+        var label = document.createElement('label');
+        label.className = 'subcat-pill' + (isChecked ? ' checked' : '');
+        label.innerHTML =
+          '<input type="checkbox" name="subcategory_ids[]" value="' + c.id + '" id="' + id + '"' +
+          (isChecked ? ' checked' : '') + '>' +
+          '<span>' + (c.icon ? c.icon + ' ' : '') + c.name + '</span>';
+        label.querySelector('input').addEventListener('change', function(e) {
+          label.classList.toggle('checked', e.target.checked);
+        });
+        box.appendChild(label);
+      });
+    })
+    .catch(() => { box.innerHTML = '<span class="form-hint">Could not load sub-categories</span>'; });
 }
 
 // ── Quill rich-text editors ───────────────────────────────────────

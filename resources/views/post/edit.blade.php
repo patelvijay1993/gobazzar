@@ -29,6 +29,12 @@
 .form-input:focus{border-color:var(--red);outline:none}
 textarea.form-input{resize:vertical;min-height:100px}
 .form-hint{font-size:11px;color:var(--hint);margin-top:4px}
+
+.subcat-pills{display:flex;flex-wrap:wrap;gap:7px;border:1.5px solid var(--border2);border-radius:var(--r);padding:9px 10px;min-height:42px;align-items:center}
+.subcat-pill{display:inline-flex;align-items:center;gap:5px;background:var(--surface);border:1.5px solid var(--border2);border-radius:20px;padding:5px 12px;font-size:12.5px;cursor:pointer;transition:all .15s;user-select:none}
+.subcat-pill:has(input:checked),.subcat-pill.checked{background:var(--red);border-color:var(--red);color:#fff}
+.subcat-pill input{margin:0;accent-color:var(--red)}
+
 .btn-save{background:var(--red);color:#fff;border:none;border-radius:var(--r);padding:12px 32px;font-size:14px;font-weight:700;cursor:pointer;transition:background .15s}
 .btn-save:hover{background:var(--red-dark)}
 .btn-cancel{background:transparent;border:1.5px solid var(--border2);color:var(--muted);border-radius:var(--r);padding:12px 24px;font-size:13px;cursor:pointer;margin-left:10px}
@@ -440,7 +446,7 @@ textarea.form-input{resize:vertical;min-height:100px}
         <div class="form-row" style="margin-bottom:14px">
           <div class="form-group">
             <label class="form-label">Category <span>*</span></label>
-            <select name="category_id" id="ebiz-category" class="form-input" onchange="loadSubCats('ebiz-subcategory', this.value)" required>
+            <select name="category_id" id="ebiz-category" class="form-input" onchange="loadSubCatsMulti('ebiz-subcategory', this.value, [])" required>
               <option value="">Select category</option>
               @foreach($directoryParents ?? $categories->get('directory', collect()) as $cat)
                 <option value="{{ $cat->id }}" {{ old('category_id',$record->category_id)==$cat->id ? 'selected' : '' }}>{{ $cat->icon }} {{ $cat->name }}</option>
@@ -448,13 +454,10 @@ textarea.form-input{resize:vertical;min-height:100px}
             </select>
           </div>
           <div class="form-group">
-            <label class="form-label">Sub-Category</label>
-            <select name="subcategory_id" id="ebiz-subcategory" class="form-input">
-              <option value="">Select sub-category (optional)</option>
-              @if($record->subcategory_id)
-                <option value="{{ $record->subcategory_id }}" selected>{{ $record->subcategory->name ?? 'Current sub-category' }}</option>
-              @endif
-            </select>
+            <label class="form-label">Sub-Categories</label>
+            <div id="ebiz-subcategory" class="subcat-pills">
+              <span class="form-hint">Select a category first</span>
+            </div>
           </div>
         </div>
 
@@ -964,24 +967,33 @@ textarea.form-input{resize:vertical;min-height:100px}
 </div>
 @push('scripts')
 <script>
-function loadSubCats(selectId, parentId, selectedId) {
-  var sel = document.getElementById(selectId);
-  if (!sel) return;
-  sel.innerHTML = '<option value="">Loading…</option>';
-  if (!parentId) { sel.innerHTML = '<option value="">Select sub-category (optional)</option>'; return; }
+function loadSubCatsMulti(containerId, parentId, checkedIds) {
+  var box = document.getElementById(containerId);
+  if (!box) return;
+  checkedIds = (checkedIds || []).map(String);
+  if (!parentId) { box.innerHTML = '<span class="form-hint">Select a category first</span>'; return; }
+  box.innerHTML = '<span class="form-hint">Loading…</span>';
   fetch('{{ route("categories.subs") }}?parent=' + encodeURIComponent(parentId))
     .then(function(r){ return r.json(); })
     .then(function(subs){
-      sel.innerHTML = '<option value="">Select sub-category (optional)</option>';
+      if (!subs.length) { box.innerHTML = '<span class="form-hint">No sub-categories for this category</span>'; return; }
+      box.innerHTML = '';
       subs.forEach(function(c){
-        var o = document.createElement('option');
-        o.value = c.id;
-        o.textContent = (c.icon ? c.icon + ' ' : '') + c.name;
-        if (selectedId && c.id == selectedId) o.selected = true;
-        sel.appendChild(o);
+        var id = 'subcat-' + containerId + '-' + c.id;
+        var isChecked = checkedIds.indexOf(String(c.id)) !== -1;
+        var label = document.createElement('label');
+        label.className = 'subcat-pill' + (isChecked ? ' checked' : '');
+        label.innerHTML =
+          '<input type="checkbox" name="subcategory_ids[]" value="' + c.id + '" id="' + id + '"' +
+          (isChecked ? ' checked' : '') + '>' +
+          '<span>' + (c.icon ? c.icon + ' ' : '') + c.name + '</span>';
+        label.querySelector('input').addEventListener('change', function(e){
+          label.classList.toggle('checked', e.target.checked);
+        });
+        box.appendChild(label);
       });
     })
-    .catch(function(){ sel.innerHTML = '<option value="">Select sub-category (optional)</option>'; });
+    .catch(function(){ box.innerHTML = '<span class="form-hint">Could not load sub-categories</span>'; });
 }
 
 var _qlToolbar = [
@@ -1216,11 +1228,14 @@ function applyEAIContent(){
   document.getElementById('eai-status').textContent='✅ Applied to form!';
 }
 
-// load subcategory for existing record
+// load subcategories for existing record
+@if($type === 'business')
 (function(){
   var catId = '{{ $record->category_id }}';
-  if(catId) loadSubCats('ebiz-subcategory', catId, '{{ $record->subcategory_id }}');
+  var checkedIds = @json($record->subcategories->pluck('id'));
+  if(catId) loadSubCatsMulti('ebiz-subcategory', catId, checkedIds);
 })();
+@endif
 
 // ── Remove existing photos ──
 function removeExistingPhoto(idx, path) {

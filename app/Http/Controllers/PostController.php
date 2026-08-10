@@ -465,7 +465,8 @@ class PostController extends Controller
         $data = $request->validate([
             'name'              => 'required|string|max:150',
             'category_id'       => 'required|exists:categories,id',
-            'subcategory_id'    => 'nullable|exists:categories,id',
+            'subcategory_ids'   => 'nullable|array',
+            'subcategory_ids.*' => 'exists:categories,id',
             'description'       => 'nullable|string',
             'address'           => 'nullable|string|max:255',
             'city'              => 'required|string|max:100',
@@ -492,7 +493,9 @@ class PostController extends Controller
         $data['name'] = strip_tags($data['name']);
         $this->moderate($request, 'name', 'business');
 
-        $data['subcategory_id'] = $data['subcategory_id'] ?: null;
+        $subcategoryIds = array_values(array_unique(array_filter($data['subcategory_ids'] ?? [])));
+        unset($data['subcategory_ids']);
+        $data['subcategory_id'] = $subcategoryIds[0] ?? null;
         unset($data['images']);
 
         // Parse tags from comma-separated string
@@ -534,7 +537,8 @@ class PostController extends Controller
             $data['logo'] = $request->file('logo')->store('businesses', config('filesystems.default'));
         }
 
-        Business::create($data);
+        $business = Business::create($data);
+        $business->subcategories()->sync($subcategoryIds);
 
         $msg = match($user->activePlan()) {
             'power_seller' => 'Your business listing is now live with Verified Badge & Priority Placement!',
@@ -792,9 +796,10 @@ class PostController extends Controller
     {
         $maxImg = Auth::user()->maxImages();
         $data = $request->validate([
-            'name'           => 'required|string|max:150',
-            'category_id'    => 'nullable|exists:categories,id',
-            'subcategory_id' => 'nullable|exists:categories,id',
+            'name'              => 'required|string|max:150',
+            'category_id'       => 'nullable|exists:categories,id',
+            'subcategory_ids'   => 'nullable|array',
+            'subcategory_ids.*' => 'exists:categories,id',
             'description'    => 'nullable|string',
             'address'        => 'nullable|string|max:255',
             'city'           => 'required|string|max:100',
@@ -840,7 +845,9 @@ class PostController extends Controller
         }
 
         $this->moderate($request, 'name', 'business');
-        $data['subcategory_id'] = $data['subcategory_id'] ?: null;
+        $subcategoryIds = array_values(array_unique(array_filter($data['subcategory_ids'] ?? [])));
+        unset($data['subcategory_ids']);
+        $data['subcategory_id'] = $subcategoryIds[0] ?? null;
         unset($data['images']);
 
         // Handle individual photo removals
@@ -879,6 +886,7 @@ class PostController extends Controller
         }
 
         $r->update($data);
+        $r->subcategories()->sync($subcategoryIds);
     }
 
     private function updateBusinessPost(Request $request, BusinessPost $r): void

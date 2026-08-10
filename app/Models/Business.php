@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Traits\Favoritable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
@@ -36,9 +37,15 @@ class Business extends Model
         return $this->belongsTo(Category::class);
     }
 
+    /** @deprecated Kept for backward compatibility — use subcategories() for the full multi-select set. */
     public function subcategory(): BelongsTo
     {
         return $this->belongsTo(Category::class, 'subcategory_id');
+    }
+
+    public function subcategories(): BelongsToMany
+    {
+        return $this->belongsToMany(Category::class, 'business_subcategories', 'business_id', 'subcategory_id');
     }
 
     public function user(): BelongsTo
