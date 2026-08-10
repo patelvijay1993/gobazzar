@@ -764,6 +764,7 @@ $heroLocLabel = request('city') ?: request('province');
     @else
       <a href="{{ route('register') }}" class="hcard-btn"><i class="fa-solid fa-plus"></i> Post Your Ad</a>
     @endauth
+    <div class="free-note" style="margin-top:10px"><i class="fa-solid fa-circle-check"></i> 100% free · No hidden fees · Instant</div>
   </div>
 
   {{-- PAID SIDEBAR ADS --}}
