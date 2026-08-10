@@ -55,7 +55,7 @@
 <link rel="apple-touch-icon" sizes="512x512" href="{{ asset('images/pwa-icon-512.png') }}">
 <meta name="theme-color" content="#1a3a8f">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Noto+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Noto+Sans:wght@400;500;600&family=Noto+Sans+Gujarati:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
 :root{
@@ -67,6 +67,7 @@
   --nav-bg:#1a3a8f;--bg:#ffffff;
   --radius:10px;--radius-sm:6px;--radius-lg:14px;
   --fh:'Baloo 2',sans-serif;--fb:'Noto Sans',sans-serif;
+  --fg:'Noto Sans Gujarati','Noto Sans',sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:var(--fb);background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;overflow-x:hidden}

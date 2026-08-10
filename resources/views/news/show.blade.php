@@ -35,14 +35,14 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
 
 .news-header{margin-bottom:28px}
 .news-header .news-cat{font-size:11px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px}
-.news-header h1{font-family:var(--fh);font-size:28px;font-weight:800;line-height:1.3;margin-bottom:16px}
+.news-header h1{font-family:var(--fg);font-size:27px;font-weight:700;line-height:1.55;margin-bottom:16px}
 .news-meta-bar{display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:var(--muted);padding:14px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin-bottom:24px}
 .news-meta-bar span{display:flex;align-items:center;gap:5px}
 
 .news-cover{width:100%;border-radius:var(--rl);overflow:hidden;margin-bottom:28px;max-height:420px}
 .news-cover img{width:100%;height:420px;object-fit:cover}
 
-.news-body{font-size:15px;line-height:1.8;color:var(--text)}
+.news-body{font-family:var(--fg);font-size:15.5px;line-height:1.95;color:var(--text)}
 .news-body p{margin-bottom:16px}
 .news-body a{color:var(--red);text-decoration:underline}
 
@@ -54,7 +54,7 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
 .related-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden}
 .related-card img{width:100%;height:120px;object-fit:cover}
 .related-card-body{padding:12px}
-.related-card-body h4{font-size:13px;font-weight:600;line-height:1.4;margin-bottom:4px}
+.related-card-body h4{font-family:var(--fg);font-size:13px;font-weight:600;line-height:1.6;margin-bottom:4px}
 .related-card-body h4 a{color:var(--text)}
 .related-card-body h4 a:hover{color:var(--red)}
 
@@ -150,7 +150,7 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
           <div style="width:44px;height:44px;border-radius:6px;background:var(--red-pale);display:grid;place-items:center;font-size:18px;flex-shrink:0">📰</div>
         @endif
         <div>
-          <a href="{{ route('news.show', $ln->slug) }}" style="font-size:12px;font-weight:600;color:var(--text);line-height:1.4;display:block">{{ Str::limit($ln->title, 50) }}</a>
+          <a href="{{ route('news.show', $ln->slug) }}" style="font-family:var(--fg);font-size:12.5px;font-weight:600;color:var(--text);line-height:1.6;display:block">{{ Str::limit($ln->title, 50) }}</a>
           <span style="font-size:11px;color:var(--hint)">{{ $ln->pub_date?->format('M j, Y') }}</span>
         </div>
       </div>
