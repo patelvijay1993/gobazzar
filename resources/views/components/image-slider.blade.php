@@ -28,7 +28,12 @@
   {{-- Single image — no slider chrome needed --}}
   <img src="{{ $resolveImg($images[0]) }}"
        alt="{{ $alt }}"
-       style="width:100%;height:{{ $height }};object-fit:cover;display:block">
+       style="width:100%;height:{{ $height }};object-fit:cover;display:block;cursor:zoom-in"
+       onclick="slOpenLightbox('{{ $id }}')">
+  <div class="sl-lightbox" id="{{ $id }}_lightbox" onclick="slCloseLightbox('{{ $id }}', event)">
+    <button class="sl-lb-close" onclick="slCloseLightbox('{{ $id }}', event)" aria-label="Close">&times;</button>
+    <img src="{{ $resolveImg($images[0]) }}" alt="{{ $alt }}">
+  </div>
 @else
   {{-- ── SLIDER ── --}}
   <div class="sl-root" id="{{ $id }}" style="--sl-h:{{ $height }}">
@@ -37,7 +42,7 @@
     <div class="sl-track" id="{{ $id }}_track">
       @foreach($images as $i => $img)
         <div class="sl-slide">
-          <img src="{{ $resolveImg($img) }}" alt="{{ $alt }} {{ $i+1 }}">
+          <img src="{{ $resolveImg($img) }}" alt="{{ $alt }} {{ $i+1 }}" style="cursor:zoom-in" onclick="slOpenLightbox('{{ $id }}')">
         </div>
       @endforeach
     </div>
@@ -67,6 +72,15 @@
         <img src="{{ $resolveImg($img) }}" alt="Thumb {{ $i+1 }}">
       </div>
     @endforeach
+  </div>
+
+  {{-- Fullscreen lightbox --}}
+  <div class="sl-lightbox" id="{{ $id }}_lightbox" onclick="slCloseLightbox('{{ $id }}', event)">
+    <button class="sl-lb-close" onclick="slCloseLightbox('{{ $id }}', event)" aria-label="Close">&times;</button>
+    <button class="sl-lb-arrow sl-lb-prev" onclick="slLbMove('{{ $id }}',-1,event)" aria-label="Previous">&#8249;</button>
+    <img id="{{ $id }}_lb_img" src="" alt="{{ $alt }}">
+    <button class="sl-lb-arrow sl-lb-next" onclick="slLbMove('{{ $id }}', 1,event)" aria-label="Next">&#8250;</button>
+    <div class="sl-lb-counter" id="{{ $id }}_lb_counter"></div>
   </div>
 @endif
 
@@ -100,6 +114,19 @@
 .sl-thumb.active{border-color:var(--red,#C0392B)}
 .sl-thumb img{width:100%;height:100%;object-fit:cover;display:block}
 @media(max-width:480px){.sl-thumb{flex:0 0 58px;height:46px}}
+
+/* ── Lightbox ─────────────────────────────────────────── */
+.sl-lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;align-items:center;justify-content:center;padding:40px}
+.sl-lightbox.open{display:flex}
+.sl-lightbox img{max-width:100%;max-height:100%;object-fit:contain;display:block;cursor:default}
+.sl-lb-close{position:absolute;top:16px;right:20px;background:rgba(255,255,255,.12);color:#fff;border:none;width:40px;height:40px;border-radius:50%;font-size:26px;line-height:1;cursor:pointer;z-index:2;display:flex;align-items:center;justify-content:center}
+.sl-lb-close:hover{background:rgba(255,255,255,.25)}
+.sl-lb-arrow{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.12);color:#fff;border:none;width:46px;height:46px;border-radius:50%;font-size:26px;line-height:1;cursor:pointer;z-index:2;display:flex;align-items:center;justify-content:center}
+.sl-lb-arrow:hover{background:rgba(255,255,255,.25)}
+.sl-lb-prev{left:16px}
+.sl-lb-next{right:16px}
+.sl-lb-counter{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);color:#fff;font-size:13px;font-weight:600;background:rgba(255,255,255,.12);padding:4px 12px;border-radius:20px}
+@media(max-width:600px){.sl-lightbox{padding:16px}.sl-lb-arrow{width:36px;height:36px;font-size:20px}.sl-lb-close{width:34px;height:34px;font-size:22px}}
 </style>
 @endonce
 
@@ -158,6 +185,51 @@ function slInitKeys(id) {
     if (e.key === 'ArrowLeft')  slMove(id, -1);
     if (e.key === 'ArrowRight') slMove(id,  1);
   });
+}
+
+// ── Lightbox ──────────────────────────────────────────
+function slOpenLightbox(id) {
+  var box = document.getElementById(id + '_lightbox');
+  if (!box) return;
+  if (window._slState[id]) {
+    slLbSync(id);
+  }
+  box.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  document.addEventListener('keydown', window['_slLbKey_' + id] = function(e) {
+    if (e.key === 'Escape')     slCloseLightbox(id);
+    if (e.key === 'ArrowLeft')  slLbMove(id, -1);
+    if (e.key === 'ArrowRight') slLbMove(id, 1);
+  });
+}
+
+function slCloseLightbox(id, e) {
+  if (e && e.target && e.target.tagName === 'IMG' && e.currentTarget && e.currentTarget.classList.contains('sl-lightbox')) return;
+  var box = document.getElementById(id + '_lightbox');
+  if (!box) return;
+  box.classList.remove('open');
+  document.body.style.overflow = '';
+  if (window['_slLbKey_' + id]) {
+    document.removeEventListener('keydown', window['_slLbKey_' + id]);
+  }
+}
+
+function slLbMove(id, dir, e) {
+  if (e) e.stopPropagation();
+  var s = window._slState[id];
+  if (!s) return;
+  slGoTo(id, s.cur + dir);
+  slLbSync(id);
+}
+
+function slLbSync(id) {
+  var img = document.getElementById(id + '_lb_img');
+  var counter = document.getElementById(id + '_lb_counter');
+  var s = window._slState[id];
+  if (!img || !s) return;
+  var mainImg = document.querySelectorAll('#' + id + '_track .sl-slide img')[s.cur];
+  if (mainImg) img.src = mainImg.src;
+  if (counter) counter.textContent = (s.cur + 1) + ' / ' + s.total;
 }
 </script>
 @endonce
