@@ -42,6 +42,14 @@ class PostController extends Controller
         return $record;
     }
 
+    private function findOwnedTrashed(string $type, int $id)
+    {
+        $model  = $this->resolveModel($type);
+        $record = $model::withTrashed()->findOrFail($id);
+        abort_if((int) $record->user_id !== (int) Auth::id(), 403);
+        return $record;
+    }
+
     private function uniqueSlug(string $text, string $table): string
     {
         $base = Str::slug($text);
@@ -221,17 +229,39 @@ class PostController extends Controller
     {
         $record = $this->findOwned($type, $id);
 
-        foreach (['image', 'photo', 'logo', 'company_logo'] as $field) {
-            if (!empty($record->$field) && !str_starts_with($record->$field, 'http')) {
-                Storage::disk(config('filesystems.default'))->delete($record->$field);
-            }
-        }
-        foreach ($record->images ?? [] as $path) {
-            if (!str_starts_with($path, 'http')) Storage::disk(config('filesystems.default'))->delete($path);
+        // Soft delete only — files stay on disk so the post can be restored later.
+        $record->delete();
+        return redirect()->route('account')->with('success', 'Post moved to Deleted Posts. You can restore it anytime.');
+    }
+
+    // ── Restore (undo a soft-delete) ─────────────────────────────
+
+    public function restore(string $type, int $id)
+    {
+        $record = $this->findOwnedTrashed($type, $id);
+        abort_unless($record->trashed(), 404);
+
+        $record->restore();
+        return redirect()->route('account', ['panel' => 'deleted'])->with('success', 'Post restored successfully.');
+    }
+
+    // ── Toggle active / inactive ─────────────────────────────────
+
+    public function toggleStatus(string $type, int $id)
+    {
+        $record = $this->findOwned($type, $id);
+
+        if (!in_array($record->status, ['active', 'inactive'], true)) {
+            return back()->with('error', 'This post cannot be toggled while it is ' . $record->status . '.');
         }
 
-        $record->delete();
-        return redirect()->route('account')->with('success', 'Post deleted successfully.');
+        $record->update([
+            'status' => $record->status === 'active' ? 'inactive' : 'active',
+        ]);
+
+        return back()->with('success', $record->status === 'active'
+            ? 'Post is now active and visible to everyone.'
+            : 'Post is now inactive and hidden from the public.');
     }
 
     // â"€â"€ Store methods â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€

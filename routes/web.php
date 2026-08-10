@@ -222,6 +222,8 @@ Route::middleware(['auth', 'email.verified'])->group(function () {
     Route::get('/post/{type}/{id}/edit', [PostController::class, 'edit'])->name('post.edit');
     Route::post('/post/{type}/{id}/update', [PostController::class, 'update'])->name('post.update');
     Route::delete('/post/{type}/{id}', [PostController::class, 'destroy'])->name('post.destroy');
+    Route::post('/post/{type}/{id}/toggle-status', [PostController::class, 'toggleStatus'])->name('post.toggle-status');
+    Route::post('/post/{type}/{id}/restore', [PostController::class, 'restore'])->name('post.restore');
 });
 
 // Public routes

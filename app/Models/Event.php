@@ -5,12 +5,13 @@ namespace App\Models;
 use App\Traits\Favoritable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
 use App\Models\User;
 
 class Event extends Model
 {
-    use Favoritable;
+    use Favoritable, SoftDeletes;
     protected $fillable = [
         'user_id', 'category_id', 'title', 'slug', 'description', 'image',
         'start_date', 'end_date', 'venue', 'city', 'province', 'postal_code',

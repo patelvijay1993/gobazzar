@@ -143,6 +143,8 @@
       <a href="{{ route('account.favorites') }}" class="acct-mi"><i class="fa-solid fa-heart"></i> Saved Items</a>
       @endif
       <a href="#" class="acct-mi" onclick="showBusinessPanel(this)"><i class="fa-solid fa-store"></i> My Business</a>
+      @php $deletedCount = $deletedListings->count() + $deletedJobs->count() + $deletedEvents->count() + $deletedBusinesses->count() + $deletedBusinessPosts->count(); @endphp
+      <a href="#" class="acct-mi" onclick="showPanel('deleted',this)"><i class="fa-solid fa-trash-can"></i> Deleted Posts @if($deletedCount) <span style="background:#f1f5f9;color:#64748b;font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;margin-left:auto">{{ $deletedCount }}</span> @endif</a>
       <a href="#" class="acct-mi" onclick="showPanel('billing',this)"><i class="fa-solid fa-credit-card"></i> Billing & Payments</a>
       <a href="#" class="acct-mi" onclick="showPanel('profile',this)"><i class="fa-solid fa-user"></i> Edit Profile</a>
       <a href="#" class="acct-mi" onclick="showPanel('privacy',this)"><i class="fa-solid fa-shield-halved"></i> Privacy Settings</a>
@@ -248,6 +250,12 @@
                   @endif
                   <a href="{{ route('classifieds.show', $item) }}" class="btn-edit" style="background:#e0e7ff;color:#3730a3">View</a>
                   <a href="{{ route('post.edit', ['type'=>'classified','id'=>$item->id]) }}" class="btn-edit">Edit</a>
+                  @if(in_array($item->status, ['active','inactive']))
+                    <form method="POST" action="{{ route('post.toggle-status', ['type'=>'classified','id'=>$item->id]) }}">
+                      @csrf
+                      <button type="submit" class="btn-edit">{{ $item->status === 'active' ? 'Deactivate' : 'Activate' }}</button>
+                    </form>
+                  @endif
                   <form method="POST" action="{{ route('post.destroy', ['type'=>'classified','id'=>$item->id]) }}" onsubmit="return confirm('Delete this post?')">
                     @csrf @method('DELETE')
                     <button type="submit" class="btn-del">Delete</button>
@@ -281,6 +289,12 @@
                 <div class="row-actions">
                   <a href="{{ route('jobs.show', $item) }}" class="btn-edit" style="background:#e0e7ff;color:#3730a3">View</a>
                   <a href="{{ route('post.edit', ['type'=>'job','id'=>$item->id]) }}" class="btn-edit">Edit</a>
+                  @if(in_array($item->status, ['active','inactive']))
+                    <form method="POST" action="{{ route('post.toggle-status', ['type'=>'job','id'=>$item->id]) }}">
+                      @csrf
+                      <button type="submit" class="btn-edit">{{ $item->status === 'active' ? 'Deactivate' : 'Activate' }}</button>
+                    </form>
+                  @endif
                   <form method="POST" action="{{ route('post.destroy', ['type'=>'job','id'=>$item->id]) }}" onsubmit="return confirm('Delete this post?')">
                     @csrf @method('DELETE')
                     <button type="submit" class="btn-del">Delete</button>
@@ -314,6 +328,12 @@
                 <div class="row-actions">
                   <a href="{{ route('events.show', $item) }}" class="btn-edit" style="background:#e0e7ff;color:#3730a3">View</a>
                   <a href="{{ route('post.edit', ['type'=>'event','id'=>$item->id]) }}" class="btn-edit">Edit</a>
+                  @if(in_array($item->status, ['active','inactive']))
+                    <form method="POST" action="{{ route('post.toggle-status', ['type'=>'event','id'=>$item->id]) }}">
+                      @csrf
+                      <button type="submit" class="btn-edit">{{ $item->status === 'active' ? 'Deactivate' : 'Activate' }}</button>
+                    </form>
+                  @endif
                   <form method="POST" action="{{ route('post.destroy', ['type'=>'event','id'=>$item->id]) }}" onsubmit="return confirm('Delete this post?')">
                     @csrf @method('DELETE')
                     <button type="submit" class="btn-del">Delete</button>
@@ -375,6 +395,12 @@
                 <div class="row-actions">
                   <a href="{{ route('directory.show', $item) }}" class="btn-edit" style="background:#e0e7ff;color:#3730a3">View</a>
                   <a href="{{ route('post.edit', ['type'=>'business','id'=>$item->id]) }}" class="btn-edit">Edit</a>
+                  @if(in_array($item->status, ['active','inactive']))
+                    <form method="POST" action="{{ route('post.toggle-status', ['type'=>'business','id'=>$item->id]) }}">
+                      @csrf
+                      <button type="submit" class="btn-edit">{{ $item->status === 'active' ? 'Deactivate' : 'Activate' }}</button>
+                    </form>
+                  @endif
                   <form method="POST" action="{{ route('post.destroy', ['type'=>'business','id'=>$item->id]) }}" onsubmit="return confirm('Delete this business?')">
                     @csrf @method('DELETE')
                     <button type="submit" class="btn-del">Delete</button>
@@ -409,6 +435,12 @@
                     <a href="{{ route('directory.post', [$item->business->slug, $item->slug]) }}" class="btn-edit" target="_blank">View</a>
                   @endif
                   <a href="{{ route('post.edit', ['type'=>'business-post','id'=>$item->id]) }}" class="btn-edit">Edit</a>
+                  @if(in_array($item->status, ['active','inactive']))
+                    <form method="POST" action="{{ route('post.toggle-status', ['type'=>'business-post','id'=>$item->id]) }}">
+                      @csrf
+                      <button type="submit" class="btn-edit">{{ $item->status === 'active' ? 'Deactivate' : 'Activate' }}</button>
+                    </form>
+                  @endif
                   <form method="POST" action="{{ route('post.destroy', ['type'=>'business-post','id'=>$item->id]) }}" onsubmit="return confirm('Delete this post?')">
                     @csrf @method('DELETE')
                     <button type="submit" class="btn-del">Delete</button>
@@ -418,6 +450,56 @@
             </div>
             @endforeach
           @endif
+        @endif
+      </div>
+    </div>
+
+    {{-- DELETED POSTS --}}
+    <div class="panel" id="panel-deleted">
+      <div class="panel-head">
+        <span><i class="fa-solid fa-trash-can" style="margin-right:7px"></i>Deleted Posts</span>
+      </div>
+      <div class="panel-body">
+        @if($deletedCount === 0)
+          <div class="empty-state">
+            <div style="font-size:40px;margin-bottom:10px">🗑️</div>
+            <p>No deleted posts. Anything you delete shows up here so you can restore it.</p>
+          </div>
+        @else
+          <div style="font-size:12px;color:var(--muted);margin-bottom:16px">Deleted posts are kept here until you restore them — they are not visible to anyone else.</div>
+
+          @foreach([
+            ['items' => $deletedListings, 'type' => 'classified', 'icon' => '🏷️', 'label' => 'Classifieds', 'titleKey' => 'title'],
+            ['items' => $deletedJobs, 'type' => 'job', 'icon' => '💼', 'label' => 'Jobs', 'titleKey' => 'title'],
+            ['items' => $deletedEvents, 'type' => 'event', 'icon' => '🎉', 'label' => 'Events', 'titleKey' => 'title'],
+            ['items' => $deletedBusinesses, 'type' => 'business', 'icon' => '🏢', 'label' => 'Businesses', 'titleKey' => 'name'],
+            ['items' => $deletedBusinessPosts, 'type' => 'business-post', 'icon' => '📦', 'label' => 'Business Posts', 'titleKey' => 'title'],
+          ] as $group)
+            @if($group['items']->isNotEmpty())
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:16px 0 10px">{{ $group['icon'] }} {{ $group['label'] }} ({{ $group['items']->count() }})</div>
+              @foreach($group['items'] as $item)
+              <div class="sub-row">
+                <div class="sub-thumb" style="opacity:.5">
+                  @if($item->image_url)<img src="{{ $item->image_url }}" alt="">
+                  @else {{ $group['icon'] }} @endif
+                </div>
+                <div style="flex:1;min-width:0;opacity:.7">
+                  <div class="sub-title">{{ $item->{$group['titleKey']} }}</div>
+                  <div class="sub-meta">Deleted {{ $item->deleted_at->format('d M Y, h:i A') }}</div>
+                </div>
+                <div class="sub-actions">
+                  <span class="status-badge status-inactive">Deleted</span>
+                  <div class="row-actions">
+                    <form method="POST" action="{{ route('post.restore', ['type'=>$group['type'],'id'=>$item->id]) }}">
+                      @csrf
+                      <button type="submit" class="btn-edit" style="background:var(--green-bg);color:var(--green);border-color:var(--green)">↺ Restore</button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+              @endforeach
+            @endif
+          @endforeach
         @endif
       </div>
     </div>

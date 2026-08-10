@@ -122,12 +122,13 @@ class JobResource extends Resource
             ->defaultSort('created_at', 'desc')
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
-                    ->options(['draft' => 'Draft', 'active' => 'Active', 'closed' => 'Closed', 'flagged' => 'Flagged']),
+                    ->options(['draft' => 'Draft', 'active' => 'Active', 'inactive' => 'Inactive', 'closed' => 'Closed', 'flagged' => 'Flagged']),
                 Tables\Filters\SelectFilter::make('job_type')
                     ->options(['full-time' => 'Full Time', 'part-time' => 'Part Time', 'contract' => 'Contract']),
                 Tables\Filters\SelectFilter::make('work_mode')
                     ->options(['onsite' => 'On-site', 'remote' => 'Remote', 'hybrid' => 'Hybrid']),
                 Tables\Filters\SelectFilter::make('category')->relationship('category', 'name'),
+                Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
                 Tables\Actions\Action::make('publish')
@@ -136,9 +137,13 @@ class JobResource extends Resource
                     ->action(fn (Job $r) => $r->update(['status' => 'active'])),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
+                Tables\Actions\RestoreAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([Tables\Actions\DeleteBulkAction::make()]),
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\RestoreBulkAction::make(),
+                ]),
             ]);
     }
 

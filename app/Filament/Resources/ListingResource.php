@@ -248,9 +248,10 @@ class ListingResource extends Resource
             ->defaultSort('created_at', 'desc')
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
-                    ->options(['pending'=>'Pending','active'=>'Active','rejected'=>'Rejected','expired'=>'Expired','flagged'=>'Flagged']),
+                    ->options(['pending'=>'Pending','active'=>'Active','inactive'=>'Inactive','rejected'=>'Rejected','expired'=>'Expired','flagged'=>'Flagged']),
                 Tables\Filters\SelectFilter::make('category')->relationship('category', 'name'),
                 Tables\Filters\TernaryFilter::make('is_featured')->label('Featured'),
+                Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
                 Tables\Actions\Action::make('approve')
@@ -270,10 +271,12 @@ class ListingResource extends Resource
                     ->url(fn (Listing $record) => Pages\ViewListingAnalytics::getUrl(['record' => $record])),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
+                Tables\Actions\RestoreAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\RestoreBulkAction::make(),
                 ]),
             ]);
     }

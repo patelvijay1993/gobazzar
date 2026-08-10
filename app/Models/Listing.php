@@ -6,11 +6,12 @@ use App\Traits\Favoritable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
 
 class Listing extends Model
 {
-    use Favoritable;
+    use Favoritable, SoftDeletes;
     protected $fillable = [
         'user_id', 'category_id', 'title', 'slug', 'description',
         'custom_fields',

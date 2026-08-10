@@ -28,7 +28,18 @@ class UserController extends Controller
         $paymentHistory = PaymentHistory::where('user_id', $user->id)
             ->latest('paid_at')->limit(20)->get();
 
-        return view('user.account', compact('user', 'listings', 'jobs', 'events', 'businesses', 'matrimonials', 'businessPosts', 'paymentHistory'));
+        // Deleted (soft-deleted) posts, shown separately so the user can restore them.
+        $deletedListings      = Listing::onlyTrashed()->where('user_id', $user->id)->latest('deleted_at')->get();
+        $deletedJobs          = Job::onlyTrashed()->where('user_id', $user->id)->latest('deleted_at')->get();
+        $deletedEvents         = Event::onlyTrashed()->where('user_id', $user->id)->latest('deleted_at')->get();
+        $deletedBusinesses     = Business::onlyTrashed()->where('user_id', $user->id)->latest('deleted_at')->get();
+        $deletedBusinessPosts  = \App\Models\BusinessPost::onlyTrashed()->with('business')
+            ->where('user_id', $user->id)->latest('deleted_at')->get();
+
+        return view('user.account', compact(
+            'user', 'listings', 'jobs', 'events', 'businesses', 'matrimonials', 'businessPosts', 'paymentHistory',
+            'deletedListings', 'deletedJobs', 'deletedEvents', 'deletedBusinesses', 'deletedBusinessPosts'
+        ));
     }
 
     public function analytics(Listing $listing)

@@ -6,11 +6,12 @@ use App\Traits\Favoritable;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
 
 class Job extends Model
 {
-    use Favoritable;
+    use Favoritable, SoftDeletes;
     protected $table = 'job_listings';
 
     protected $fillable = [

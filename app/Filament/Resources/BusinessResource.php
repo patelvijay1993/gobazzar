@@ -156,6 +156,7 @@ class BusinessResource extends Resource
                 Tables\Filters\SelectFilter::make('category')->relationship('category', 'name'),
                 Tables\Filters\TernaryFilter::make('is_featured')->label('Featured'),
                 Tables\Filters\TernaryFilter::make('is_verified')->label('Verified'),
+                Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
                 Tables\Actions\Action::make('approve')
@@ -164,9 +165,13 @@ class BusinessResource extends Resource
                     ->action(fn (Business $r) => $r->update(['status' => 'active'])),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
+                Tables\Actions\RestoreAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([Tables\Actions\DeleteBulkAction::make()]),
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\RestoreBulkAction::make(),
+                ]),
             ]);
     }
 

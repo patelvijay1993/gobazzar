@@ -99,8 +99,9 @@ class EventResource extends Resource
             ->defaultSort('start_date')
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
-                    ->options(['draft' => 'Draft', 'active' => 'Active', 'cancelled' => 'Cancelled', 'completed' => 'Completed', 'flagged' => 'Flagged']),
+                    ->options(['draft' => 'Draft', 'active' => 'Active', 'inactive' => 'Inactive', 'cancelled' => 'Cancelled', 'completed' => 'Completed', 'flagged' => 'Flagged']),
                 Tables\Filters\SelectFilter::make('category')->relationship('category', 'name'),
+                Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
                 Tables\Actions\Action::make('publish')
@@ -109,9 +110,13 @@ class EventResource extends Resource
                     ->action(fn (Event $r) => $r->update(['status' => 'active'])),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
+                Tables\Actions\RestoreAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([Tables\Actions\DeleteBulkAction::make()]),
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\RestoreBulkAction::make(),
+                ]),
             ]);
     }
 

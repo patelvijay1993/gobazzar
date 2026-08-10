@@ -6,12 +6,13 @@ use App\Traits\Favoritable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
 use App\Models\User;
 
 class Business extends Model
 {
-    use Favoritable;
+    use Favoritable, SoftDeletes;
     protected $fillable = [
         'user_id', 'category_id', 'subcategory_id', 'name', 'slug', 'description', 'image', 'images', 'logo',
         'address', 'city', 'province', 'postal_code', 'phone', 'email', 'website', 'map_url', 'lat', 'lon',
