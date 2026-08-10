@@ -45,7 +45,7 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
 @media(max-width:768px){.show-wrap{grid-template-columns:1fr;padding:0 14px}.ev-title{font-size:20px}.ev-info-grid{grid-template-columns:1fr}}
 @media(max-width:480px){.ev-title{font-size:18px}}
 .ev-main{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--rl);overflow:hidden}
-.ev-banner{width:100%;max-height:320px;object-fit:cover;display:block}
+.ev-banner{width:100%;overflow:hidden}
 .ev-banner-placeholder{height:200px;background:var(--red);display:flex;align-items:center;justify-content:center;font-size:60px;color:#fff}
 .ev-body{padding:24px}
 .ev-cat{font-size:11px;color:var(--red);font-weight:600;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
@@ -89,8 +89,10 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
 
 <div class="show-wrap">
   <div class="ev-main">
-    @if($event->image_url)
-      <img src="{{ $event->image_url }}" alt="{{ $event->title }}" class="ev-banner">
+    @if($event->image)
+      <div class="ev-banner">
+        <x-image-slider :images="[$event->image]" :alt="$event->title" height="320px" id="ev-banner-{{ $event->id }}" />
+      </div>
     @else
       <div class="ev-banner-placeholder">{{ $event->category->icon ?? '🎆' }}</div>
     @endif
