@@ -15,7 +15,7 @@ class FetchNews extends Command
 
     private const ENDPOINT   = 'https://newsdata.io/api/1/latest';
     private const COUNTRY    = 'in';
-    private const LANGUAGE   = 'gu,hi,en';
+    private const LANGUAGES  = ['gu', 'hi', 'en'];
     private const CATEGORIES = 'breaking,business,education,crime,politics';
 
     public function handle(): int
@@ -27,6 +27,23 @@ class FetchNews extends Command
             return self::FAILURE;
         }
 
+        $totalCreated = 0;
+        $totalSkipped = 0;
+
+        foreach (self::LANGUAGES as $language) {
+            [$created, $skipped] = $this->fetchLanguage($apiKey, $language);
+            $totalCreated += $created;
+            $totalSkipped += $skipped;
+            $this->info("[{$language}] {$created} new, {$skipped} duplicate(s) skipped.");
+        }
+
+        $this->info("News fetch complete: {$totalCreated} new, {$totalSkipped} duplicate(s) skipped.");
+        return self::SUCCESS;
+    }
+
+    /** @return array{0: int, 1: int} [created, skipped] */
+    private function fetchLanguage(string $apiKey, string $language): array
+    {
         $created = 0;
         $skipped = 0;
         $page    = null;
@@ -36,18 +53,19 @@ class FetchNews extends Command
             $response = Http::timeout(15)->get(self::ENDPOINT, array_filter([
                 'apikey'   => $apiKey,
                 'country'  => self::COUNTRY,
-                'language' => self::LANGUAGE,
+                'language' => $language,
                 'category' => self::CATEGORIES,
                 'page'     => $page,
             ]));
 
             if (! $response->successful()) {
-                Log::warning('news:fetch request failed', ['status' => $response->status(), 'body' => $response->body()]);
+                Log::warning('news:fetch request failed', ['language' => $language, 'status' => $response->status(), 'body' => $response->body()]);
                 break;
             }
 
             $data = $response->json();
 
+            $pageSkipped = 0;
             foreach ($data['results'] ?? [] as $item) {
                 if (empty($item['article_id']) || empty($item['title'])) {
                     continue;
@@ -55,6 +73,7 @@ class FetchNews extends Command
 
                 if (NewsArticle::where('article_id', $item['article_id'])->exists()) {
                     $skipped++;
+                    $pageSkipped++;
                     continue;
                 }
 
@@ -83,13 +102,12 @@ class FetchNews extends Command
             $page = $data['nextPage'] ?? null;
 
             // Stop paging once we hit articles we already have, or there's no more data.
-            if (! $page || $skipped > 0) {
+            if (! $page || $pageSkipped > 0) {
                 break;
             }
         }
 
-        $this->info("News fetch complete: {$created} new, {$skipped} duplicate(s) skipped.");
-        return self::SUCCESS;
+        return [$created, $skipped];
     }
 
     private function uniqueSlug(string $title, string $articleId): string
