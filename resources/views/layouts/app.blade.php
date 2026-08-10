@@ -277,6 +277,7 @@ footer.site-footer{background:var(--nav-bg);border-top:2px solid #2a4fa8;margin-
     <div>
       <a href="{{ route('home') }}">Home</a>
       <a href="{{ route('blog.index') }}">Blog</a>
+      <a href="{{ route('news.index') }}">News</a>
       <a href="{{ route('pricing') }}">Pricing</a>
       @auth
         <a href="{{ route('account') }}">My Account</a>
@@ -384,6 +385,9 @@ footer.site-footer{background:var(--nav-bg);border-top:2px solid #2a4fa8;margin-
     </a>
     <a href="{{ route('blog.index') }}" class="{{ request()->routeIs('blog.*') ? 'active' : '' }}">
       <i class="fa-solid fa-newspaper"></i> Blog
+    </a>
+    <a href="{{ route('news.index') }}" class="{{ request()->routeIs('news.*') ? 'active' : '' }}">
+      <i class="fa-solid fa-bullhorn"></i> News
     </a>
     {{-- Matrimonial: hidden until v2 --}}
     <a href="{{ route('pricing') }}" class="{{ request()->routeIs('pricing*') ? 'active' : '' }}">
@@ -519,6 +523,7 @@ footer.site-footer{background:var(--nav-bg);border-top:2px solid #2a4fa8;margin-
       @endforeach
     </div>
     <a href="{{ route('blog.index') }}" class="drawer-link {{ request()->routeIs('blog.*') ? 'active' : '' }}"><i class="fa-solid fa-newspaper" style="width:18px"></i> Blog</a>
+    <a href="{{ route('news.index') }}" class="drawer-link {{ request()->routeIs('news.*') ? 'active' : '' }}"><i class="fa-solid fa-bullhorn" style="width:18px"></i> News</a>
     {{-- Matrimonial: hidden until v2 --}}
     <a href="{{ route('pricing') }}" class="drawer-link {{ request()->routeIs('pricing*') ? 'active' : '' }}"><i class="fa-solid fa-dollar-sign" style="width:18px"></i> Pricing</a>
     <div class="drawer-divider"></div>
@@ -595,6 +600,7 @@ footer.site-footer{background:var(--nav-bg);border-top:2px solid #2a4fa8;margin-
     <div class="footer-col">
       <h4>Community</h4>
       <a href="{{ route('blog.index') }}">Community Blog</a>
+      <a href="{{ route('news.index') }}">News</a>
       <a href="{{ route('feed') }}">Community Feed</a>
       <a href="{{ route('classifieds.index') }}">Find Roommate</a>
       <a href="{{ route('directory.index') }}">Travel Agents</a>

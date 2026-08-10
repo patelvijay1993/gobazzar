@@ -16,6 +16,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('listings:mark-expired')->hourly();
         // Run every night at midnight to purge expired free posts
         $schedule->command('posts:purge-expired')->dailyAt('00:00');
+        // Pull latest news from newsdata.io every 10 minutes; command dedupes by article_id
+        $schedule->command('news:fetch')->everyTenMinutes()->withoutOverlapping();
     })
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->validateCsrfTokens(except: [

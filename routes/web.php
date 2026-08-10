@@ -258,6 +258,11 @@ Route::prefix('blog')->name('blog.')->group(function () {
     Route::get('/{post:slug}', [BlogController::class, 'show'])->name('show');
 });
 
+Route::prefix('news')->name('news.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\NewsController::class, 'index'])->name('index');
+    Route::get('/{article:slug}', [\App\Http\Controllers\NewsController::class, 'show'])->name('show');
+});
+
 // Admin OG image upload (separate from Livewire form)
 Route::post('/admin/og-image/upload', function (\Illuminate\Http\Request $request) {
     abort_unless(auth()->check() && auth()->user()->is_admin, 403);
