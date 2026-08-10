@@ -751,21 +751,14 @@ $heroLocLabel = request('city') ?: request('province');
 {{-- ═══ SIDEBAR ═══ --}}
 <div class="home-sidebar">
 
-  {{-- POST AD --}}
-  <div class="sb-card">
-    <div class="hcard-icon-row">
-      <div class="hcard-icon"><i class="fa-solid fa-bullhorn"></i></div>
-      <div>
-        <div class="hcard-title">Post Your Ad</div>
-        <div class="hcard-sub">Reach thousands of local buyers & sellers</div>
-      </div>
-    </div>
-    @auth
-      <a href="{{ route('post.create') }}" class="hcard-btn"><i class="fa-solid fa-plus"></i> Post Your Ad</a>
-    @else
-      <a href="{{ route('register') }}" class="hcard-btn"><i class="fa-solid fa-plus"></i> Post Your Ad</a>
-    @endauth
-    <div class="free-note" style="margin-top:10px"><i class="fa-solid fa-circle-check"></i> 100% free · No hidden fees · Instant</div>
+  {{-- ADVERTISE --}}
+  <div class="sb-card" style="background:#122970;border-color:#2a4fa8;text-align:center">
+    <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:5px">Advertise with Us</div>
+    <div style="font-size:11px;color:rgba(255,255,255,.7);margin-bottom:11px;line-height:1.5">Reach thousands of Indian-Canadians. Get listed by brand & category.</div>
+    <button onclick="document.getElementById('advertise-modal').classList.add('open')"
+            style="display:block;width:100%;background:var(--accent);color:#fff;padding:9px;border-radius:7px;font-size:12px;font-weight:700;border:none;cursor:pointer">
+      Click Here for Info
+    </button>
   </div>
 
   {{-- PAID SIDEBAR ADS --}}
@@ -860,16 +853,6 @@ $heroLocLabel = request('city') ?: request('province');
         </div>
       @endif
     </div>
-  </div>
-
-  {{-- ADVERTISE --}}
-  <div class="sb-card" style="background:#122970;border-color:#2a4fa8;text-align:center">
-    <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:5px">Advertise with Us</div>
-    <div style="font-size:11px;color:rgba(255,255,255,.7);margin-bottom:11px;line-height:1.5">Reach thousands of Indian-Canadians. Get listed by brand & category.</div>
-    <button onclick="document.getElementById('advertise-modal').classList.add('open')"
-            style="display:block;width:100%;background:var(--accent);color:#fff;padding:9px;border-radius:7px;font-size:12px;font-weight:700;border:none;cursor:pointer">
-      Click Here for Info
-    </button>
   </div>
 
 </div>{{-- /home-sidebar --}}
