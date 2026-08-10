@@ -15,7 +15,7 @@ class FetchNews extends Command
 
     private const ENDPOINT   = 'https://newsdata.io/api/1/latest';
     private const COUNTRY    = 'in';
-    private const LANGUAGE   = 'gu';
+    private const LANGUAGE   = 'gu,hi,en';
     private const CATEGORIES = 'breaking,business,education,crime,politics';
 
     public function handle(): int
