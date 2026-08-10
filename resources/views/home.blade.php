@@ -609,6 +609,37 @@ $heroLocLabel = request('city') ?: request('province');
     @endforelse
   </div>
 
+  {{-- NEWS --}}
+  <div class="sh">
+    <div class="sh-title"><i class="fa-solid fa-bullhorn"></i> Latest News</div>
+    <a href="{{ route('news.index') }}" class="sh-link">View All <i class="fa-solid fa-arrow-right" style="font-size:10px"></i></a>
+  </div>
+  <div class="news-wrap">
+    @forelse($newsArticles as $article)
+      @php
+        $isFirst  = $loop->first;
+        $isLast   = $loop->last;
+        $tagClass = $article->is_featured ? 'ntag-hot' : ($isFirst ? 'ntag-new' : 'ntag-comm');
+        $tagLabel = $article->is_featured ? 'Featured' : ($isFirst ? 'New' : ucfirst($article->language ?? 'News'));
+        $meta     = trim($article->category[0] ?? '');
+      @endphp
+      <a href="{{ route('news.show', $article->slug) }}" class="news-item" style="display:block;text-decoration:none;{{ $isLast ? 'border-bottom:none' : '' }}">
+        <div class="news-title">{{ $article->title }}</div>
+        <div class="news-meta">
+          <span class="ntag {{ $tagClass }}">{{ $tagLabel }}</span>
+          @if($meta) {{ $meta }} · @endif
+          {{ $article->pub_date ? $article->pub_date->diffForHumans() : $article->created_at->diffForHumans() }}
+        </div>
+      </a>
+    @empty
+      <div class="news-item" style="border-bottom:none;color:var(--muted);font-size:13px;text-align:center;padding:20px 0">
+        <i class="fa-solid fa-bullhorn" style="font-size:28px;display:block;margin-bottom:8px;color:#ccc"></i>
+        No News Found.<br>
+        <a href="{{ route('news.index') }}" style="color:var(--primary);font-weight:600;margin-top:6px;display:inline-block">Visit News →</a>
+      </div>
+    @endforelse
+  </div>
+
   {{-- JOBS --}}
   <div class="sh">
     <div class="sh-title"><i class="fa-solid fa-briefcase"></i> Jobs & IT Training</div>

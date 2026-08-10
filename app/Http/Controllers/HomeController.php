@@ -9,6 +9,7 @@ use App\Models\Event;
 use App\Models\Job;
 use App\Models\Listing;
 use App\Models\BlogPost;
+use App\Models\NewsArticle;
 use App\Models\Location;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -24,6 +25,13 @@ class HomeController extends Controller
         // ── Blog ──────────────────────────────────────────────────────
         $blogPosts = BlogPost::where('status', 'published')
             ->latest('published_at')
+            ->limit(4)
+            ->get();
+
+        // ── News ──────────────────────────────────────────────────────
+        $newsArticles = NewsArticle::where('status', 'published')
+            ->orderByDesc('is_featured')
+            ->latest('pub_date')
             ->limit(4)
             ->get();
 
@@ -216,6 +224,7 @@ class HomeController extends Controller
 
         return view('home', compact(
             'blogPosts',
+            'newsArticles',
             'upcomingEvents',
             'classifiedCategories',
             'latestListings',
