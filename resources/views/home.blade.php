@@ -614,31 +614,38 @@ $heroLocLabel = request('city') ?: request('province');
     <div class="sh-title"><i class="fa-solid fa-bullhorn"></i> Latest News</div>
     <a href="{{ route('news.index') }}" class="sh-link">View All <i class="fa-solid fa-arrow-right" style="font-size:10px"></i></a>
   </div>
-  <div class="news-wrap">
-    @forelse($newsArticles as $article)
+  @if($newsArticles->isEmpty())
+    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:30px;text-align:center;color:var(--muted);font-size:13px;margin-bottom:22px">
+      <i class="fa-solid fa-bullhorn" style="font-size:32px;margin-bottom:8px;display:block;color:#ccc"></i>
+      No News Found.<br>
+      <a href="{{ route('news.index') }}" style="color:var(--primary);font-weight:600;margin-top:6px;display:inline-block">Visit News →</a>
+    </div>
+  @else
+  <div class="al-list" style="margin-bottom:22px">
+    @foreach($newsArticles as $article)
       @php
         $isFirst  = $loop->first;
-        $isLast   = $loop->last;
         $tagClass = $article->is_featured ? 'ntag-hot' : ($isFirst ? 'ntag-new' : 'ntag-comm');
         $tagLabel = $article->is_featured ? 'Featured' : ($isFirst ? 'New' : ucfirst($article->language ?? 'News'));
         $meta     = trim($article->category[0] ?? '');
       @endphp
-      <a href="{{ route('news.show', $article->slug) }}" class="news-item" style="display:block;text-decoration:none;{{ $isLast ? 'border-bottom:none' : '' }}">
-        <div class="news-title">{{ $article->title }}</div>
-        <div class="news-meta">
-          <span class="ntag {{ $tagClass }}">{{ $tagLabel }}</span>
-          @if($meta) {{ $meta }} · @endif
-          {{ $article->pub_date ? $article->pub_date->diffForHumans() : $article->created_at->diffForHumans() }}
+      <a href="{{ route('news.show', $article->slug) }}" class="al-item">
+        <div class="al-thumb">
+          @if($article->image_url)<img src="{{ $article->image_url }}" alt="{{ $article->title }}">
+          @else<span style="font-size:32px">📰</span>@endif
+        </div>
+        <div class="al-info">
+          <div class="al-title" style="font-family:var(--fg);white-space:normal;-webkit-line-clamp:2;display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden">{{ $article->title }}</div>
+          <div class="al-meta">
+            <span class="ntag {{ $tagClass }}">{{ $tagLabel }}</span>
+            @if($meta)<span>{{ $meta }}</span>@endif
+            <span><i class="fa-regular fa-clock"></i>{{ $article->pub_date ? $article->pub_date->diffForHumans() : $article->created_at->diffForHumans() }}</span>
+          </div>
         </div>
       </a>
-    @empty
-      <div class="news-item" style="border-bottom:none;color:var(--muted);font-size:13px;text-align:center;padding:20px 0">
-        <i class="fa-solid fa-bullhorn" style="font-size:28px;display:block;margin-bottom:8px;color:#ccc"></i>
-        No News Found.<br>
-        <a href="{{ route('news.index') }}" style="color:var(--primary);font-weight:600;margin-top:6px;display:inline-block">Visit News →</a>
-      </div>
-    @endforelse
+    @endforeach
   </div>
+  @endif
 
   {{-- JOBS --}}
   <div class="sh">
