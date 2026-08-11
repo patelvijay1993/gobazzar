@@ -74,7 +74,7 @@ class EventResource extends Resource
             ])->columns(2),
 
             Forms\Components\Section::make('Media & Tags')->schema([
-                Forms\Components\FileUpload::make('image')->image()->disk('s3')->directory('events')->columnSpanFull(),
+                Forms\Components\FileUpload::make('image')->image()->disk(config('filesystems.default'))->directory('events')->columnSpanFull(),
                 Forms\Components\TagsInput::make('tags')->columnSpanFull(),
                 Forms\Components\Toggle::make('is_featured'),
                 Forms\Components\Toggle::make('chat_enabled')
@@ -89,7 +89,7 @@ class EventResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\ImageColumn::make('image')->rounded(),
+                Tables\Columns\ImageColumn::make('image')->rounded()->getStateUsing(fn ($record) => $record->image_url),
                 Tables\Columns\TextColumn::make('title')->searchable()->limit(35)->sortable(),
                 Tables\Columns\TextColumn::make('category.name')->badge()->color('warning'),
                 Tables\Columns\TextColumn::make('start_date')->dateTime('d M Y, h:i A')->sortable(),
