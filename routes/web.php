@@ -250,6 +250,10 @@ Route::prefix('events')->name('events.')->group(function () {
     Route::get('/{event:slug}', [EventController::class, 'show'])->name('show');
 });
 
+Route::patch('/events/{event}/toggle-chat', [EventController::class, 'toggleChat'])
+    ->name('events.toggle-chat')
+    ->middleware('auth');
+
 Route::prefix('jobs')->name('jobs.')->group(function () {
     Route::get('/', [JobController::class, 'index'])->name('index');
     Route::get('/{job:slug}', [JobController::class, 'show'])->name('show');

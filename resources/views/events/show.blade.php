@@ -173,16 +173,32 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
     <div class="sidebar-card">
       <div class="sidebar-head">Contact Organizer</div>
       <div class="sidebar-body">
-        @auth
-          @if(Auth::id() !== $event->user_id)
-            <button onclick="gcOpen('{{ route('chat.open.event', $event) }}')" class="ev-btn ev-btn-primary" style="background:var(--green);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;border:none;cursor:pointer">
+        {{-- Chat button: only show if chat_enabled --}}
+        @if($event->chat_enabled)
+          @auth
+            @if(Auth::id() !== $event->user_id)
+              <button onclick="gcOpen('{{ route('chat.open.event', $event) }}')" class="ev-btn ev-btn-primary" style="background:var(--green);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;border:none;cursor:pointer">
+                <i class="fa-solid fa-comments"></i> Chat with Organizer
+              </button>
+            @endif
+          @else
+            <a href="{{ route('login') }}" class="ev-btn ev-btn-primary" style="background:var(--green);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:8px">
               <i class="fa-solid fa-comments"></i> Chat with Organizer
-            </button>
+            </a>
+          @endauth
+        @endif
+
+        {{-- Owner toggle for chat --}}
+        @auth
+          @if(Auth::id() === $event->user_id)
+            <form method="POST" action="{{ route('events.toggle-chat', $event) }}" style="margin-bottom:8px">
+              @csrf @method('PATCH')
+              <button type="submit" class="ev-btn {{ $event->chat_enabled ? 'ev-btn-outline' : 'ev-btn-primary' }}" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;font-size:12.5px">
+                <i class="fa-solid fa-comments"></i>
+                {{ $event->chat_enabled ? '💬 Chat ON — Click to Disable' : '💬 Chat OFF — Click to Enable' }}
+              </button>
+            </form>
           @endif
-        @else
-          <a href="{{ route('login') }}" class="ev-btn ev-btn-primary" style="background:var(--green);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:8px">
-            <i class="fa-solid fa-comments"></i> Chat with Organizer
-          </a>
         @endauth
         @if($event->organizer_phone && !optional($event->user)->hide_phone)
           <a href="tel:{{ $event->organizer_phone }}" class="ev-btn ev-btn-primary"><i class="fa-solid fa-phone"></i> {{ $event->organizer_phone }}</a>

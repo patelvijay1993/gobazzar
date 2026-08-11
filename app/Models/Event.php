@@ -16,14 +16,15 @@ class Event extends Model
         'user_id', 'category_id', 'title', 'slug', 'description', 'image',
         'start_date', 'end_date', 'venue', 'city', 'province', 'postal_code',
         'price', 'organizer', 'organizer_phone', 'organizer_email',
-        'website', 'tags', 'is_featured', 'status', 'views',
+        'website', 'tags', 'is_featured', 'status', 'views', 'chat_enabled',
     ];
 
     protected $casts = [
-        'tags'        => 'array',
-        'is_featured' => 'boolean',
-        'start_date'  => 'datetime',
-        'end_date'    => 'datetime',
+        'tags'         => 'array',
+        'is_featured'  => 'boolean',
+        'chat_enabled' => 'boolean',
+        'start_date'   => 'datetime',
+        'end_date'     => 'datetime',
     ];
 
     public function category(): BelongsTo

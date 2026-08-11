@@ -77,6 +77,10 @@ class EventResource extends Resource
                 Forms\Components\FileUpload::make('image')->image()->disk('s3')->directory('events')->columnSpanFull(),
                 Forms\Components\TagsInput::make('tags')->columnSpanFull(),
                 Forms\Components\Toggle::make('is_featured'),
+                Forms\Components\Toggle::make('chat_enabled')
+                    ->label('Chat Enabled')
+                    ->helperText('Allow visitors to chat with the organizer. Event owner can also toggle this.')
+                    ->default(true),
             ]),
         ]);
     }
@@ -95,6 +99,7 @@ class EventResource extends Resource
                     ->badge()
                     ->color(fn ($state) => match($state) { 'active' => 'success', 'cancelled' => 'danger', 'completed' => 'info', default => 'gray' }),
                 Tables\Columns\IconColumn::make('is_featured')->boolean(),
+                Tables\Columns\ToggleColumn::make('chat_enabled')->label('Chat'),
             ])
             ->defaultSort('start_date')
             ->filters([

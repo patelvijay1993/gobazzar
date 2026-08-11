@@ -66,4 +66,11 @@ class EventController extends Controller
             ->limit(4)->get();
         return view('events.show', compact('event', 'related'));
     }
+
+    public function toggleChat(Request $request, Event $event)
+    {
+        abort_if($request->user()->id !== $event->user_id, 403);
+        $event->update(['chat_enabled' => !$event->chat_enabled]);
+        return back()->with('success', $event->chat_enabled ? 'Chat enabled for your event.' : 'Chat disabled for your event.');
+    }
 }
