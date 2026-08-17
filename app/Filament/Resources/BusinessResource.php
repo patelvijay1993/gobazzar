@@ -33,7 +33,8 @@ class BusinessResource extends Resource
                 Forms\Components\Select::make('user_id')
                     ->label('Owner')
                     ->relationship('user', 'name')
-                    ->searchable()
+                    ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->name} ({$record->email})")
+                    ->searchable(['name', 'email'])
                     ->required()
                     ->helperText('The user account this business belongs to. Change this to reassign the business to a different user.')
                     ->columnSpanFull(),
