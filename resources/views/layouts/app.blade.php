@@ -98,6 +98,8 @@ input,select,textarea{font-family:var(--fb);outline:none}
 .nav-badge{position:absolute;top:-5px;right:-6px;background:var(--accent);color:#fff;font-size:8px;width:15px;height:15px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700}
 .nav-post-btn{background:var(--accent);color:#fff;border:none;padding:8px 16px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;display:flex;align-items:center;gap:5px;white-space:nowrap;text-decoration:none;transition:opacity .2s}
 .nav-post-btn:hover{opacity:.88}
+.nav-biz-btn{background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.5);padding:7px 14px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;display:flex;align-items:center;gap:5px;white-space:nowrap;text-decoration:none;transition:all .2s}
+.nav-biz-btn:hover{background:rgba(255,255,255,.12);border-color:#fff}
 .nav-user{display:flex;align-items:center;gap:7px;color:rgba(255,255,255,.9);font-size:12px;cursor:pointer}
 .nav-avatar{width:32px;height:32px;border-radius:50%;background:#2a4fa8;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;border:2px solid rgba(255,255,255,.2)}
 .nav-auth-link{color:rgba(255,255,255,.9);font-size:13px;font-weight:600;text-decoration:none;transition:color .15s}
@@ -202,6 +204,7 @@ footer.site-footer{background:var(--nav-bg);border-top:2px solid #2a4fa8;margin-
   .nav-actions .nav-user span{display:none}
   .nav-actions{gap:8px}
   .nav-post-btn{padding:7px 12px;font-size:12px}
+  .nav-biz-btn{padding:6px 10px;font-size:12px}
   .logo-name{font-size:19px}
   .logo-tag{display:none}
   .logo-icon{width:34px;height:34px;font-size:17px}
@@ -212,6 +215,7 @@ footer.site-footer{background:var(--nav-bg);border-top:2px solid #2a4fa8;margin-
   /* Hide desktop footer & post btn (tab bar handles these) */
   .site-footer{display:none}
   .nav-post-btn{display:none}
+  .nav-biz-btn{display:none}
 
   /* Body padding so content clears the bottom tab bar */
   body{padding-bottom:64px}
@@ -323,6 +327,7 @@ footer.site-footer{background:var(--nav-bg);border-top:2px solid #2a4fa8;margin-
           <i class="fa-solid fa-comments"></i>
           <span class="nav-badge" id="nav-chat-badge" style="display:none">0</span>
         </a>
+        <a href="{{ route('post.create', ['type' => 'business']) }}" class="nav-biz-btn"><i class="fa-solid fa-store"></i> Register Business</a>
         <a href="{{ route('post.create') }}" class="nav-post-btn"><i class="fa-solid fa-plus"></i> Post Your Ad</a>
         <a href="{{ route('account') }}" class="nav-user">
           @if(Auth::user()->avatar_url)
@@ -339,6 +344,7 @@ footer.site-footer{background:var(--nav-bg);border-top:2px solid #2a4fa8;margin-
         <button type="submit" form="nav-logout-form" class="nav-auth-link" style="background:none;border:none;padding:0;cursor:pointer">Logout</button>
       @else
         <a href="{{ route('login') }}" class="nav-auth-link">Login</a>
+        <a href="{{ route('post.create', ['type' => 'business']) }}" class="nav-biz-btn"><i class="fa-solid fa-store"></i> Register Business</a>
         <a href="{{ route('post.create') }}" class="nav-post-btn"><i class="fa-solid fa-plus"></i> Post Your Ad</a>
       @endauth
     </div>
@@ -531,6 +537,7 @@ footer.site-footer{background:var(--nav-bg);border-top:2px solid #2a4fa8;margin-
     <div class="drawer-actions">
       @auth
         <a href="{{ route('post.create') }}" class="drawer-btn drawer-btn-primary"><i class="fa-solid fa-plus"></i> Post Your Ad</a>
+        <a href="{{ route('post.create', ['type' => 'business']) }}" class="drawer-btn drawer-btn-outline"><i class="fa-solid fa-store"></i> Register Business</a>
         <a href="{{ route('account') }}" class="drawer-btn drawer-btn-outline">👤 My Account</a>
         <form id="drawer-logout-form" action="{{ route('logout') }}" method="POST">
           @csrf
@@ -538,6 +545,7 @@ footer.site-footer{background:var(--nav-bg);border-top:2px solid #2a4fa8;margin-
         <button type="submit" form="drawer-logout-form" class="drawer-btn drawer-btn-outline" style="width:100%;border:1.5px solid var(--border);border-radius:var(--radius-sm)">Logout</button>
       @else
         <a href="{{ route('post.create') }}" class="drawer-btn drawer-btn-primary"><i class="fa-solid fa-plus"></i> Post Your Ad</a>
+        <a href="{{ route('post.create', ['type' => 'business']) }}" class="drawer-btn drawer-btn-outline"><i class="fa-solid fa-store"></i> Register Business</a>
         <a href="{{ route('register') }}" class="drawer-btn drawer-btn-outline">Register Free</a>
         <a href="{{ route('login') }}" class="drawer-btn drawer-btn-outline">Login</a>
       @endauth
