@@ -30,6 +30,13 @@ class BusinessResource extends Resource
                     ->afterStateUpdated(fn ($state, Forms\Set $set) => $set('slug', Str::slug($state)))
                     ->columnSpanFull(),
                 Forms\Components\TextInput::make('slug')->required()->unique(ignoreRecord: true)->columnSpanFull(),
+                Forms\Components\Select::make('user_id')
+                    ->label('Owner')
+                    ->relationship('user', 'name')
+                    ->searchable()
+                    ->required()
+                    ->helperText('The user account this business belongs to. Change this to reassign the business to a different user.')
+                    ->columnSpanFull(),
                 Forms\Components\Select::make('category_id')
                     ->label('Category')
                     ->options(Category::where('type', 'directory')->whereNull('parent_id')->where('is_active', true)->pluck('name', 'id'))
@@ -134,6 +141,7 @@ class BusinessResource extends Resource
                     ->disk(config('filesystems.default'))
                     ->defaultImageUrl(fn () => null),
                 Tables\Columns\TextColumn::make('name')->searchable()->sortable(),
+                Tables\Columns\TextColumn::make('user.name')->label('Owner')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('category.name')->badge()->color('info'),
                 Tables\Columns\TextColumn::make('city'),
                 Tables\Columns\TextColumn::make('rating')->sortable()
@@ -155,6 +163,10 @@ class BusinessResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
                     ->options(['pending' => 'Pending', 'active' => 'Active', 'inactive' => 'Inactive', 'flagged' => 'Flagged']),
+                Tables\Filters\SelectFilter::make('user_id')
+                    ->label('Owner')
+                    ->relationship('user', 'name')
+                    ->searchable(),
                 Tables\Filters\SelectFilter::make('category')->relationship('category', 'name'),
                 Tables\Filters\TernaryFilter::make('is_featured')->label('Featured'),
                 Tables\Filters\TernaryFilter::make('is_verified')->label('Verified'),
