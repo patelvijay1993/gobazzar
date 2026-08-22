@@ -32,6 +32,7 @@ class SiteSettings extends Page implements HasForms
 
     public bool   $email_verification_required = true;
     public bool   $business_enabled            = true;
+    public bool   $hours_12h_format            = false;
     public bool   $ai_assistant_enabled        = true;
     public bool   $coming_soon_mode            = false;
     public bool   $maintenance_mode            = false;
@@ -106,6 +107,7 @@ class SiteSettings extends Page implements HasForms
     {
         $this->email_verification_required = Setting::bool('email_verification_required', true);
         $this->business_enabled            = Setting::bool('business_enabled', true);
+        $this->hours_12h_format            = Setting::bool('hours_12h_format', false);
         $this->ai_assistant_enabled        = Setting::bool('ai_assistant_enabled', true);
         $this->coming_soon_mode            = Setting::bool('coming_soon_mode', false);
         $this->maintenance_mode            = Setting::bool('maintenance_mode', false);
@@ -246,6 +248,12 @@ class SiteSettings extends Page implements HasForms
                         Toggle::make('business_enabled')
                             ->label('My Business / Business Directory')
                             ->helperText('When OFF — users see a "Coming Soon" popup when they click My Business.')
+                            ->onColor('success')
+                            ->offColor('danger'),
+
+                        Toggle::make('hours_12h_format')
+                            ->label('12-Hour Business Hours Display')
+                            ->helperText('When ON — business hours show as "2:30 PM" on business pages. When OFF — shown as "14:30" (24-hour).')
                             ->onColor('success')
                             ->offColor('danger'),
 
@@ -792,6 +800,7 @@ class SiteSettings extends Page implements HasForms
         // Save DB settings
         Setting::set('email_verification_required', $this->email_verification_required ? '1' : '0');
         Setting::set('business_enabled', $this->business_enabled ? '1' : '0');
+        Setting::set('hours_12h_format', $this->hours_12h_format ? '1' : '0');
         Setting::set('ai_assistant_enabled', $this->ai_assistant_enabled ? '1' : '0');
         Setting::set('coming_soon_mode', $this->coming_soon_mode ? '1' : '0');
         Setting::set('maintenance_mode', $this->maintenance_mode ? '1' : '0');

@@ -157,11 +157,22 @@ body{--red:#1a3a8f;--red2:#e74c3c;--red-dark:#122970;--red-pale:#e8edf7;--border
               <span style="color:var(--muted);font-weight:600">Hours</span>
               <span>{{ $business->hours['note'] }}</span>
             @else
+              @php
+                $use12h = \App\Models\Setting::bool('hours_12h_format', false);
+                $formatHour = function ($time) use ($use12h) {
+                  if (empty($time)) return '';
+                  try {
+                    return \Carbon\Carbon::createFromFormat('H:i', $time)->format($use12h ? 'g:i A' : 'H:i');
+                  } catch (\Exception $e) {
+                    return $time;
+                  }
+                };
+              @endphp
               @foreach(['monday'=>'Mon','tuesday'=>'Tue','wednesday'=>'Wed','thursday'=>'Thu','friday'=>'Fri','saturday'=>'Sat','sunday'=>'Sun'] as $dkey => $dlabel)
                 @if(isset($business->hours[$dkey]))
                   @php $h = $business->hours[$dkey]; @endphp
                   <span style="color:var(--muted);font-weight:600">{{ $dlabel }}</span>
-                  <span>{{ !empty($h['closed']) ? 'Closed' : (($h['open'] ?? '').' – '.($h['close'] ?? '')) }}</span>
+                  <span>{{ !empty($h['closed']) ? 'Closed' : ($formatHour($h['open'] ?? '').' – '.$formatHour($h['close'] ?? '')) }}</span>
                 @endif
               @endforeach
             @endif
