@@ -275,6 +275,52 @@ footer.site-footer{background:var(--nav-bg);border-top:2px solid #2a4fa8;margin-
 </head>
 <body>
 
+@php
+  $__pinnedAnnouncement = \App\Models\Announcement::live()->where('is_pinned', true)->latest('created_at')->first();
+@endphp
+@if($__pinnedAnnouncement)
+<!-- ANNOUNCEMENT BANNER -->
+<div id="announcement-banner"
+     data-ann-id="{{ $__pinnedAnnouncement->id }}"
+     style="display:none;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;
+            padding:9px 20px;font-size:12.5px;font-weight:600;text-align:center;
+            {{ match($__pinnedAnnouncement->type) {
+                 'urgent'  => 'background:#b91c1c;color:#fff',
+                 'warning' => 'background:#fef9c3;color:#92400e',
+                 'success' => 'background:#dcfce7;color:#15803d',
+                 default   => 'background:'.'var(--nav-bg)'.';color:#fff',
+               } }}">
+  <a href="{{ route('announcements.show', $__pinnedAnnouncement->slug) }}" style="color:inherit;text-decoration:none;display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center">
+    <i class="fa-solid fa-{{ $__pinnedAnnouncement->type === 'urgent' ? 'triangle-exclamation' : 'bullhorn' }}" style="font-size:12px"></i>
+    <span>{{ $__pinnedAnnouncement->excerpt ?: $__pinnedAnnouncement->title }}</span>
+    <span style="text-decoration:underline;white-space:nowrap">Learn more →</span>
+  </a>
+  <button onclick="dismissAnnouncement({{ $__pinnedAnnouncement->id }})" aria-label="Dismiss"
+    style="background:none;border:none;color:inherit;opacity:.75;cursor:pointer;font-size:14px;line-height:1;padding:2px 4px;flex-shrink:0">
+    <i class="fa-solid fa-xmark"></i>
+  </button>
+</div>
+<script>
+(function() {
+  var id = {{ $__pinnedAnnouncement->id }};
+  if (localStorage.getItem('announcement-dismissed') !== String(id)) {
+    var b = document.getElementById('announcement-banner');
+    if (b) b.style.display = 'flex';
+  }
+})();
+function dismissAnnouncement(id) {
+  localStorage.setItem('announcement-dismissed', String(id));
+  var b = document.getElementById('announcement-banner');
+  if (b) {
+    b.style.transition = 'opacity .25s,transform .25s';
+    b.style.opacity = '0';
+    b.style.transform = 'translateY(-8px)';
+    setTimeout(function(){ b.style.display = 'none'; }, 250);
+  }
+}
+</script>
+@endif
+
 <!-- TOPBAR -->
 <div class="topbar">
   <div class="topbar-inner">
@@ -283,6 +329,7 @@ footer.site-footer{background:var(--nav-bg);border-top:2px solid #2a4fa8;margin-
       <a href="{{ route('home') }}">Home</a>
       <a href="{{ route('blog.index') }}">Blog</a>
       <a href="{{ route('news.index') }}">News</a>
+      <a href="{{ route('announcements.index') }}">Announcements</a>
       <a href="{{ route('pricing') }}">Pricing</a>
       @auth
         <a href="{{ route('account') }}">My Account</a>
@@ -395,6 +442,9 @@ footer.site-footer{background:var(--nav-bg);border-top:2px solid #2a4fa8;margin-
     </a>
     <a href="{{ route('news.index') }}" class="{{ request()->routeIs('news.*') ? 'active' : '' }}">
       <i class="fa-solid fa-bullhorn"></i> News
+    </a>
+    <a href="{{ route('announcements.index') }}" class="{{ request()->routeIs('announcements.*') ? 'active' : '' }}">
+      <i class="fa-solid fa-tower-broadcast"></i> Announcements
     </a>
     {{-- Matrimonial: hidden until v2 --}}
     <a href="{{ route('pricing') }}" class="{{ request()->routeIs('pricing*') ? 'active' : '' }}">
@@ -531,6 +581,7 @@ footer.site-footer{background:var(--nav-bg);border-top:2px solid #2a4fa8;margin-
     </div>
     <a href="{{ route('blog.index') }}" class="drawer-link {{ request()->routeIs('blog.*') ? 'active' : '' }}"><i class="fa-solid fa-newspaper" style="width:18px"></i> Blog</a>
     <a href="{{ route('news.index') }}" class="drawer-link {{ request()->routeIs('news.*') ? 'active' : '' }}"><i class="fa-solid fa-bullhorn" style="width:18px"></i> News</a>
+    <a href="{{ route('announcements.index') }}" class="drawer-link {{ request()->routeIs('announcements.*') ? 'active' : '' }}"><i class="fa-solid fa-tower-broadcast" style="width:18px"></i> Announcements</a>
     {{-- Matrimonial: hidden until v2 --}}
     <a href="{{ route('pricing') }}" class="drawer-link {{ request()->routeIs('pricing*') ? 'active' : '' }}"><i class="fa-solid fa-dollar-sign" style="width:18px"></i> Pricing</a>
     <div class="drawer-divider"></div>
@@ -610,6 +661,7 @@ footer.site-footer{background:var(--nav-bg);border-top:2px solid #2a4fa8;margin-
       <h4>Community</h4>
       <a href="{{ route('blog.index') }}">Community Blog</a>
       <a href="{{ route('news.index') }}">News</a>
+      <a href="{{ route('announcements.index') }}">Announcements</a>
       <a href="{{ route('feed') }}">Community Feed</a>
       <a href="{{ route('classifieds.index') }}">Find Roommate</a>
       <a href="{{ route('directory.index') }}">Travel Agents</a>
