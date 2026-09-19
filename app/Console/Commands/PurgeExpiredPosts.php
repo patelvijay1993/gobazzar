@@ -3,7 +3,6 @@
 namespace App\Console\Commands;
 
 use App\Models\Job;
-use App\Models\Listing;
 use App\Models\Matrimonial;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
@@ -12,19 +11,11 @@ use Illuminate\Support\Facades\Storage;
 class PurgeExpiredPosts extends Command
 {
     protected $signature   = 'posts:purge-expired';
-    protected $description = 'Delete listings, jobs, and matrimonial profiles that have passed their expires_at date';
+    protected $description = 'Delete jobs and matrimonial profiles that have passed their expires_at date. Listings are handled separately by listings:mark-expired + listings:purge-inactive (expire → inactive → 7-day grace → delete).';
 
     public function handle(): int
     {
         $now = Carbon::now();
-
-        // Listings
-        $listings = Listing::whereNotNull('expires_at')->where('expires_at', '<=', $now)->get();
-        foreach ($listings as $r) {
-            if ($r->image) Storage::disk(config('filesystems.default'))->delete($r->image);
-            $r->delete();
-        }
-        $this->info("Deleted {$listings->count()} expired listing(s).");
 
         // Jobs
         $jobs = Job::whereNotNull('expires_at')->where('expires_at', '<=', $now)->get();

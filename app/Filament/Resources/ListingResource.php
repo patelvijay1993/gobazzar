@@ -57,8 +57,9 @@ class ListingResource extends Resource
                     ->visible(fn (Forms\Get $get) => (bool) $get('parent_category_id') && Category::where('parent_id', $get('parent_category_id'))->exists())
                     ->live(),
                 Forms\Components\Select::make('status')
-                    ->options(['pending'=>'Pending','active'=>'Active','rejected'=>'Rejected','expired'=>'Expired','flagged'=>'Flagged'])
+                    ->options(['pending'=>'Pending','active'=>'Active','inactive'=>'Inactive','rejected'=>'Rejected','expired'=>'Expired','flagged'=>'Flagged'])
                     ->default('pending')
+                    ->helperText('Inactive listings are auto-deleted 7 days after going inactive.')
                     ->required(),
                 Forms\Components\RichEditor::make('description')
                     ->columnSpanFull()

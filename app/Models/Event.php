@@ -17,6 +17,7 @@ class Event extends Model
         'start_date', 'end_date', 'venue', 'city', 'province', 'postal_code',
         'price', 'organizer', 'organizer_phone', 'organizer_email',
         'website', 'tags', 'is_featured', 'status', 'views', 'chat_enabled',
+        'expires_at', 'inactive_at',
     ];
 
     protected $casts = [
@@ -25,6 +26,8 @@ class Event extends Model
         'chat_enabled' => 'boolean',
         'start_date'   => 'datetime',
         'end_date'     => 'datetime',
+        'expires_at'   => 'datetime',
+        'inactive_at'  => 'datetime',
     ];
 
     public function category(): BelongsTo

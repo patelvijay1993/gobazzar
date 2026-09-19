@@ -35,7 +35,8 @@ class EventResource extends Resource
                     ->options(Category::where('type', 'events')->where('is_active', true)->pluck('name', 'id'))
                     ->searchable(),
                 Forms\Components\Select::make('status')
-                    ->options(['draft' => 'Draft', 'active' => 'Active', 'cancelled' => 'Cancelled', 'completed' => 'Completed', 'flagged' => 'Flagged'])
+                    ->options(['draft' => 'Draft', 'active' => 'Active', 'inactive' => 'Inactive', 'cancelled' => 'Cancelled', 'completed' => 'Completed', 'flagged' => 'Flagged'])
+                    ->helperText('Inactive events are auto-deleted 7 days after going inactive.')
                     ->default('draft')->required(),
                 Forms\Components\RichEditor::make('description')
                     ->columnSpanFull()

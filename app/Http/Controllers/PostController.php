@@ -255,9 +255,16 @@ class PostController extends Controller
             return back()->with('error', 'This post cannot be toggled while it is ' . $record->status . '.');
         }
 
-        $record->update([
-            'status' => $record->status === 'active' ? 'inactive' : 'active',
-        ]);
+        $newStatus = $record->status === 'active' ? 'inactive' : 'active';
+        $data = ['status' => $newStatus];
+
+        // Listings and events auto-delete 7 days after going inactive — stamp/clear that clock here too,
+        // so a manual deactivation (not just expires_at passing) starts the same countdown.
+        if (in_array($type, ['classified', 'event'], true)) {
+            $data['inactive_at'] = $newStatus === 'inactive' ? now() : null;
+        }
+
+        $record->update($data);
 
         return back()->with('success', $record->status === 'active'
             ? 'Post is now active and visible to everyone.'
