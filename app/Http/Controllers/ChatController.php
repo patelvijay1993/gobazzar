@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Events\MessageSent;
 use App\Models\Business;
 use App\Models\BusinessPost;
+use App\Models\Carpool;
 use App\Models\Conversation;
 use App\Models\Event;
 use App\Models\Listing;
@@ -87,6 +88,12 @@ class ChatController extends Controller
         return $this->openChatJson($event, $event->user_id);
     }
 
+    public function openCarpool(Carpool $carpool): \Illuminate\Http\JsonResponse
+    {
+        abort_if(!$carpool->user_id, 404);
+        return $this->openChatJson($carpool, $carpool->user_id);
+    }
+
     // Generic: open/create conversation for any model (Listing, Event, Business)
     private function openChat(object $model, int $ownerId): \Illuminate\Http\Response|\Illuminate\View\View
     {
@@ -116,6 +123,12 @@ class ChatController extends Controller
     {
         abort_if(!$event->user_id, 404, 'This event has no owner to chat with.');
         return $this->openChat($event, $event->user_id);
+    }
+
+    public function showCarpool(Carpool $carpool)
+    {
+        abort_if(!$carpool->user_id, 404, 'This ride has no owner to chat with.');
+        return $this->openChat($carpool, $carpool->user_id);
     }
 
     public function showBusiness(Business $business)

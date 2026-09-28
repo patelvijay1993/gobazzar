@@ -96,6 +96,10 @@ textarea.form-input{resize:vertical;min-height:100px}
       <div class="tab-icon">🎉</div>
       <div class="tab-label">Event</div>
     </div>
+    <div class="type-tab {{ $type==='carpool' ? 'active' : '' }}" onclick="switchType('carpool',this)">
+      <div class="tab-icon">🚗</div>
+      <div class="tab-label">Carpool</div>
+    </div>
   </div>
   @endif
 
@@ -506,6 +510,136 @@ textarea.form-input{resize:vertical;min-height:100px}
           </div>
 
           <button type="submit" class="btn-submit">Submit Event →</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  {{-- ── CARPOOL ─────────────────────────────────────────────────── --}}
+  <div id="form-carpool" class="{{ $type!=='carpool' ? 'hidden' : '' }}">
+    <form method="POST" action="{{ route('post.carpool') }}" enctype="multipart/form-data">
+      @csrf
+      <div class="form-card">
+        <div class="form-card-head">🚗 Post a Carpooling Ride</div>
+        <div class="form-card-body">
+          <div class="form-section">
+            <div class="form-section-title">Ride Details</div>
+            <div class="form-group" style="margin-bottom:14px">
+              <label class="form-label">Title <span>*</span></label>
+              <input type="text" name="title" class="form-input" value="{{ old('title') }}" required placeholder="e.g. Daily commute to downtown">
+            </div>
+            <div class="form-row" style="margin-bottom:14px">
+              <div class="form-group">
+                <label class="form-label">I am… <span>*</span></label>
+                <select name="ride_type" class="form-input" required>
+                  <option value="offer" {{ old('ride_type','offer')==='offer' ? 'selected' : '' }}>Offering a Ride</option>
+                  <option value="request" {{ old('ride_type')==='request' ? 'selected' : '' }}>Looking for a Ride</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Travel Date & Time <span>*</span></label>
+                <input type="datetime-local" name="travel_date" class="form-input" value="{{ old('travel_date') }}" required>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Seats Available <span>*</span></label>
+                <input type="number" name="seats_available" class="form-input" value="{{ old('seats_available', 1) }}" min="1" max="20" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Price per Seat</label>
+                <input type="text" name="price" class="form-input" value="{{ old('price') }}" placeholder="Free or $15">
+              </div>
+            </div>
+            <div class="form-row" style="margin-top:14px">
+              <div class="form-group" style="display:flex;align-items:center;gap:8px">
+                <input type="checkbox" name="is_recurring" id="cp-recurring" value="1" {{ old('is_recurring') ? 'checked' : '' }} onchange="document.getElementById('cp-recurring-days-wrap').style.display=this.checked?'block':'none'">
+                <label class="form-label" for="cp-recurring" style="margin:0">This is a recurring ride</label>
+              </div>
+            </div>
+            <div class="form-group" id="cp-recurring-days-wrap" style="display:{{ old('is_recurring') ? 'block' : 'none' }};margin-top:8px">
+              <label class="form-label">Which days?</label>
+              <input type="text" name="recurring_days" class="form-input" value="{{ old('recurring_days') }}" placeholder="e.g. Mon, Wed, Fri">
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">Route</div>
+            <div class="form-row" style="margin-bottom:14px">
+              <div class="form-group">
+                <label class="form-label">From Province <span>*</span></label>
+                <select name="from_province" id="cp-from-province" class="form-input" required onchange="loadCities('cp-from-city',this.value)">
+                  <option value="">Select province</option>
+                  @foreach($provinces as $prov)
+                    <option value="{{ $prov }}" {{ old('from_province', Auth::user()->province) === $prov ? 'selected' : '' }}>{{ $prov }}</option>
+                  @endforeach
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">From City <span>*</span></label>
+                <select name="from_city" id="cp-from-city" class="form-input" required>
+                  <option value="">Select city</option>
+                  @foreach($cities as $city)
+                    <option value="{{ $city }}" {{ old('from_city', Auth::user()->city) === $city ? 'selected' : '' }}>{{ $city }}</option>
+                  @endforeach
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">To Province <span>*</span></label>
+                <select name="to_province" id="cp-to-province" class="form-input" required onchange="loadCities('cp-to-city',this.value)">
+                  <option value="">Select province</option>
+                  @foreach($provinces as $prov)
+                    <option value="{{ $prov }}" {{ old('to_province') === $prov ? 'selected' : '' }}>{{ $prov }}</option>
+                  @endforeach
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">To City <span>*</span></label>
+                <select name="to_city" id="cp-to-city" class="form-input" required>
+                  <option value="">Select city</option>
+                  @foreach($cities as $city)
+                    <option value="{{ $city }}" {{ old('to_city') === $city ? 'selected' : '' }}>{{ $city }}</option>
+                  @endforeach
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">Vehicle & Description</div>
+            <div class="form-group" style="margin-bottom:14px">
+              <label class="form-label">Vehicle</label>
+              <input type="text" name="vehicle" class="form-input" value="{{ old('vehicle') }}" placeholder="e.g. Toyota Camry, White">
+            </div>
+            <div class="form-group" style="margin-bottom:14px">
+              <label class="form-label">Description</label>
+              <textarea name="description" id="cp-description" style="display:none">{{ old('description') }}</textarea>
+              <div id="cp-description-editor" class="ql-editor-wrap"></div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">Contact</div>
+            <div class="form-row" style="margin-bottom:14px">
+              <div class="form-group">
+                <label class="form-label">Contact Name</label>
+                <input type="text" name="contact_name" class="form-input" value="{{ old('contact_name', Auth::user()->name) }}">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Contact Phone</label>
+                <input type="text" name="contact_phone" class="form-input" value="{{ old('contact_phone', Auth::user()->phone) }}">
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom:14px">
+              <label class="form-label">Contact Email</label>
+              <input type="email" name="contact_email" class="form-input" value="{{ old('contact_email', Auth::user()->email) }}">
+            </div>
+            <x-image-uploader name="image" :multiple="false" :max="1" label="Photo (optional)" hint="Recommended: 1200×628px (16:9 landscape) · Max 1MB" :crop="true" aspect="16/9" />
+          </div>
+
+          <button type="submit" class="btn-submit">Submit Ride →</button>
         </div>
       </div>
     </form>
@@ -1086,7 +1220,7 @@ textarea.form-input{resize:vertical;min-height:100px}
 @push('scripts')
 <script>
 function switchType(type, el) {
-  ['classified','job','event','business','business-post'].forEach(t => {
+  ['classified','job','event','carpool','business','business-post'].forEach(t => {
     var f = document.getElementById('form-'+t);
     if (f) f.classList.add('hidden');
   });
@@ -1336,6 +1470,7 @@ _qlInit('cl-description-editor',   'cl-description');
 _qlInit('job-description-editor',  'job-description');
 _qlInit('job-requirements-editor', 'job-requirements');
 _qlInit('ev-description-editor',   'ev-description');
+_qlInit('cp-description-editor',   'cp-description');
 _bizQuill = _qlInitReturn('biz-description-editor', 'biz-description', true);
 _qlInit('bp-description-editor',   'bp-description', true);
 

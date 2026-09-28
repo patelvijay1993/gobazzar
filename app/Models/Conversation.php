@@ -83,6 +83,7 @@ class Conversation extends Model
             Event::class        => route('events.show', $item),
             Business::class     => route('directory.show', $item),
             BusinessPost::class => route('directory.post', [$item->business->slug, $item->slug]),
+            Carpool::class      => route('carpooling.show', $item),
             default             => '#',
         };
     }

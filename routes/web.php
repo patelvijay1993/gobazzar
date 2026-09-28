@@ -11,6 +11,7 @@ use App\Http\Controllers\BusinessController;
 use App\Http\Controllers\MatrimonialController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\EventController;
+use App\Http\Controllers\CarpoolController;
 use App\Http\Controllers\JobController;
 use App\Http\Controllers\ListingController;
 use App\Http\Controllers\PricingController;
@@ -180,6 +181,7 @@ Route::middleware('auth')->prefix('chat')->name('chat.')->group(function () {
     Route::get('/', [ChatController::class, 'inbox'])->name('inbox');
     Route::get('/listing/{listing}', [ChatController::class, 'showListing'])->name('show');
     Route::get('/event/{event}', [ChatController::class, 'showEvent'])->name('event');
+    Route::get('/carpool/{carpool}', [ChatController::class, 'showCarpool'])->name('carpool');
     Route::get('/business/{business:slug}', [ChatController::class, 'showBusiness'])->name('business');
     Route::get('/business/{business:slug}/post/{post:slug}', [ChatController::class, 'showBusinessPost'])->name('business.post');
     Route::get('/conversation/{conversation}', [ChatController::class, 'showConversation'])->name('conversation');
@@ -191,6 +193,7 @@ Route::middleware('auth')->prefix('chat')->name('chat.')->group(function () {
     Route::post('/open/listing/{listing}',          [ChatController::class, 'openListing'])->name('open.listing');
     Route::post('/open/business/{business:slug}',   [ChatController::class, 'openBusiness'])->name('open.business');
     Route::post('/open/event/{event}',              [ChatController::class, 'openEvent'])->name('open.event');
+    Route::post('/open/carpool/{carpool}',           [ChatController::class, 'openCarpool'])->name('open.carpool');
 });
 
 // Account routes (auth required, no email verification needed)
@@ -215,6 +218,7 @@ Route::middleware(['auth', 'email.verified'])->group(function () {
     Route::post('/post/business', [PostController::class, 'storeBusiness'])->name('post.business');
     Route::post('/post/matrimonial', [PostController::class, 'storeMatrimonial'])->name('post.matrimonial');
     Route::post('/post/business-post', [PostController::class, 'storeBusinessPost'])->name('post.business-post');
+    Route::post('/post/carpool', [PostController::class, 'storeCarpool'])->name('post.carpool');
     // Rich-text editor inline image upload (returns URL)
     Route::post('/post/editor-image', [PostController::class, 'uploadEditorImage'])->name('post.editor-image');
 
@@ -252,6 +256,15 @@ Route::prefix('events')->name('events.')->group(function () {
 
 Route::patch('/events/{event}/toggle-chat', [EventController::class, 'toggleChat'])
     ->name('events.toggle-chat')
+    ->middleware('auth');
+
+Route::prefix('carpooling')->name('carpooling.')->group(function () {
+    Route::get('/', [CarpoolController::class, 'index'])->name('index');
+    Route::get('/{carpool:slug}', [CarpoolController::class, 'show'])->name('show');
+});
+
+Route::patch('/carpooling/{carpool}/toggle-chat', [CarpoolController::class, 'toggleChat'])
+    ->name('carpooling.toggle-chat')
     ->middleware('auth');
 
 Route::prefix('jobs')->name('jobs.')->group(function () {

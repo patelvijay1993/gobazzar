@@ -143,7 +143,7 @@
       <a href="{{ route('account.favorites') }}" class="acct-mi"><i class="fa-solid fa-heart"></i> Saved Items</a>
       @endif
       <a href="#" class="acct-mi" onclick="showBusinessPanel(this)"><i class="fa-solid fa-store"></i> My Business</a>
-      @php $deletedCount = $deletedListings->count() + $deletedJobs->count() + $deletedEvents->count() + $deletedBusinesses->count() + $deletedBusinessPosts->count(); @endphp
+      @php $deletedCount = $deletedListings->count() + $deletedJobs->count() + $deletedEvents->count() + $deletedCarpools->count() + $deletedBusinesses->count() + $deletedBusinessPosts->count(); @endphp
       <a href="#" class="acct-mi" onclick="showPanel('deleted',this)"><i class="fa-solid fa-trash-can"></i> Deleted Posts @if($deletedCount) <span style="background:#f1f5f9;color:#64748b;font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;margin-left:auto">{{ $deletedCount }}</span> @endif</a>
       <a href="#" class="acct-mi" onclick="showPanel('billing',this)"><i class="fa-solid fa-credit-card"></i> Billing & Payments</a>
       <a href="#" class="acct-mi" onclick="showPanel('profile',this)"><i class="fa-solid fa-user"></i> Edit Profile</a>
@@ -173,7 +173,7 @@
       </div>
       <div class="panel-body">
         @php
-          $totalCount = $listings->count() + $jobs->count() + $events->count() + $businesses->count() + $businessPosts->count();
+          $totalCount = $listings->count() + $jobs->count() + $events->count() + $carpools->count() + $businesses->count() + $businessPosts->count();
         @endphp
 
         {{-- Featured Credits Banner --}}
@@ -214,6 +214,7 @@
             @if($listings->isNotEmpty())<div class="sub-tab active" onclick="showSubTab('classifieds',this)">🏷️ Classifieds ({{ $listings->count() }})</div>@endif
             @if($jobs->isNotEmpty())<div class="sub-tab {{ $listings->isEmpty() ? 'active' : '' }}" onclick="showSubTab('jobs',this)">💼 Jobs ({{ $jobs->count() }})</div>@endif
             @if($events->isNotEmpty())<div class="sub-tab {{ $listings->isEmpty() && $jobs->isEmpty() ? 'active' : '' }}" onclick="showSubTab('events',this)">🎉 Events ({{ $events->count() }})</div>@endif
+            @if($carpools->isNotEmpty())<div class="sub-tab {{ $listings->isEmpty() && $jobs->isEmpty() && $events->isEmpty() ? 'active' : '' }}" onclick="showSubTab('carpools',this)">🚗 Carpooling ({{ $carpools->count() }})</div>@endif
           </div>
 
           {{-- Classifieds --}}
@@ -335,6 +336,45 @@
                     </form>
                   @endif
                   <form method="POST" action="{{ route('post.destroy', ['type'=>'event','id'=>$item->id]) }}" onsubmit="return confirm('Delete this post?')">
+                    @csrf @method('DELETE')
+                    <button type="submit" class="btn-del">Delete</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+            @endforeach
+          </div>
+          @endif
+
+          {{-- Carpooling --}}
+          @if($carpools->isNotEmpty())
+          <div class="sub-panel {{ $listings->isEmpty() && $jobs->isEmpty() && $events->isEmpty() ? 'active' : '' }}" id="sub-carpools">
+            @foreach($carpools as $item)
+            <div class="sub-row">
+              <a href="{{ route('carpooling.show', $item) }}" style="display:contents;text-decoration:none">
+                <div class="sub-thumb" style="cursor:pointer">
+                  @if($item->image_url)<img src="{{ $item->image_url }}" alt="">
+                  @else 🚗 @endif
+                </div>
+              </a>
+              <div style="flex:1;min-width:0">
+                <a href="{{ route('carpooling.show', $item) }}" style="text-decoration:none;color:inherit">
+                  <div class="sub-title" style="cursor:pointer">{{ $item->from_city }} → {{ $item->to_city }}</div>
+                </a>
+                <div class="sub-meta">{{ $item->title }} · {{ $item->travel_date?->format('d M Y') }} · {{ $item->created_at->format('d M Y') }}</div>
+              </div>
+              <div class="sub-actions">
+                <span class="status-badge status-{{ $item->status }}">{{ ucfirst($item->status) }}</span>
+                <div class="row-actions">
+                  <a href="{{ route('carpooling.show', $item) }}" class="btn-edit" style="background:#e0e7ff;color:#3730a3">View</a>
+                  <a href="{{ route('post.edit', ['type'=>'carpool','id'=>$item->id]) }}" class="btn-edit">Edit</a>
+                  @if(in_array($item->status, ['active','inactive']))
+                    <form method="POST" action="{{ route('post.toggle-status', ['type'=>'carpool','id'=>$item->id]) }}">
+                      @csrf
+                      <button type="submit" class="btn-edit">{{ $item->status === 'active' ? 'Deactivate' : 'Activate' }}</button>
+                    </form>
+                  @endif
+                  <form method="POST" action="{{ route('post.destroy', ['type'=>'carpool','id'=>$item->id]) }}" onsubmit="return confirm('Delete this post?')">
                     @csrf @method('DELETE')
                     <button type="submit" class="btn-del">Delete</button>
                   </form>
@@ -472,6 +512,7 @@
             ['items' => $deletedListings, 'type' => 'classified', 'icon' => '🏷️', 'label' => 'Classifieds', 'titleKey' => 'title'],
             ['items' => $deletedJobs, 'type' => 'job', 'icon' => '💼', 'label' => 'Jobs', 'titleKey' => 'title'],
             ['items' => $deletedEvents, 'type' => 'event', 'icon' => '🎉', 'label' => 'Events', 'titleKey' => 'title'],
+            ['items' => $deletedCarpools, 'type' => 'carpool', 'icon' => '🚗', 'label' => 'Carpooling', 'titleKey' => 'route'],
             ['items' => $deletedBusinesses, 'type' => 'business', 'icon' => '🏢', 'label' => 'Businesses', 'titleKey' => 'name'],
             ['items' => $deletedBusinessPosts, 'type' => 'business-post', 'icon' => '📦', 'label' => 'Business Posts', 'titleKey' => 'title'],
           ] as $group)

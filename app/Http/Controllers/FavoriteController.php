@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Business;
+use App\Models\Carpool;
 use App\Models\Event;
 use App\Models\Job;
 use App\Models\Listing;
@@ -17,6 +18,7 @@ class FavoriteController extends Controller
         'job'      => Job::class,
         'event'    => Event::class,
         'business' => Business::class,
+        'carpool'  => Carpool::class,
     ];
 
     public function toggle(Request $request)
@@ -28,7 +30,7 @@ class FavoriteController extends Controller
         }
 
         $request->validate([
-            'type' => 'required|in:listing,job,event,business',
+            'type' => 'required|in:listing,job,event,business,carpool',
             'id'   => 'required|integer',
         ]);
 

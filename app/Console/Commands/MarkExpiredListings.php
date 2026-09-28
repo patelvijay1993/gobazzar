@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\BusinessPost;
+use App\Models\Carpool;
 use App\Models\Event;
 use App\Models\Job;
 use App\Models\Listing;
@@ -13,19 +14,23 @@ use Illuminate\Console\Command;
 class MarkExpiredListings extends Command
 {
     protected $signature   = 'listings:mark-expired';
-    protected $description = 'Mark listings/events past expires_at as inactive, and expired business posts as expired. Jobs/Matrimonials past expires_at are marked inactive.';
+    protected $description = 'Mark listings/events/carpools past expires_at as inactive, and expired business posts as expired. Jobs/Matrimonials past expires_at are marked inactive.';
 
     public function handle(): int
     {
         $now = Carbon::now();
 
-        // Listings and Events: active → inactive once expires_at passes.
+        // Listings, Events, and Carpools: active → inactive once expires_at passes.
         // inactive_at is stamped so listings:purge-inactive knows when the 7-day grace period started.
         $expiredListings = Listing::where('status', 'active')
             ->whereNotNull('expires_at')->where('expires_at', '<=', $now)
             ->update(['status' => 'inactive', 'inactive_at' => $now]);
 
         $expiredEvents = Event::where('status', 'active')
+            ->whereNotNull('expires_at')->where('expires_at', '<=', $now)
+            ->update(['status' => 'inactive', 'inactive_at' => $now]);
+
+        $expiredCarpools = Carpool::where('status', 'active')
             ->whereNotNull('expires_at')->where('expires_at', '<=', $now)
             ->update(['status' => 'inactive', 'inactive_at' => $now]);
 
@@ -46,6 +51,7 @@ class MarkExpiredListings extends Command
         $counts = [
             'Listing'      => $expiredListings,
             'Event'        => $expiredEvents,
+            'Carpool'      => $expiredCarpools,
             'Job'          => $expiredJobs,
             'Matrimonial'  => $expiredMatrimonials,
             'BusinessPost' => $expiredBusinessPosts,

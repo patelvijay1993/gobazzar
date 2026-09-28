@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Business;
 use App\Models\BusinessPost;
+use App\Models\Carpool;
 use App\Models\Category;
 use App\Models\Event;
 use App\Models\Job;
@@ -30,6 +31,7 @@ class PostController extends Controller
             'business'      => Business::class,
             'matrimonial'   => Matrimonial::class,
             'business-post' => BusinessPost::class,
+            'carpool'       => Carpool::class,
             default         => abort(404),
         };
     }
@@ -218,6 +220,7 @@ class PostController extends Controller
             'business'      => $this->updateBusiness($request, $record),
             'matrimonial'   => $this->updateMatrimonial($request, $record),
             'business-post' => $this->updateBusinessPost($request, $record),
+            'carpool'       => $this->updateCarpool($request, $record),
         };
 
         return redirect()->route('account')->with('success', 'Your post has been updated.');
@@ -258,9 +261,9 @@ class PostController extends Controller
         $newStatus = $record->status === 'active' ? 'inactive' : 'active';
         $data = ['status' => $newStatus];
 
-        // Listings and events auto-delete 7 days after going inactive — stamp/clear that clock here too,
-        // so a manual deactivation (not just expires_at passing) starts the same countdown.
-        if (in_array($type, ['classified', 'event'], true)) {
+        // Listings, events, and carpools auto-delete 7 days after going inactive — stamp/clear that
+        // clock here too, so a manual deactivation (not just expires_at passing) starts the same countdown.
+        if (in_array($type, ['classified', 'event', 'carpool'], true)) {
             $data['inactive_at'] = $newStatus === 'inactive' ? now() : null;
         }
 
@@ -439,7 +442,9 @@ class PostController extends Controller
         $data['user_id']    = Auth::id();
         $data['slug']       = $this->uniqueSlug($data['title'], 'events');
         $data['status']     = 'active';
-        $data['expires_at'] = null; // events are governed by start/end date, not plan expiry
+        // An event "expires" when it ends — end_date if set, else start_date. This drives
+        // listings:mark-expired (auto-inactive) and listings:purge-inactive (7-day auto-delete).
+        $data['expires_at'] = $data['end_date'] ?? $data['start_date'];
 
         if ($request->hasFile('image')) {
             $data['image'] = $request->file('image')->store('events', config('filesystems.default'));
@@ -447,6 +452,48 @@ class PostController extends Controller
 
         Event::create($data);
         return redirect()->route('account')->with('success', 'Your event is now live!');
+    }
+
+    public function storeCarpool(Request $request)
+    {
+        // All plans can post rides — no limit enforcement needed
+        $data = $request->validate([
+            'title'           => 'required|string|max:150',
+            'description'     => 'nullable|string',
+            'ride_type'       => 'required|in:offer,request',
+            'from_city'       => 'required|string|max:100',
+            'from_province'   => 'required|string|max:100',
+            'to_city'         => 'required|string|max:100',
+            'to_province'     => 'required|string|max:100',
+            'travel_date'     => 'required|date',
+            'is_recurring'    => 'nullable|boolean',
+            'recurring_days'  => 'nullable|string|max:50',
+            'seats_available' => 'required|integer|min:1|max:20',
+            'price'           => 'nullable|string|max:50',
+            'vehicle'         => 'nullable|string|max:150',
+            'contact_name'    => 'nullable|string|max:100',
+            'contact_phone'   => 'nullable|string|max:30',
+            'contact_email'   => 'nullable|email|max:150',
+            'image'           => 'nullable|'.self::imgRules(),
+        ]);
+
+        $data['title'] = strip_tags($data['title']);
+        $this->moderate($request, 'title', 'carpool');
+
+        $data['user_id']      = Auth::id();
+        $data['slug']         = $this->uniqueSlug($data['title'], 'carpools');
+        $data['status']       = 'active';
+        $data['is_recurring'] = $request->boolean('is_recurring');
+        // A ride "expires" once its travel date has passed — drives the same
+        // mark-expired (auto-inactive) / purge-inactive (7-day auto-delete) lifecycle as Events.
+        $data['expires_at']   = $data['travel_date'];
+
+        if ($request->hasFile('image')) {
+            $data['image'] = $request->file('image')->store('carpooling', config('filesystems.default'));
+        }
+
+        Carpool::create($data);
+        return redirect()->route('account')->with('success', 'Your ride is now posted!');
     }
 
     public function storeBusiness(Request $request)
@@ -792,9 +839,41 @@ class PostController extends Controller
             'image'           => 'nullable|'.self::imgRules(),
         ]);
         $this->moderate($request, 'title', 'event');
+        $data['expires_at'] = $data['end_date'] ?? $data['start_date'];
         if ($request->hasFile('image')) {
             if ($r->image && !str_starts_with($r->image, 'http')) Storage::disk(config('filesystems.default'))->delete($r->image);
             $data['image'] = $request->file('image')->store('events', config('filesystems.default'));
+        }
+        $r->update($data);
+    }
+
+    private function updateCarpool(Request $request, Carpool $r): void
+    {
+        $data = $request->validate([
+            'title'           => 'required|string|max:150',
+            'description'     => 'nullable|string',
+            'ride_type'       => 'required|in:offer,request',
+            'from_city'       => 'required|string|max:100',
+            'from_province'   => 'required|string|max:100',
+            'to_city'         => 'required|string|max:100',
+            'to_province'     => 'required|string|max:100',
+            'travel_date'     => 'required|date',
+            'is_recurring'    => 'nullable|boolean',
+            'recurring_days'  => 'nullable|string|max:50',
+            'seats_available' => 'required|integer|min:1|max:20',
+            'price'           => 'nullable|string|max:50',
+            'vehicle'         => 'nullable|string|max:150',
+            'contact_name'    => 'nullable|string|max:100',
+            'contact_phone'   => 'nullable|string|max:30',
+            'contact_email'   => 'nullable|email|max:150',
+            'image'           => 'nullable|'.self::imgRules(),
+        ]);
+        $this->moderate($request, 'title', 'carpool');
+        $data['is_recurring'] = $request->boolean('is_recurring');
+        $data['expires_at']   = $data['travel_date'];
+        if ($request->hasFile('image')) {
+            if ($r->image && !str_starts_with($r->image, 'http')) Storage::disk(config('filesystems.default'))->delete($r->image);
+            $data['image'] = $request->file('image')->store('carpooling', config('filesystems.default'));
         }
         $r->update($data);
     }

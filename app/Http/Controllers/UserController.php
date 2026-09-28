@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Business;
+use App\Models\Carpool;
 use App\Models\Event;
 use App\Models\Job;
 use App\Models\Listing;
@@ -21,6 +22,7 @@ class UserController extends Controller
         $listings      = Listing::where('user_id', $user->id)->latest()->get();
         $jobs          = Job::where('user_id', $user->id)->latest()->get();
         $events        = Event::where('user_id', $user->id)->latest()->get();
+        $carpools      = Carpool::where('user_id', $user->id)->latest()->get();
         $businesses    = Business::where('user_id', $user->id)->latest()->get();
         $matrimonials  = Matrimonial::where('user_id', $user->id)->latest()->get();
         $businessPosts  = \App\Models\BusinessPost::with('business')
@@ -32,13 +34,14 @@ class UserController extends Controller
         $deletedListings      = Listing::onlyTrashed()->where('user_id', $user->id)->latest('deleted_at')->get();
         $deletedJobs          = Job::onlyTrashed()->where('user_id', $user->id)->latest('deleted_at')->get();
         $deletedEvents         = Event::onlyTrashed()->where('user_id', $user->id)->latest('deleted_at')->get();
+        $deletedCarpools       = Carpool::onlyTrashed()->where('user_id', $user->id)->latest('deleted_at')->get();
         $deletedBusinesses     = Business::onlyTrashed()->where('user_id', $user->id)->latest('deleted_at')->get();
         $deletedBusinessPosts  = \App\Models\BusinessPost::onlyTrashed()->with('business')
             ->where('user_id', $user->id)->latest('deleted_at')->get();
 
         return view('user.account', compact(
-            'user', 'listings', 'jobs', 'events', 'businesses', 'matrimonials', 'businessPosts', 'paymentHistory',
-            'deletedListings', 'deletedJobs', 'deletedEvents', 'deletedBusinesses', 'deletedBusinessPosts'
+            'user', 'listings', 'jobs', 'events', 'carpools', 'businesses', 'matrimonials', 'businessPosts', 'paymentHistory',
+            'deletedListings', 'deletedJobs', 'deletedEvents', 'deletedCarpools', 'deletedBusinesses', 'deletedBusinessPosts'
         ));
     }
 

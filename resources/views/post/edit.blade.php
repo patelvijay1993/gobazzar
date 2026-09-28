@@ -59,7 +59,7 @@ textarea.form-input{resize:vertical;min-height:100px}
   </div>
 
   <div class="edit-hero">
-    <h1>Edit {{ ['classified'=>'Classified Ad','business'=>'Business Listing','business-post'=>'Business Post','job'=>'Job','event'=>'Event','matrimonial'=>'Matrimonial'][$type] ?? ucfirst($type) }}</h1>
+    <h1>Edit {{ ['classified'=>'Classified Ad','business'=>'Business Listing','business-post'=>'Business Post','job'=>'Job','event'=>'Event','matrimonial'=>'Matrimonial','carpool'=>'Carpooling Ride'][$type] ?? ucfirst($type) }}</h1>
     <p>Changes will be reviewed if the post is currently active.</p>
   </div>
 
@@ -411,6 +411,145 @@ textarea.form-input{resize:vertical;min-height:100px}
           @endif
           <x-image-uploader name="image" :multiple="false" :max="1" label="Event Banner / Photo" hint="Recommended: 1200×628px (16:9 landscape) · Max 1MB · Leave empty to keep current" :crop="true" aspect="16/9" />
         </div>
+        <button type="submit" class="btn-save">Save Changes</button>
+        <a href="{{ route('account') }}" class="btn-cancel">Cancel</a>
+      </div>
+    </div>
+  </form>
+  @endif
+
+  {{-- ── CARPOOL ─────────────────────────────────────────────────── --}}
+  @if($type === 'carpool')
+  <form method="POST" action="{{ route('post.update', ['type'=>'carpool','id'=>$record->id]) }}" enctype="multipart/form-data">
+    @csrf
+    <div class="form-card">
+      <div class="form-card-head">🚗 Edit Carpooling Ride</div>
+      <div class="form-card-body">
+        <div class="form-section">
+          <div class="form-section-title">Ride Details</div>
+          <div class="form-group" style="margin-bottom:14px">
+            <label class="form-label">Title <span>*</span></label>
+            <input type="text" name="title" class="form-input" value="{{ old('title',$record->title) }}" required>
+          </div>
+          <div class="form-row" style="margin-bottom:14px">
+            <div class="form-group">
+              <label class="form-label">I am… <span>*</span></label>
+              <select name="ride_type" class="form-input" required>
+                <option value="offer" {{ old('ride_type',$record->ride_type)==='offer' ? 'selected' : '' }}>Offering a Ride</option>
+                <option value="request" {{ old('ride_type',$record->ride_type)==='request' ? 'selected' : '' }}>Looking for a Ride</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Travel Date & Time <span>*</span></label>
+              <input type="datetime-local" name="travel_date" class="form-input" value="{{ old('travel_date', $record->travel_date?->format('Y-m-d\TH:i')) }}" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Seats Available <span>*</span></label>
+              <input type="number" name="seats_available" class="form-input" value="{{ old('seats_available',$record->seats_available) }}" min="1" max="20" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Price per Seat</label>
+              <input type="text" name="price" class="form-input" value="{{ old('price',$record->price) }}">
+            </div>
+          </div>
+          <div class="form-row" style="margin-top:14px">
+            <div class="form-group" style="display:flex;align-items:center;gap:8px">
+              <input type="checkbox" name="is_recurring" id="ecp-recurring" value="1" {{ old('is_recurring',$record->is_recurring) ? 'checked' : '' }} onchange="document.getElementById('ecp-recurring-days-wrap').style.display=this.checked?'block':'none'">
+              <label class="form-label" for="ecp-recurring" style="margin:0">This is a recurring ride</label>
+            </div>
+          </div>
+          <div class="form-group" id="ecp-recurring-days-wrap" style="display:{{ old('is_recurring',$record->is_recurring) ? 'block' : 'none' }};margin-top:8px">
+            <label class="form-label">Which days?</label>
+            <input type="text" name="recurring_days" class="form-input" value="{{ old('recurring_days',$record->recurring_days) }}" placeholder="e.g. Mon, Wed, Fri">
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-title">Route</div>
+          <div class="form-row" style="margin-bottom:14px">
+            <div class="form-group">
+              <label class="form-label">From Province <span>*</span></label>
+              <select name="from_province" id="ecp-from-province" class="form-input" required onchange="loadCities('ecp-from-city',this.value)">
+                <option value="">Select province</option>
+                @foreach($provinces as $prov)
+                  <option value="{{ $prov }}" {{ old('from_province',$record->from_province)===$prov ? 'selected' : '' }}>{{ $prov }}</option>
+                @endforeach
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">From City <span>*</span></label>
+              <select name="from_city" id="ecp-from-city" class="form-input" required>
+                <option value="">Select city</option>
+                @foreach($cities as $city)
+                  <option value="{{ $city }}" {{ old('from_city',$record->from_city)===$city ? 'selected' : '' }}>{{ $city }}</option>
+                @endforeach
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">To Province <span>*</span></label>
+              <select name="to_province" id="ecp-to-province" class="form-input" required onchange="loadCities('ecp-to-city',this.value)">
+                <option value="">Select province</option>
+                @foreach($provinces as $prov)
+                  <option value="{{ $prov }}" {{ old('to_province',$record->to_province)===$prov ? 'selected' : '' }}>{{ $prov }}</option>
+                @endforeach
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">To City <span>*</span></label>
+              <select name="to_city" id="ecp-to-city" class="form-input" required>
+                <option value="">Select city</option>
+                @foreach($cities as $city)
+                  <option value="{{ $city }}" {{ old('to_city',$record->to_city)===$city ? 'selected' : '' }}>{{ $city }}</option>
+                @endforeach
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-title">Vehicle & Description</div>
+          <div class="form-group" style="margin-bottom:14px">
+            <label class="form-label">Vehicle</label>
+            <input type="text" name="vehicle" class="form-input" value="{{ old('vehicle',$record->vehicle) }}">
+          </div>
+          <div class="form-group" style="margin-bottom:14px">
+            <label class="form-label">Description</label>
+            <textarea name="description" id="ecp-description" style="display:none">{{ old('description',$record->description) }}</textarea>
+            <div id="ecp-description-editor" class="ql-editor-wrap"></div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-title">Contact</div>
+          <div class="form-row" style="margin-bottom:14px">
+            <div class="form-group">
+              <label class="form-label">Contact Name</label>
+              <input type="text" name="contact_name" class="form-input" value="{{ old('contact_name',$record->contact_name) }}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Contact Phone</label>
+              <input type="text" name="contact_phone" class="form-input" value="{{ old('contact_phone',$record->contact_phone) }}">
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:14px">
+            <label class="form-label">Contact Email</label>
+            <input type="email" name="contact_email" class="form-input" value="{{ old('contact_email',$record->contact_email) }}">
+          </div>
+          @if($record->image)
+            <div style="margin-bottom:10px">
+              <div class="form-label" style="margin-bottom:6px">Current Photo</div>
+              @php $eci = $record->image; @endphp
+              <img src="{{ str_starts_with($eci,'http') ? $eci : (\Illuminate\Support\Facades\Storage::disk('public')->exists($eci) ? \Illuminate\Support\Facades\Storage::disk('public')->url($eci) : \Illuminate\Support\Facades\Storage::disk('s3')->url($eci)) }}" style="width:120px;height:80px;object-fit:cover;border-radius:6px;border:1.5px solid var(--border)" onerror="this.src='https://placehold.co/120x80?text=Photo'">
+              <div class="form-hint">Upload a new photo below to replace it.</div>
+            </div>
+          @endif
+          <x-image-uploader name="image" :multiple="false" :max="1" label="Photo (optional)" hint="Recommended: 1200×628px (16:9 landscape) · Max 1MB · Leave empty to keep current" :crop="true" aspect="16/9" />
+        </div>
+
         <button type="submit" class="btn-save">Save Changes</button>
         <a href="{{ route('account') }}" class="btn-cancel">Cancel</a>
       </div>
@@ -1061,6 +1200,7 @@ _qlInit('ecl-description-editor',   'ecl-description');
 _qlInit('ejob-description-editor',  'ejob-description');
 _qlInit('ejob-requirements-editor', 'ejob-requirements');
 _qlInit('eev-description-editor',   'eev-description');
+_qlInit('ecp-description-editor',   'ecp-description');
 var _ebizQuill = _qlInitReturn('ebiz-description-editor', 'ebiz-description', true);
 var _ebpQuill  = _qlInitReturn('ebp-description-editor',  'ebp-description',  true);
 

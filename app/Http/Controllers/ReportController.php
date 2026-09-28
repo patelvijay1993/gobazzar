@@ -10,7 +10,7 @@ class ReportController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'reportable_type' => 'required|in:listing,event,business,job,blog_post',
+            'reportable_type' => 'required|in:listing,event,business,job,blog_post,carpool',
             'reportable_id'   => 'required|integer',
             'reason'          => 'required|in:pornography,harmful,misleading,spam,fake,other',
             'details'         => 'nullable|string|max:500',
@@ -22,6 +22,7 @@ class ReportController extends Controller
             'business'  => \App\Models\Business::class,
             'job'       => \App\Models\Job::class,
             'blog_post' => \App\Models\BlogPost::class,
+            'carpool'   => \App\Models\Carpool::class,
         ];
 
         $modelClass = $modelMap[$request->reportable_type];
