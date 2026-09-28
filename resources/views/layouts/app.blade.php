@@ -435,6 +435,9 @@ function dismissAnnouncement(id) {
     <a href="{{ route('events.index') }}" class="{{ request()->routeIs('events.*') ? 'active' : '' }}">
       <i class="fa-solid fa-calendar-days"></i> Events
     </a>
+    <a href="{{ route('carpooling.index') }}" class="{{ request()->routeIs('carpooling.*') ? 'active' : '' }}">
+      <i class="fa-solid fa-car"></i> Carpooling
+    </a>
     <a href="{{ route('directory.index') }}" class="{{ request()->routeIs('directory.*') ? 'active' : '' }}">
       <i class="fa-solid fa-building-columns"></i> Directory
     </a>
@@ -446,9 +449,6 @@ function dismissAnnouncement(id) {
     </a>
     <a href="{{ route('announcements.index') }}" class="{{ request()->routeIs('announcements.*') ? 'active' : '' }}">
       <i class="fa-solid fa-tower-broadcast"></i> Announcements
-    </a>
-    <a href="{{ route('carpooling.index') }}" class="{{ request()->routeIs('carpooling.*') ? 'active' : '' }}">
-      <i class="fa-solid fa-car"></i> Carpooling
     </a>
     {{-- Matrimonial: hidden until v2 --}}
     <a href="{{ route('pricing') }}" class="{{ request()->routeIs('pricing*') ? 'active' : '' }}">
@@ -555,6 +555,7 @@ function dismissAnnouncement(id) {
         @endif
       @endforeach
     </div>
+    <a href="{{ route('carpooling.index') }}" class="drawer-link {{ request()->routeIs('carpooling.*') ? 'active' : '' }}"><i class="fa-solid fa-car" style="width:18px"></i> Carpooling</a>
 
     @php $dirOpen = request()->routeIs('directory.*'); @endphp
     <div class="drawer-link" style="cursor:pointer;justify-content:space-between" onclick="toggleDrawerCat('directory',this)">
@@ -586,7 +587,6 @@ function dismissAnnouncement(id) {
     <a href="{{ route('blog.index') }}" class="drawer-link {{ request()->routeIs('blog.*') ? 'active' : '' }}"><i class="fa-solid fa-newspaper" style="width:18px"></i> Blog</a>
     <a href="{{ route('news.index') }}" class="drawer-link {{ request()->routeIs('news.*') ? 'active' : '' }}"><i class="fa-solid fa-bullhorn" style="width:18px"></i> News</a>
     <a href="{{ route('announcements.index') }}" class="drawer-link {{ request()->routeIs('announcements.*') ? 'active' : '' }}"><i class="fa-solid fa-tower-broadcast" style="width:18px"></i> Announcements</a>
-    <a href="{{ route('carpooling.index') }}" class="drawer-link {{ request()->routeIs('carpooling.*') ? 'active' : '' }}"><i class="fa-solid fa-car" style="width:18px"></i> Carpooling</a>
     {{-- Matrimonial: hidden until v2 --}}
     <a href="{{ route('pricing') }}" class="drawer-link {{ request()->routeIs('pricing*') ? 'active' : '' }}"><i class="fa-solid fa-dollar-sign" style="width:18px"></i> Pricing</a>
     <div class="drawer-divider"></div>
@@ -660,6 +660,7 @@ function dismissAnnouncement(id) {
       <a href="{{ route('classifieds.index') }}">Classifieds</a>
       <a href="{{ route('jobs.index') }}">Jobs</a>
       <a href="{{ route('events.index') }}">Events</a>
+      <a href="{{ route('carpooling.index') }}">Carpooling</a>
       <a href="{{ route('directory.index') }}">Business Directory</a>
     </div>
     <div class="footer-col">
@@ -667,7 +668,6 @@ function dismissAnnouncement(id) {
       <a href="{{ route('blog.index') }}">Community Blog</a>
       <a href="{{ route('news.index') }}">News</a>
       <a href="{{ route('announcements.index') }}">Announcements</a>
-      <a href="{{ route('carpooling.index') }}">Carpooling</a>
       <a href="{{ route('feed') }}">Community Feed</a>
       <a href="{{ route('classifieds.index') }}">Find Roommate</a>
       <a href="{{ route('directory.index') }}">Travel Agents</a>
