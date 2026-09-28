@@ -227,6 +227,40 @@
         <p class="text-xs text-gray-400 mt-1">WhatsApp messages are sent with business name prepended automatically.</p>
       </div>
 
+      {{-- Claim email design picker --}}
+      <div class="border-t border-gray-100 dark:border-white/10 pt-4">
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          🔗 Claim Email Design <span class="text-gray-400 font-normal">(used only for "🔗 Claim" rows)</span>
+        </label>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-2">
+          @foreach([
+            'gradient' => ['label' => 'Gradient', 'desc' => 'Blue header, benefit checklist', 'swatch' => 'linear-gradient(135deg,#1a3a8f,#122970)'],
+            'minimal'  => ['label' => 'Minimal', 'desc' => 'Clean, understated, whitespace', 'swatch' => '#0f172a'],
+            'bold'     => ['label' => 'Bold', 'desc' => 'Urgency-driven, numbered steps', 'swatch' => '#dc2626'],
+            'split'    => ['label' => 'Photo', 'desc' => 'Business photo + benefit grid', 'swatch' => 'linear-gradient(135deg,#eef2ff,#c7d2fe)'],
+          ] as $key => $tpl)
+          <button type="button" wire:click="$set('claim_template', '{{ $key }}')"
+            class="text-left rounded-xl border-2 p-3 transition
+              {{ $claim_template === $key ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-indigo-300' }}">
+            <div class="h-10 rounded-lg mb-2" style="background:{{ $tpl['swatch'] }}"></div>
+            <div class="text-xs font-bold text-gray-900 dark:text-white flex items-center gap-1">
+              @if($claim_template === $key)<span class="text-indigo-600">✓</span>@endif
+              {{ $tpl['label'] }}
+            </div>
+            <div class="text-[11px] text-gray-400 mt-0.5 leading-snug">{{ $tpl['desc'] }}</div>
+          </button>
+          @endforeach
+        </div>
+        <div class="mt-3">
+          <button wire:click="previewClaimEmail" wire:loading.attr="disabled"
+            class="inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-indigo-300 text-indigo-600 text-xs font-semibold rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition">
+            <span wire:loading.remove wire:target="previewClaimEmail">📧 Email Me a Preview</span>
+            <span wire:loading wire:target="previewClaimEmail">Sending preview...</span>
+          </button>
+          <span class="text-[11px] text-gray-400 ml-2">Sends the selected design to your own inbox using the first selected business as sample data.</span>
+        </div>
+      </div>
+
       <div class="flex items-center gap-4 pt-1">
         <button wire:click="send" wire:loading.attr="disabled"
           wire:confirm="Send to {{ count($selected) }} selected businesses?"

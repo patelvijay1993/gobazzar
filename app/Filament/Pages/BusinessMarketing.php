@@ -27,6 +27,9 @@ class BusinessMarketing extends Page
     public string $subject = '';
     public string $message = '';
 
+    // Which claim-email design to send — see resources/views/emails/business-claim-*.blade.php
+    public string $claim_template = 'gradient';
+
     // Per-business send type: ['biz_id' => 'email'|'whatsapp'|'none']
     public array $send_types = [];
 
@@ -141,7 +144,7 @@ class BusinessMarketing extends Page
                 }
                 try {
                     $business = Business::find($biz['id']);
-                    Mail::to($biz['email'])->send(new BusinessClaimMail($business));
+                    Mail::to($biz['email'])->send(new BusinessClaimMail($business, $this->claim_template));
                     $business->update(['claim_email_sent_at' => now()]);
                     $log[] = ['name' => $biz['name'], 'status' => 'sent', 'contact' => $biz['email']];
                 } catch (\Exception $e) {
@@ -185,6 +188,38 @@ class BusinessMarketing extends Page
         Notification::make()
             ->title("✅ Email sent: $sent | 💬 WhatsApp: $wa | ⚠️ Skipped: $skipped")
             ->success()->send();
+    }
+
+    /** Send the selected claim-email design to the logged-in admin, using the first selected business as sample data. */
+    public function previewClaimEmail(): void
+    {
+        $adminEmail = \Illuminate\Support\Facades\Auth::user()?->email;
+        if (!$adminEmail) {
+            Notification::make()->title('Could not determine your email address.')->danger()->send();
+            return;
+        }
+
+        $sampleId = collect($this->selected)->first() ?? collect($this->businesses ?? [])->first()['id'] ?? null;
+        if (!$sampleId) {
+            Notification::make()->title('Search and select at least one business first.')->warning()->send();
+            return;
+        }
+
+        $business = Business::find($sampleId);
+        if (!$business) {
+            Notification::make()->title('Business not found.')->danger()->send();
+            return;
+        }
+
+        try {
+            Mail::to($adminEmail)->send(new BusinessClaimMail($business, $this->claim_template));
+            Notification::make()
+                ->title("📧 Preview sent to {$adminEmail}")
+                ->body('Template: '.ucfirst($this->claim_template).' · Sample business: '.$business->name)
+                ->success()->send();
+        } catch (\Exception $e) {
+            Notification::make()->title('Failed to send preview.')->body($e->getMessage())->danger()->send();
+        }
     }
 
     public function getProvincesProperty(): array
