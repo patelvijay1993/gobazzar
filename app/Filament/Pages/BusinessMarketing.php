@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Mail\BusinessClaimMail;
 use App\Mail\BusinessMarketingMail;
 use App\Models\Business;
 use App\Models\Category;
@@ -62,13 +63,14 @@ class BusinessMarketing extends Page
         $this->businesses = $query->orderBy('name')
             ->get()
             ->map(fn($b) => [
-                'id'       => $b->id,
-                'name'     => $b->name,
-                'city'     => $b->city,
-                'province' => $b->province,
-                'category' => $b->category?->name ?? '—',
-                'email'    => $b->email,
-                'phone'    => $b->phone,
+                'id'          => $b->id,
+                'name'        => $b->name,
+                'city'        => $b->city,
+                'province'    => $b->province,
+                'category'    => $b->category?->name ?? '—',
+                'email'       => $b->email,
+                'phone'       => $b->phone,
+                'is_claimed'  => $b->is_claimed,
             ])
             ->toArray();
 
@@ -108,7 +110,11 @@ class BusinessMarketing extends Page
             Notification::make()->title('No businesses selected.')->warning()->send();
             return;
         }
-        if (empty(trim($this->message))) {
+
+        $hasNonClaimSend = collect($this->selected)
+            ->contains(fn($id) => ($this->send_types[$id] ?? 'none') !== 'claim' && ($this->send_types[$id] ?? 'none') !== 'none');
+
+        if ($hasNonClaimSend && empty(trim($this->message))) {
             Notification::make()->title('Message is empty.')->warning()->send();
             return;
         }
@@ -124,7 +130,24 @@ class BusinessMarketing extends Page
                 continue;
             }
 
-            if ($type === 'email') {
+            if ($type === 'claim') {
+                if (empty($biz['email'])) {
+                    $log[] = ['name' => $biz['name'], 'status' => 'skipped', 'reason' => 'No email'];
+                    continue;
+                }
+                if ($biz['is_claimed'] ?? false) {
+                    $log[] = ['name' => $biz['name'], 'status' => 'skipped', 'reason' => 'Already claimed'];
+                    continue;
+                }
+                try {
+                    $business = Business::find($biz['id']);
+                    Mail::to($biz['email'])->send(new BusinessClaimMail($business));
+                    $business->update(['claim_email_sent_at' => now()]);
+                    $log[] = ['name' => $biz['name'], 'status' => 'sent', 'contact' => $biz['email']];
+                } catch (\Exception $e) {
+                    $log[] = ['name' => $biz['name'], 'status' => 'failed', 'reason' => $e->getMessage()];
+                }
+            } elseif ($type === 'email') {
                 if (empty($biz['email'])) {
                     $log[] = ['name' => $biz['name'], 'status' => 'skipped', 'reason' => 'No email'];
                     continue;

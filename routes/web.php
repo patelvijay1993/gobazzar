@@ -249,6 +249,17 @@ Route::patch('/business/{business}/toggle-chat', [BusinessController::class, 'to
     ->name('business.toggle-chat')
     ->middleware('auth');
 
+// Claim & Verify Your Business — link from BusinessClaimMail. `auth` alone (no `signed`)
+// on the GET so Laravel's redirect()->intended() can safely replay this URL after
+// login/register/email-verification; the signature is checked once, explicitly, inside
+// the controller before anything else happens.
+Route::middleware('auth')->group(function () {
+    Route::get('/business/{business}/claim', [\App\Http\Controllers\BusinessClaimController::class, 'show'])
+        ->name('business.claim');
+    Route::post('/business/{business}/claim', [\App\Http\Controllers\BusinessClaimController::class, 'confirm'])
+        ->name('business.claim.confirm');
+});
+
 Route::prefix('events')->name('events.')->group(function () {
     Route::get('/', [EventController::class, 'index'])->name('index');
     Route::get('/{event:slug}', [EventController::class, 'show'])->name('show');

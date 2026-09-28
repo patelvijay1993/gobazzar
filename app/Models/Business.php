@@ -18,19 +18,27 @@ class Business extends Model
         'user_id', 'category_id', 'subcategory_id', 'name', 'slug', 'description', 'image', 'images', 'logo',
         'address', 'city', 'province', 'postal_code', 'phone', 'email', 'website', 'map_url', 'lat', 'lon',
         'tags', 'social', 'rating', 'review_count', 'is_verified', 'is_featured',
-        'status', 'hours', 'chat_enabled', 'google_place_id',
+        'status', 'hours', 'chat_enabled', 'google_place_id', 'claimed_at', 'claim_email_sent_at',
     ];
 
     protected $casts = [
-        'tags'         => 'array',
-        'images'       => 'array',
-        'social'       => 'array',
-        'hours'        => 'array',
-        'is_verified'  => 'boolean',
-        'is_featured'  => 'boolean',
-        'chat_enabled' => 'boolean',
-        'rating'       => 'decimal:1',
+        'tags'                => 'array',
+        'images'              => 'array',
+        'social'              => 'array',
+        'hours'               => 'array',
+        'is_verified'         => 'boolean',
+        'is_featured'         => 'boolean',
+        'chat_enabled'        => 'boolean',
+        'rating'              => 'decimal:1',
+        'claimed_at'          => 'datetime',
+        'claim_email_sent_at' => 'datetime',
     ];
+
+    /** True once a real owner has claimed this listing (vs. still admin-owned/unclaimed). */
+    public function getIsClaimedAttribute(): bool
+    {
+        return $this->claimed_at !== null;
+    }
 
     public function category(): BelongsTo
     {

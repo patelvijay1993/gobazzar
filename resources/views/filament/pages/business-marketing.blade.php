@@ -94,7 +94,8 @@
             <th class="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-300">Category</th>
             <th class="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-300">City</th>
             <th class="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-300">Contact</th>
-            <th class="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-300 w-40">Send Via</th>
+            <th class="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-300">Ownership</th>
+            <th class="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-300 w-52">Send Via</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
@@ -135,6 +136,15 @@
               </div>
             </td>
 
+            {{-- Ownership / claimed status --}}
+            <td class="px-4 py-3">
+              @if($biz['is_claimed'] ?? false)
+                <span class="text-xs bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300 px-2 py-0.5 rounded-full font-medium">✓ Claimed</span>
+              @else
+                <span class="text-xs bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 px-2 py-0.5 rounded-full font-medium">Unclaimed</span>
+              @endif
+            </td>
+
             {{-- Per-row send type selector --}}
             <td class="px-4 py-3">
               <div class="flex gap-1 flex-wrap">
@@ -147,6 +157,17 @@
                         : 'bg-white text-gray-500 border-gray-300 hover:border-primary-400 dark:bg-gray-800 dark:text-gray-400' }}
                     {{ empty($biz['email']) ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer' }}">
                   ✉️ Email
+                </button>
+                <button type="button"
+                  wire:click="$set('send_types.{{ $biz['id'] }}', 'claim')"
+                  @if(empty($biz['email']) || ($biz['is_claimed'] ?? false)) disabled @endif
+                  title="{{ ($biz['is_claimed'] ?? false) ? 'Already claimed' : 'Send Claim & Verify email' }}"
+                  class="text-xs px-2.5 py-1 rounded-full font-medium border transition
+                    {{ ($send_types[$biz['id']] ?? '') === 'claim'
+                        ? 'bg-indigo-600 text-white border-indigo-600'
+                        : 'bg-white text-gray-500 border-gray-300 hover:border-indigo-400 dark:bg-gray-800 dark:text-gray-400' }}
+                    {{ (empty($biz['email']) || ($biz['is_claimed'] ?? false)) ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer' }}">
+                  🔗 Claim
                 </button>
                 <button type="button"
                   wire:click="$set('send_types.{{ $biz['id'] }}', 'whatsapp')"
@@ -182,22 +203,24 @@
     <div class="fi-section-header px-6 py-4 border-b border-gray-200 dark:border-white/10">
       <h3 class="text-base font-semibold text-gray-950 dark:text-white">✍️ Compose Message</h3>
       <p class="text-xs text-gray-400 mt-0.5">
-        Will send Email or WhatsApp based on per-row selection above.
+        Will send Email or WhatsApp based on per-row selection above. "🔗 Claim" rows send a fixed
+        "Claim & Verify Your Business" email with a secure claim link — the subject/message below are ignored for those.
         Email count: <strong class="text-primary-600">{{ collect($send_types)->filter(fn($t) => $t === 'email')->count() }}</strong> |
+        Claim count: <strong class="text-indigo-600">{{ collect($send_types)->filter(fn($t) => $t === 'claim')->count() }}</strong> |
         WhatsApp count: <strong class="text-green-600">{{ collect($send_types)->filter(fn($t) => $t === 'whatsapp')->count() }}</strong>
       </p>
     </div>
     <div class="p-6 space-y-4">
       <div>
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          Email Subject <span class="text-gray-400 font-normal">(only for email sends)</span>
+          Email Subject <span class="text-gray-400 font-normal">(only for email sends, not Claim)</span>
         </label>
         <input wire:model="subject" type="text" placeholder="e.g. Grow your business with GoBazaar!"
           class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500">
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Message</label>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Message <span class="text-gray-400 font-normal">(only for email/WhatsApp sends, not Claim)</span></label>
         <textarea wire:model="message" rows="6"
           placeholder="Dear [Business Name],&#10;&#10;We'd like to invite you to list your business on GoBazaar — Canada's growing marketplace.&#10;&#10;It's FREE to list! Visit gobazzarweb.heavendwell.com&#10;&#10;— GoBazaar Team"
           class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 font-mono"></textarea>
@@ -214,6 +237,7 @@
         <div class="text-sm text-gray-500">
           <span class="text-primary-600 font-semibold">{{ count($selected) }}</span> selected ·
           <span class="text-green-600 font-semibold">{{ collect($send_types)->filter(fn($t,$id) => $t==='email' && in_array($id,$selected))->count() }}</span> via email ·
+          <span class="text-indigo-600 font-semibold">{{ collect($send_types)->filter(fn($t,$id) => $t==='claim' && in_array($id,$selected))->count() }}</span> claim emails ·
           <span class="text-green-500 font-semibold">{{ collect($send_types)->filter(fn($t,$id) => $t==='whatsapp' && in_array($id,$selected))->count() }}</span> via WhatsApp
         </div>
       </div>

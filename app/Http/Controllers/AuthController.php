@@ -83,6 +83,11 @@ class AuthController extends Controller
         ]);
         ActivityLog::log($request, 'registered', ['meta' => ['name' => $user->name, 'email' => $user->email]]);
 
+        // Preserve any pre-login "intended" URL (e.g. a business claim link) across the
+        // verification detour — session()->intended() below would otherwise get cleared
+        // once we redirect to verification.notice.
+        $intendedUrl = $request->session()->get('url.intended');
+
         if (Setting::bool('email_verification_required', true)) {
             // Send verification email
             try {
@@ -90,13 +95,19 @@ class AuthController extends Controller
             } catch (\Throwable $e) {
                 // Email failed but account is created — user can resend from verify page
             }
+            if ($intendedUrl) {
+                $request->session()->put('url.intended', $intendedUrl);
+            }
             return redirect()->route('verification.notice')
                 ->with('success', 'Account created! Please check your email to verify your account.');
         }
 
         // Verification OFF — login immediately
         Auth::login($user);
-        return redirect()->route('account')->with('success', 'Welcome to GoBazaar, '.$user->name.'!');
+        if ($intendedUrl) {
+            $request->session()->put('url.intended', $intendedUrl);
+        }
+        return redirect()->intended(route('account'))->with('success', 'Welcome to GoBazaar, '.$user->name.'!');
     }
 
     // ── Email Verification ────────────────────────────────────────
@@ -128,7 +139,7 @@ class AuthController extends Controller
         // Already verified
         if ($user->hasVerifiedEmail()) {
             Auth::login($user);
-            return redirect()->route('account')->with('success', 'Email already verified. Welcome back, '.$user->name.'!');
+            return redirect()->intended(route('account'))->with('success', 'Email already verified. Welcome back, '.$user->name.'!');
         }
 
         // Mark as verified
@@ -136,7 +147,7 @@ class AuthController extends Controller
         event(new Verified($user));
 
         Auth::login($user);
-        return redirect()->route('account')->with('success', 'Email verified! Welcome to GoBazaar, '.$user->name.'!');
+        return redirect()->intended(route('account'))->with('success', 'Email verified! Welcome to GoBazaar, '.$user->name.'!');
     }
 
     public function verificationSend(Request $request)
