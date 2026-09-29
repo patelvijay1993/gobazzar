@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Mail\BusinessClaimMail;
 use App\Mail\BusinessMarketingMail;
 use App\Models\Business;
 use App\Models\Category;
@@ -41,6 +42,8 @@ class LeadFinder extends Page
     public int    $dir_category_id    = 0;
     public int    $dir_subcategory_id = 0;
     public ?array $dir_import_log     = null;
+    public bool   $dir_send_claim_email = true;
+    public string $dir_claim_template   = 'gradient';
 
     public function search(): void
     {
@@ -277,7 +280,7 @@ class LeadFinder extends Page
 
             $slug = $this->uniqueSlug($place['name']);
 
-            Business::create([
+            $business = Business::create([
                 'user_id'         => $adminId,
                 'category_id'     => $this->dir_category_id,
                 'subcategory_id'  => $this->dir_subcategory_id ?: null,
@@ -289,7 +292,7 @@ class LeadFinder extends Page
                 'province'        => $addressParts['province'] ?: ($place['province'] ?? $this->search_province),
                 'postal_code'     => $addressParts['postal'] ?: null,
                 'phone'           => $details['phone'] ?? $place['phone'] ?? null,
-                'email'           => null,
+                'email'           => $place['email'] ?? null,
                 'website'         => $details['website'] ?? $place['website'] ?? null,
                 'map_url'         => $details['google_maps_url'] ?? $place['google_maps_url'] ?? null,
                 'rating'          => $details['rating'] ?? $place['rating'] ?? null,
@@ -302,11 +305,27 @@ class LeadFinder extends Page
                 'google_place_id' => $place['google_place_id'],
             ]);
 
+            // Mark the source Lead as converted so it's not re-imported, and record the new Business's id
+            // for later reference (e.g. sending a claim email retroactively from Leads if this one is off).
+            Lead::where('google_place_id', $place['google_place_id'])->update(['status' => 'converted']);
+
+            $claimSent = false;
+            if ($this->dir_send_claim_email && $business->email) {
+                try {
+                    Mail::to($business->email)->send(new BusinessClaimMail($business, $this->dir_claim_template));
+                    $business->update(['claim_email_sent_at' => now()]);
+                    $claimSent = true;
+                } catch (\Exception $e) {
+                    // Import itself still succeeded — just note the claim email failed.
+                }
+            }
+
             $log[] = [
-                'name'   => $place['name'],
-                'status' => 'added',
-                'photos' => count($imagePaths),
-                'slug'   => $slug,
+                'name'        => $place['name'],
+                'status'      => 'added',
+                'photos'      => count($imagePaths),
+                'slug'        => $slug,
+                'claim_email' => $claimSent ? 'sent' : ($this->dir_send_claim_email ? ($business->email ? 'failed' : 'no email') : 'off'),
             ];
             $created++;
         }

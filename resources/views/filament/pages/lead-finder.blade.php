@@ -259,6 +259,15 @@
           <span class="font-medium text-gray-800 dark:text-gray-200 truncate">{{ $log['name'] }}</span>
           @if($log['status'] === 'added')
             <span class="text-gray-400 text-xs">· {{ $log['photos'] }} photo(s)</span>
+            @if(isset($log['claim_email']))
+              @if($log['claim_email'] === 'sent')
+                <span class="text-indigo-600 text-xs font-medium">· 🔗 Claim email sent</span>
+              @elseif($log['claim_email'] === 'no email')
+                <span class="text-gray-400 text-xs">· No email for claim</span>
+              @elseif($log['claim_email'] === 'failed')
+                <span class="text-red-500 text-xs">· Claim email failed</span>
+              @endif
+            @endif
           @else
             <span class="text-yellow-600 text-xs">— {{ $log['reason'] }}</span>
           @endif
@@ -294,6 +303,7 @@
           <li>Auto-generate description using AI (Groq)</li>
           <li>Create active listing under Admin account</li>
           <li>Skip businesses already in the directory</li>
+          <li>Optionally email the business a "Claim & Verify" link (below)</li>
         </ul>
       </div>
 
@@ -329,6 +339,39 @@
         </div>
         @endif
       @endif
+
+      {{-- Claim & Verify email --}}
+      <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-3">
+        <label class="flex items-start gap-2.5 cursor-pointer">
+          <input type="checkbox" wire:model.live="dir_send_claim_email"
+            class="mt-0.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+          <span>
+            <span class="block text-sm font-medium text-gray-700 dark:text-gray-300">🔗 Send "Claim &amp; Verify" email</span>
+            <span class="block text-xs text-gray-400 mt-0.5">Only sent to leads that have an email on file. Skipped silently otherwise.</span>
+          </span>
+        </label>
+
+        @if($dir_send_claim_email)
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-3">
+          @foreach([
+            'gradient' => ['label' => 'Gradient', 'swatch' => 'linear-gradient(135deg,#1a3a8f,#122970)'],
+            'minimal'  => ['label' => 'Minimal', 'swatch' => '#0f172a'],
+            'bold'     => ['label' => 'Bold', 'swatch' => '#dc2626'],
+            'split'    => ['label' => 'Photo', 'swatch' => 'linear-gradient(135deg,#eef2ff,#c7d2fe)'],
+          ] as $key => $tpl)
+          <button type="button" wire:click="$set('dir_claim_template', '{{ $key }}')"
+            class="text-left rounded-lg border-2 p-2 transition
+              {{ $dir_claim_template === $key ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20' : 'border-gray-200 dark:border-gray-700' }}">
+            <div class="h-6 rounded mb-1.5" style="background:{{ $tpl['swatch'] }}"></div>
+            <div class="text-[11px] font-semibold text-gray-900 dark:text-white flex items-center gap-1">
+              @if($dir_claim_template === $key)<span class="text-indigo-600">✓</span>@endif
+              {{ $tpl['label'] }}
+            </div>
+          </button>
+          @endforeach
+        </div>
+        @endif
+      </div>
 
       <div class="flex gap-3">
         <button wire:click="closeDirModal" type="button"
