@@ -1219,6 +1219,10 @@ textarea.form-input{resize:vertical;min-height:100px}
 
 @push('scripts')
 <script>
+// Previously-submitted dynamic "Additional Details" values (cf[key]), restored after a validation error
+// so the Year/Make/Model/etc. fields the user already typed don't come back blank.
+var _oldCf = @json(old('cf', []));
+
 function switchType(type, el) {
   ['classified','job','event','carpool','business','business-post'].forEach(t => {
     var f = document.getElementById('form-'+t);
@@ -1261,25 +1265,46 @@ function bpLoadFields() {
     .catch(function() {});
 }
 
+// Init on page load if old() category selected (e.g. page reloaded after a validation error) —
+// restores the sub-category pick and re-renders "Additional Details" with the previously-typed values.
+(function() {
+  var sel = document.getElementById('bp-category');
+  if (sel && sel.value) {
+    var oldSubId = {{ Js::from(old('subcategory_id')) }};
+    loadSubCats('bp-subcategory', sel.value, oldSubId, function() {
+      bpLoadFields();
+    });
+  }
+})();
+
 function bpFieldHtml(f) {
   var req = f.required ? ' <span>*</span>' : '';
   var reqAttr = f.required ? ' required' : '';
   var name = 'cf[' + f.key + ']';
+  var oldVal = (_oldCf && Object.prototype.hasOwnProperty.call(_oldCf, f.key)) ? _oldCf[f.key] : null;
   var inner = '';
   if (f.type === 'textarea') {
-    inner = '<textarea class="form-input" name="' + name + '" placeholder="' + (f.placeholder||'') + '"' + reqAttr + '></textarea>';
+    inner = '<textarea class="form-input" name="' + name + '" placeholder="' + (f.placeholder||'') + '"' + reqAttr + '>' + (oldVal != null ? escapeHtml(oldVal) : '') + '</textarea>';
   } else if (f.type === 'number') {
-    inner = '<input type="number" class="form-input" name="' + name + '" placeholder="' + (f.placeholder||'') + '"' + reqAttr + '>';
+    inner = '<input type="number" class="form-input" name="' + name + '" value="' + (oldVal != null ? escapeHtml(oldVal) : '') + '" placeholder="' + (f.placeholder||'') + '"' + reqAttr + '>';
   } else if (f.type === 'select') {
-    var opts = '<option value="">Select…</option>' + (f.options||[]).map(function(o){ return '<option value="'+o+'">'+o+'</option>'; }).join('');
+    var opts = '<option value="">Select…</option>' + (f.options||[]).map(function(o){
+      var sel = (oldVal != null && String(oldVal) === String(o)) ? ' selected' : '';
+      return '<option value="'+o+'"'+sel+'>'+o+'</option>';
+    }).join('');
     inner = '<select class="form-input" name="' + name + '"' + reqAttr + '>' + opts + '</select>';
   } else if (f.type === 'checkbox') {
-    inner = '<label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" value="1" name="' + name + '" style="width:18px;height:18px">Yes</label>';
+    var checkedAttr = (oldVal === 'Yes' || oldVal === '1' || oldVal === 1) ? ' checked' : '';
+    inner = '<label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" value="1" name="' + name + '" style="width:18px;height:18px"' + checkedAttr + '>Yes</label>';
     return '<div class="form-group" style="margin-bottom:14px"><label class="form-label">' + f.label + req + '</label>' + inner + '</div>';
   } else {
-    inner = '<input type="text" class="form-input" name="' + name + '" placeholder="' + (f.placeholder||'') + '"' + reqAttr + '>';
+    inner = '<input type="text" class="form-input" name="' + name + '" value="' + (oldVal != null ? escapeHtml(oldVal) : '') + '" placeholder="' + (f.placeholder||'') + '"' + reqAttr + '>';
   }
   return '<div class="form-group" style="margin-bottom:14px"><label class="form-label">' + f.label + req + '</label>' + inner + '</div>';
+}
+
+function escapeHtml(v) {
+  return String(v).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
 // Category-specific title placeholders
@@ -1340,17 +1365,23 @@ function clLoadFields(catId) {
     .catch(function() {});
 }
 
-// Init on page load if old() category selected
+// Init on page load if old() category selected (e.g. page reloaded after a validation error) —
+// restores the sub-category pick and re-renders "Additional Details" with the previously-typed values.
 (function() {
   var sel = document.getElementById('cl-category');
   if (sel && sel.value) {
+    var oldSubId = {{ Js::from(old('subcategory_id')) }};
     clLoadFields(sel.value);
-    loadSubCats('cl-subcategory', sel.value);
+    loadSubCats('cl-subcategory', sel.value, oldSubId, function() {
+      if (oldSubId) clLoadFields(oldSubId);
+    });
   }
 })();
 
 // ── Sub-category cascade (parent → children) ──────────────────────
-function loadSubCats(selectId, parentId) {
+// `onReady` (optional) fires after the options are populated and any `selectValue` applied —
+// used to restore a previously-submitted sub-category (and re-load its custom fields) after a validation error.
+function loadSubCats(selectId, parentId, selectValue, onReady) {
   var sel = document.getElementById(selectId);
   if (!sel) return;
   sel.innerHTML = '<option value="">Loading…</option>';
@@ -1363,8 +1394,10 @@ function loadSubCats(selectId, parentId) {
         var o = document.createElement('option');
         o.value = c.id;
         o.textContent = (c.icon ? c.icon + ' ' : '') + c.name;
+        if (selectValue && String(c.id) === String(selectValue)) o.selected = true;
         sel.appendChild(o);
       });
+      if (onReady) onReady();
     })
     .catch(() => { sel.innerHTML = '<option value="">Select sub-category (optional)</option>'; });
 }
