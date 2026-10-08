@@ -23,6 +23,11 @@ class CreateListing extends CreateRecord
             $data['images'] = count($newPhotos) > 1 ? array_slice($newPhotos, 1) : null;
         }
         unset($data['new_photos']);
+
+        if (empty($data['user_id'])) {
+            $data['user_id'] = auth()->id();
+        }
+
         return $data;
     }
 }

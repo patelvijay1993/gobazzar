@@ -36,11 +36,12 @@ class PostController extends Controller
         };
     }
 
+    /** Admins can edit/delete/toggle any user's post — everyone else only their own. */
     private function findOwned(string $type, int $id)
     {
         $model  = $this->resolveModel($type);
         $record = $model::findOrFail($id);
-        abort_if((int) $record->user_id !== (int) Auth::id(), 403);
+        abort_if(!Auth::user()->is_admin && (int) $record->user_id !== (int) Auth::id(), 403);
         return $record;
     }
 
@@ -48,7 +49,7 @@ class PostController extends Controller
     {
         $model  = $this->resolveModel($type);
         $record = $model::withTrashed()->findOrFail($id);
-        abort_if((int) $record->user_id !== (int) Auth::id(), 403);
+        abort_if(!Auth::user()->is_admin && (int) $record->user_id !== (int) Auth::id(), 403);
         return $record;
     }
 

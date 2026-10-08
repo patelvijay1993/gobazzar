@@ -27,6 +27,11 @@ class CreateBusiness extends CreateRecord
         }
 
         $data['hours'] = empty($hours) ? null : $hours;
+
+        if (empty($data['user_id'])) {
+            $data['user_id'] = auth()->id();
+        }
+
         return $data;
     }
 }

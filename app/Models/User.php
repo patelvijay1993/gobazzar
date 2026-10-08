@@ -89,9 +89,10 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         return $this->planModel()?->max_listings ?? 3;
     }
 
-    /** Max images per listing/post allowed by plan. */
+    /** Max images per listing/post allowed by plan. Admins are unrestricted. */
     public function maxImages(): int
     {
+        if ($this->is_admin) return 999;
         return $this->planModel()?->max_images ?? 3;
     }
 
@@ -116,14 +117,16 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 
     public function canPostListing(): bool
     {
+        if ($this->is_admin) return true;
         return $this->activeListingCount() < $this->maxListings();
     }
 
     // ── Business Directory ────────────────────────────────────────
 
-    /** Max business listings allowed by plan. */
+    /** Max business listings allowed by plan. Admins are unrestricted. */
     public function maxBusinessListings(): int
     {
+        if ($this->is_admin) return 999;
         return $this->planModel()?->biz_listings ?? 0;
     }
 
@@ -135,6 +138,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 
     public function canPostBusiness(): bool
     {
+        if ($this->is_admin) return true;
         return $this->maxBusinessListings() > 0
             && $this->activeBusinessCount() < $this->maxBusinessListings();
     }
