@@ -82,4 +82,12 @@ return [
         'subject'     => env('VAPID_SUBJECT', 'mailto:admin@gobazzarweb.heavendwell.com'),
     ],
 
+    'facebook_page' => [
+        // Meta for Developers → your app → Graph API Explorer: a long-lived Page Access
+        // Token for the GoBazaar Page (not a personal/user token — those expire quickly
+        // and can't post as the Page) and that Page's numeric id.
+        'page_id'      => env('FACEBOOK_PAGE_ID'),
+        'access_token' => env('FACEBOOK_PAGE_ACCESS_TOKEN'),
+    ],
+
 ];

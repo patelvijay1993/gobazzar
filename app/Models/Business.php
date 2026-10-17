@@ -18,7 +18,7 @@ class Business extends Model
         'user_id', 'category_id', 'subcategory_id', 'name', 'slug', 'description', 'image', 'images', 'logo',
         'address', 'city', 'province', 'postal_code', 'phone', 'email', 'website', 'map_url', 'lat', 'lon',
         'tags', 'social', 'rating', 'review_count', 'is_verified', 'is_featured',
-        'status', 'hours', 'chat_enabled', 'google_place_id', 'claimed_at', 'claim_email_sent_at',
+        'status', 'fb_post_id', 'hours', 'chat_enabled', 'google_place_id', 'claimed_at', 'claim_email_sent_at',
     ];
 
     protected $casts = [

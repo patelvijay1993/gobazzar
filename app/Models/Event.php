@@ -16,7 +16,7 @@ class Event extends Model
         'user_id', 'category_id', 'title', 'slug', 'description', 'image',
         'start_date', 'end_date', 'venue', 'city', 'province', 'postal_code',
         'price', 'organizer', 'organizer_phone', 'organizer_email',
-        'website', 'tags', 'is_featured', 'status', 'views', 'chat_enabled',
+        'website', 'tags', 'is_featured', 'status', 'fb_post_id', 'views', 'chat_enabled',
         'expires_at', 'inactive_at',
     ];
 

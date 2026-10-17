@@ -16,7 +16,7 @@ class Listing extends Model
         'user_id', 'category_id', 'title', 'slug', 'description',
         'custom_fields',
         'price', 'price_unit', 'location', 'city', 'province', 'postal_code', 'image', 'images', 'tags', 'badges',
-        'status', 'is_featured', 'is_verified', 'expires_at', 'inactive_at', 'views',
+        'status', 'fb_post_id', 'is_featured', 'is_verified', 'expires_at', 'inactive_at', 'views',
         'contact_name', 'contact_email', 'contact_phone',
     ];
 
