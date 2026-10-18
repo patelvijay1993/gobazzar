@@ -65,7 +65,7 @@ PROMPT;
             $res = Http::withToken($apiKey)
                 ->timeout(30)
                 ->post('https://api.groq.com/openai/v1/chat/completions', [
-                    'model'       => 'llama-3.1-8b-instant',
+                    'model'       => 'qwen/qwen3.8-27b',
                     'temperature' => 0.7,
                     'messages'    => [
                         [

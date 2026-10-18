@@ -1,10 +1,12 @@
 @extends('layouts.app')
-@section('title', $listing->title . ' — ' . ($listing->location ?: $listing->city) . ' | GoBazaar')
-@section('description', Str::limit(strip_tags($listing->description ?? $listing->title . ' for sale in ' . ($listing->location ?: 'Canada') . '. Find the best deals on GoBazaar.'), 160))
+{{-- seo_title/seo_description are AI-generated once on creation (see AutoSeoObserver) and
+     preferred over the raw-template fallback below whenever they're set. --}}
+@section('title', $listing->seo_title ?: ($listing->title . ' — ' . ($listing->location ?: $listing->city) . ' | GoBazaar'))
+@section('description', $listing->seo_description ?: Str::limit(strip_tags($listing->description ?? $listing->title . ' for sale in ' . ($listing->location ?: 'Canada') . '. Find the best deals on GoBazaar.'), 160))
 @section('canonical', route('classifieds.show', $listing))
 @section('og_type', 'product')
-@section('og_title', $listing->title . ' — ' . ($listing->location ?: $listing->city))
-@section('og_description', Str::limit(strip_tags($listing->description ?? $listing->title), 200))
+@section('og_title', $listing->seo_title ?: ($listing->title . ' — ' . ($listing->location ?: $listing->city)))
+@section('og_description', $listing->seo_description ?: Str::limit(strip_tags($listing->description ?? $listing->title), 200))
 @section('og_image', $listing->image_url ?? asset('images/og-default.jpg'))
 @push('schema')
 <script type="application/ld+json">

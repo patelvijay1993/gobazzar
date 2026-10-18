@@ -18,7 +18,7 @@ class Job extends Model
         'user_id', 'category_id', 'title', 'slug', 'company', 'company_logo',
         'description', 'requirements', 'location', 'city', 'province',
         'job_type', 'work_mode', 'salary', 'experience', 'tags',
-        'apply_email', 'apply_url', 'is_featured', 'status', 'fb_post_id', 'expires_at', 'views',
+        'apply_email', 'apply_url', 'is_featured', 'status', 'fb_post_id', 'seo_title', 'seo_description', 'expires_at', 'views',
     ];
 
     protected $casts = [

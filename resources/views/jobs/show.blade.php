@@ -1,10 +1,12 @@
 @extends('layouts.app')
-@section('title', $job->title . ' at ' . $job->company . ' — ' . $job->city . ' | GoBazaar Jobs')
-@section('description', Str::limit(strip_tags($job->description ?? $job->title . ' job at ' . $job->company . ' in ' . $job->city . ', Canada. Apply now on GoBazaar.'), 160))
+{{-- seo_title/seo_description are AI-generated once on creation (see AutoSeoObserver) and
+     preferred over the raw-template fallback below whenever they're set. --}}
+@section('title', $job->seo_title ?: ($job->title . ' at ' . $job->company . ' — ' . $job->city . ' | GoBazaar Jobs'))
+@section('description', $job->seo_description ?: Str::limit(strip_tags($job->description ?? $job->title . ' job at ' . $job->company . ' in ' . $job->city . ', Canada. Apply now on GoBazaar.'), 160))
 @section('canonical', route('jobs.show', $job))
 @section('og_type', 'website')
-@section('og_title', $job->title . ' at ' . $job->company . ' — ' . $job->city)
-@section('og_description', Str::limit(strip_tags($job->description ?? ''), 200))
+@section('og_title', $job->seo_title ?: ($job->title . ' at ' . $job->company . ' — ' . $job->city))
+@section('og_description', $job->seo_description ?: Str::limit(strip_tags($job->description ?? ''), 200))
 @push('schema')
 <script type="application/ld+json">
 {!! json_encode(array_filter([

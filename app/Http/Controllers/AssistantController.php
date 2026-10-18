@@ -72,7 +72,7 @@ PROMPT;
                         'Content-Type: application/json',
                     ],
                     CURLOPT_POSTFIELDS => json_encode([
-                        'model'       => 'llama-3.1-8b-instant',
+                        'model'       => 'qwen/qwen3.8-27b',
                         'messages'    => [['role' => 'user', 'content' => $prompt]],
                         'temperature' => 0.1,
                         'max_tokens'  => 150,

@@ -1,10 +1,12 @@
 @extends('layouts.app')
-@section('title', $event->title . ' — ' . $event->city . ' | GoBazaar Events')
-@section('description', Str::limit(strip_tags($event->description ?? $event->title . ' event in ' . $event->city . ', Canada. ' . ($event->start_date ? 'Date: ' . $event->start_date->format('d M Y') : '')), 160))
+{{-- seo_title/seo_description are AI-generated once on creation (see AutoSeoObserver) and
+     preferred over the raw-template fallback below whenever they're set. --}}
+@section('title', $event->seo_title ?: ($event->title . ' — ' . $event->city . ' | GoBazaar Events'))
+@section('description', $event->seo_description ?: Str::limit(strip_tags($event->description ?? $event->title . ' event in ' . $event->city . ', Canada. ' . ($event->start_date ? 'Date: ' . $event->start_date->format('d M Y') : '')), 160))
 @section('canonical', route('events.show', $event))
 @section('og_type', 'website')
-@section('og_title', $event->title . ' — ' . $event->city)
-@section('og_description', Str::limit(strip_tags($event->description ?? ''), 200))
+@section('og_title', $event->seo_title ?: ($event->title . ' — ' . $event->city))
+@section('og_description', $event->seo_description ?: Str::limit(strip_tags($event->description ?? ''), 200))
 @section('og_image', $event->image_url ?? asset('images/og-default.jpg'))
 @push('schema')
 <script type="application/ld+json">

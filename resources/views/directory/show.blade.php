@@ -1,10 +1,12 @@
 @extends('layouts.app')
-@section('title', $business->name . ' — ' . ($business->category->name ?? 'Business') . ' in ' . $business->city . ' | GoBazaar')
-@section('description', Str::limit(strip_tags($business->description ?? $business->name . ' — ' . ($business->category->name ?? '') . ' in ' . $business->city . ', Canada. Contact, hours, reviews on GoBazaar.'), 160))
+{{-- seo_title/seo_description are AI-generated once on creation (see AutoSeoObserver) and
+     preferred over the raw-template fallback below whenever they're set. --}}
+@section('title', $business->seo_title ?: ($business->name . ' — ' . ($business->category->name ?? 'Business') . ' in ' . $business->city . ' | GoBazaar'))
+@section('description', $business->seo_description ?: Str::limit(strip_tags($business->description ?? $business->name . ' — ' . ($business->category->name ?? '') . ' in ' . $business->city . ', Canada. Contact, hours, reviews on GoBazaar.'), 160))
 @section('canonical', route('directory.show', $business))
 @section('og_type', 'business.business')
-@section('og_title', $business->name . ' — ' . $business->city)
-@section('og_description', Str::limit(strip_tags($business->description ?? ''), 200))
+@section('og_title', $business->seo_title ?: ($business->name . ' — ' . $business->city))
+@section('og_description', $business->seo_description ?: Str::limit(strip_tags($business->description ?? ''), 200))
 @section('og_image', $business->image_url ?? asset('images/og-default.jpg'))
 @push('schema')
 <script type="application/ld+json">
