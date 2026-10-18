@@ -200,7 +200,7 @@ class PostController extends Controller
         $categories = $this->getCategories();
         $provinces  = Location::activeProvinces();
         $cities     = Location::activeCities();
-        $customFields = ($type === 'business-post' && $record->category)
+        $customFields = (in_array($type, ['business-post', 'classified'], true) && $record->category)
             ? $record->category->applicableFields()
             : collect();
         $maxImages = Auth::user()->maxImages();
@@ -777,6 +777,13 @@ class PostController extends Controller
         unset($data['subcategory_id']);
         $data['title'] = strip_tags($data['title']);
         $this->moderate($request, 'title', 'classified');
+
+        // Re-validate custom fields against the (possibly just-changed) category.
+        $category = Category::find($data['category_id']);
+        if ($category) {
+            $data['custom_fields'] = $this->validateCustomFields($request, $category);
+        }
+
         unset($data['images']);
         if ($request->hasFile('images')) {
             foreach ($r->images ?? [] as $old) {

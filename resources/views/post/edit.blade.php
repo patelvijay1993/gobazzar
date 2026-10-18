@@ -29,6 +29,7 @@
 .form-input:focus{border-color:var(--red);outline:none}
 textarea.form-input{resize:vertical;min-height:100px}
 .form-hint{font-size:11px;color:var(--hint);margin-top:4px}
+.hidden{display:none}
 
 .subcat-pills{display:flex;flex-wrap:wrap;gap:7px;border:1.5px solid var(--border2);border-radius:var(--r);padding:9px 10px;min-height:42px;align-items:center}
 .subcat-pill{display:inline-flex;align-items:center;gap:5px;background:var(--surface);border:1.5px solid var(--border2);border-radius:20px;padding:5px 12px;font-size:12.5px;cursor:pointer;transition:all .15s;user-select:none}
@@ -87,19 +88,42 @@ textarea.form-input{resize:vertical;min-height:100px}
             <label class="form-label">Title <span>*</span></label>
             <input type="text" name="title" class="form-input" value="{{ old('title',$record->title) }}" required>
           </div>
+          @php
+            // The record's category_id may itself be a sub-category (e.g. "Cars" under
+            // "Vehicles") — resolve its parent so the top dropdown pre-selects correctly.
+            $eclCurrentCat    = $record->category;
+            $eclParentCat     = $eclCurrentCat && $eclCurrentCat->parent_id ? $eclCurrentCat->parent : $eclCurrentCat;
+            $eclSubcategoryId = $eclCurrentCat && $eclCurrentCat->parent_id ? $eclCurrentCat->id : null;
+          @endphp
           <div class="form-row" style="margin-bottom:14px">
             <div class="form-group">
               <label class="form-label">Category <span>*</span></label>
-              <select name="category_id" class="form-input" required>
+              <select name="category_id" id="ecl-category" class="form-input" required
+                onchange="eclLoadFields(this.value); loadSubCats('ecl-subcategory', this.value)">
                 @foreach($categories->get('classifieds', collect()) as $cat)
-                  <option value="{{ $cat->id }}" {{ $record->category_id==$cat->id ? 'selected' : '' }}>{{ $cat->icon }} {{ $cat->name }}</option>
+                  <option value="{{ $cat->id }}" {{ old('category_id', $eclParentCat?->id)==$cat->id ? 'selected' : '' }}>{{ $cat->icon }} {{ $cat->name }}</option>
                 @endforeach
               </select>
             </div>
             <div class="form-group">
+              <label class="form-label">Sub-Category</label>
+              <select name="subcategory_id" id="ecl-subcategory" class="form-input"
+                onchange="eclLoadFields(this.value || document.getElementById('ecl-category').value)">
+                <option value="">Select sub-category (optional)</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row" style="margin-bottom:14px">
+            <div class="form-group" style="grid-column:1/-1">
               <label class="form-label">Location</label>
               <input type="text" name="location" class="form-input" value="{{ old('location',$record->location) }}">
             </div>
+          </div>
+
+          {{-- Dynamic custom fields per classified category (e.g. Year/Make/Model for Vehicles) --}}
+          <div class="form-section hidden" id="ecl-custom-section">
+            <div class="form-section-title">Additional Details</div>
+            <div id="ecl-custom-fields"></div>
           </div>
           <div class="form-row">
             <div class="form-group">
@@ -1374,6 +1398,101 @@ function applyEAIContent(){
   var catId = '{{ $record->category_id }}';
   var checkedIds = @json($record->subcategories->pluck('id'));
   if(catId) loadSubCatsMulti('ebiz-subcategory', catId, checkedIds);
+})();
+@endif
+
+// ── Classified: sub-category cascade + dynamic "Additional Details" fields ──
+@if($type === 'classified')
+// Existing custom_fields on the record, or whatever was just re-submitted if a
+// validation error sent the page back — so values typed before a failed save aren't lost.
+var _eclOldCf = @json(old('cf', $record->custom_fields ?? []));
+
+function loadSubCats(selectId, parentId, selectValue, onReady) {
+  var sel = document.getElementById(selectId);
+  if (!sel) return;
+  sel.innerHTML = '<option value="">Loading…</option>';
+  if (!parentId) { sel.innerHTML = '<option value="">Select sub-category (optional)</option>'; return; }
+  fetch('{{ route("categories.subs") }}?parent=' + encodeURIComponent(parentId))
+    .then(function(r){ return r.json(); })
+    .then(function(subs){
+      sel.innerHTML = '<option value="">Select sub-category (optional)</option>';
+      subs.forEach(function(c){
+        var o = document.createElement('option');
+        o.value = c.id;
+        o.textContent = (c.icon ? c.icon + ' ' : '') + c.name;
+        if (selectValue && String(c.id) === String(selectValue)) o.selected = true;
+        sel.appendChild(o);
+      });
+      if (onReady) onReady();
+    })
+    .catch(function(){ sel.innerHTML = '<option value="">Select sub-category (optional)</option>'; });
+}
+
+function eclEscapeHtml(v) {
+  return String(v).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function eclFieldHtml(f) {
+  var req = f.required ? ' <span>*</span>' : '';
+  var reqAttr = f.required ? ' required' : '';
+  var name = 'cf[' + f.key + ']';
+  var oldVal = (_eclOldCf && Object.prototype.hasOwnProperty.call(_eclOldCf, f.key)) ? _eclOldCf[f.key] : null;
+  var inner = '';
+  if (f.type === 'textarea') {
+    inner = '<textarea class="form-input" name="' + name + '" placeholder="' + (f.placeholder||'') + '"' + reqAttr + '>' + (oldVal != null ? eclEscapeHtml(oldVal) : '') + '</textarea>';
+  } else if (f.type === 'number') {
+    inner = '<input type="number" class="form-input" name="' + name + '" value="' + (oldVal != null ? eclEscapeHtml(oldVal) : '') + '" placeholder="' + (f.placeholder||'') + '"' + reqAttr + '>';
+  } else if (f.type === 'select') {
+    var opts = '<option value="">Select…</option>' + (f.options||[]).map(function(o){
+      var sel = (oldVal != null && String(oldVal) === String(o)) ? ' selected' : '';
+      return '<option value="'+o+'"'+sel+'>'+o+'</option>';
+    }).join('');
+    inner = '<select class="form-input" name="' + name + '"' + reqAttr + '>' + opts + '</select>';
+  } else if (f.type === 'checkbox') {
+    var checkedAttr = (oldVal === 'Yes' || oldVal === '1' || oldVal === 1) ? ' checked' : '';
+    inner = '<label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer"><input type="checkbox" value="1" name="' + name + '" style="width:18px;height:18px"' + checkedAttr + '>Yes</label>';
+    return '<div class="form-group" style="margin-bottom:14px"><label class="form-label">' + f.label + req + '</label>' + inner + '</div>';
+  } else {
+    inner = '<input type="text" class="form-input" name="' + name + '" value="' + (oldVal != null ? eclEscapeHtml(oldVal) : '') + '" placeholder="' + (f.placeholder||'') + '"' + reqAttr + '>';
+  }
+  return '<div class="form-group" style="margin-bottom:14px"><label class="form-label">' + f.label + req + '</label>' + inner + '</div>';
+}
+
+function eclLoadFields(catId) {
+  var section = document.getElementById('ecl-custom-section');
+  var wrap    = document.getElementById('ecl-custom-fields');
+  wrap.innerHTML = '';
+  section.classList.add('hidden');
+  if (!catId) return;
+
+  var subId   = document.getElementById('ecl-subcategory') ? document.getElementById('ecl-subcategory').value : '';
+  var fetchId = subId || catId;
+
+  fetch('/categories/' + fetchId + '/fields')
+    .then(function(r){ return r.json(); })
+    .then(function(fields){
+      if (!fields.length && subId && subId !== catId) {
+        return fetch('/categories/' + catId + '/fields').then(function(r){ return r.json(); });
+      }
+      return fields;
+    })
+    .then(function(fields){
+      if (!fields.length) return;
+      wrap.innerHTML = fields.map(eclFieldHtml).join('');
+      section.classList.remove('hidden');
+    })
+    .catch(function(){});
+}
+
+(function(){
+  var sel = document.getElementById('ecl-category');
+  if (sel && sel.value) {
+    var oldSubId = {{ Js::from(old('subcategory_id', $eclSubcategoryId)) }};
+    eclLoadFields(sel.value);
+    loadSubCats('ecl-subcategory', sel.value, oldSubId, function(){
+      if (oldSubId) eclLoadFields(oldSubId);
+    });
+  }
 })();
 @endif
 
