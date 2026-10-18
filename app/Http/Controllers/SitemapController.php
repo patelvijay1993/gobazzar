@@ -78,7 +78,7 @@ class SitemapController extends Controller
 
     public function businesses()
     {
-        $items = Business::where('is_active', true)
+        $items = Business::where('status', 'active')
             ->orderByDesc('updated_at')
             ->get(['slug', 'updated_at']);
 

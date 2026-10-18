@@ -43,7 +43,10 @@ class ListingResource extends Resource
                     ->searchable()
                     ->required()
                     ->live()
-                    ->afterStateUpdated(fn (Forms\Set $set) => $set('category_id', null) + $set('custom_fields', []))
+                    ->afterStateUpdated(function (Forms\Set $set) {
+                        $set('category_id', null);
+                        $set('custom_fields', []);
+                    })
                     ->dehydrated(false),
                 Forms\Components\Select::make('category_id')
                     ->label('Subcategory')
