@@ -18,8 +18,12 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('posts:purge-expired')->dailyAt('00:00');
         // Delete listings/events that have been inactive for 7+ days
         $schedule->command('listings:purge-inactive')->dailyAt('00:15');
-        // Pull latest news from newsdata.io every 10 minutes; command dedupes by article_id
-        $schedule->command('news:fetch')->everyTenMinutes()->withoutOverlapping();
+        // Pull latest news from newsdata.io every 3 hours; command dedupes by article_id.
+        // (Was every 10 minutes — that grew the table to 160k+ rows and, combined with
+        // missing indexes, took the whole site down with 502s on Nov 2, 2026.)
+        $schedule->command('news:fetch')->everyThreeHours()->withoutOverlapping();
+        // Permanently delete news older than 7 days, keeping the table small.
+        $schedule->command('news:purge-old')->everySixHours()->withoutOverlapping();
     })
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->validateCsrfTokens(except: [
